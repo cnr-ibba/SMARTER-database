@@ -1,6 +1,13 @@
+
 import sys
+import shutil
 
 REQUIRED_PYTHON = "python3"
+REQUIRED_SOFTWARES = [
+    'plink',
+    'tabix',
+    'vcftools'
+]
 
 
 def main():
@@ -16,8 +23,23 @@ def main():
         raise TypeError(
             "This project requires Python {}. Found: Python {}".format(
                 required_major, sys.version))
-    else:
-        print(">>> Development environment passes all tests!")
+
+    # test for software dependencies
+    path = dict()
+
+    for software in REQUIRED_SOFTWARES:
+        path[software] = shutil.which(software)
+
+    if None in path.values():
+        for key, value in path.items():
+            if value is None:
+                print(f"{key} is required for analyses")
+
+        raise Exception(
+            "This project requires some software installed!"
+        )
+
+    print(">>> Development environment passes all tests!")
 
 
 if __name__ == '__main__':
