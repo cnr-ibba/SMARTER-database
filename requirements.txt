@@ -56,6 +56,7 @@ ptyprocess==0.7.0
 pyasn1==0.4.8
 pycodestyle==2.6.0
 pycparser==2.20
+pyensemblrest==0.2.3
 pyflakes==2.2.0
 pygments==2.8.0
 pyparsing==2.4.7
