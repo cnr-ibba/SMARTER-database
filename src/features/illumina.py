@@ -21,10 +21,17 @@ def sanitize(word):
     return re.sub(r"\s+", "_", word).lower()
 
 
-def read_snpMap(path: str, size=2048):
+def read_snpMap(path: str, size=2048, skip=0):
     sniffer = csv.Sniffer()
 
     with open(path) as handle:
+        if skip > 0:
+            logger.info(f"Skipping {skip} lines")
+            tmp = itertools.islice(handle, skip)
+            for line in tmp:
+                logger.debug(f"Skipping: {line}")
+
+        # try to determine dialect
         dialect = sniffer.sniff(handle.read(size))
         handle.seek(0)
         reader = csv.reader(handle, dialect=dialect)
@@ -58,13 +65,25 @@ def read_snpMap(path: str, size=2048):
             yield record
 
 
-def read_snpChip(path: str, size=2048):
+def read_snpChip(path: str, size=2048, skip=0, delimiter=None):
     sniffer = csv.Sniffer()
 
     with open(path) as handle:
-        dialect = sniffer.sniff(handle.read(size))
-        handle.seek(0)
-        reader = csv.reader(handle, dialect=dialect)
+        if delimiter:
+            reader = csv.reader(handle, delimiter=delimiter)
+
+        else:
+            # TODO: search for [Assay] row
+            if skip > 0:
+                logger.info(f"Skipping {skip} lines")
+                tmp = itertools.islice(handle, skip)
+                for line in tmp:
+                    logger.error(f"Skipping: {line}")
+
+            # try to determine dialect
+            dialect = sniffer.sniff(handle.read(size))
+            handle.seek(0)
+            reader = csv.reader(handle, dialect=dialect)
 
         # throw away the first 7 lines from reader
         list(itertools.islice(reader, 7))
