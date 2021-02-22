@@ -76,6 +76,7 @@ pycparser==2.20
 pyensemblrest==0.2.3
 pyflakes==2.2.0
 pygments==2.8.0
+pymongo==3.11.3
 pyparsing==2.4.7
 pyrsistent==0.17.3
 pytest==6.2.2

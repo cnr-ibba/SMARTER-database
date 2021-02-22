@@ -1,0 +1,5 @@
+# ignoring docker related stuff
+.env
+mongodb-data/
+mongodb-home/.dbshell
+mongodb-home/*.json
