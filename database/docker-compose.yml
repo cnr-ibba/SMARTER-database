@@ -15,6 +15,7 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGODB_ROOT_USER}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGODB_ROOT_PASS}
+      MONGO_INITDB_DATABASE: 'smarter'
 
     # to export volume, as recommeded in https://registry.hub.docker.com/u/library/mysql/
     volumes:
@@ -25,6 +26,10 @@ services:
       - type: bind
         source: ./mongodb-home
         target: /home/mongodb
+
+      - type: bind
+        source: ./docker-entrypoint-initdb.d
+        target: /docker-entrypoint-initdb.d
 
     networks:
       - default
