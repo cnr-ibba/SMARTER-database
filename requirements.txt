@@ -73,6 +73,7 @@ ptyprocess==0.7.0
 py==1.10.0
 pyasn1==0.4.8
 pycodestyle==2.6.0
+pycountry==20.7.3
 pycparser==2.20
 pyensemblrest==0.2.3
 pyflakes==2.2.0

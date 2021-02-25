@@ -35,3 +35,54 @@ db.createCollection("breeds", {
 
 // create a unique index case insensitive
 db.breeds.createIndex( { "species": 1, "breed.code": 1 }, { unique: true, collation: { locale: 'en', strength: 1 } } )
+
+// create a collection for sheep samples
+db.createCollection("sampleSheep", {
+  validator: {
+    $jsonSchema: {
+      bsonType: "object",
+      required: ["smarterId", "originalId"],
+      properties: {
+        smarterId: {
+          bsonType: "string",
+          description: "this is the smarter internal id"
+        },
+        originalId: {
+          bsonType: "string",
+          description: "this is the original sample id submitted by partners"
+        }
+      }
+    }
+  }
+})
+
+// create a unique index case insensitive
+db.sampleSheep.createIndex( { "smarterId": 1 }, { unique: true } )
+
+// create a collection for counters
+db.createCollection("counters", {
+  validator: {
+    $jsonSchema: {
+      bsonType: "object",
+      required: ["sequence_value"],
+      properties: {
+        sequence_value: {
+          bsonType: "int",
+          description: "last sequence value"
+        }
+      }
+    }
+  }
+})
+
+// initialize counter values
+db.counters.insertMany([
+  {
+    _id: "sampleSheep",
+    sequence_value: NumberInt("0")
+  },
+  {
+    _id: "sampleGoat",
+    sequence_value: NumberInt("0")
+  },
+])
