@@ -19,21 +19,23 @@ SMARTERDB = "smarter"
 
 
 def getNextSequenceValue(
-        sequence_name: str, mongodb: database.Database):
+        sequence_name: str, mongodb: database.Database, session=None):
     # this method is something similar to findAndModify,
     # update a document and after get the UPDATED document
     # https://docs.mongodb.com/manual/reference/method/db.collection.findAndModify/index.html#db.collection.findAndModify
     sequenceDocument = mongodb.counters.find_one_and_update(
         {"_id": sequence_name},
         {"$inc": {"sequence_value": 1}},
-        return_document=ReturnDocument.AFTER
+        return_document=ReturnDocument.AFTER,
+        session=session
     )
 
     return sequenceDocument['sequence_value']
 
 
 def getSmarterId(
-        species: str, country: str, breed: str, mongodb: database.Database):
+        species: str, country: str, breed: str, mongodb: database.Database,
+        session=None):
     # get species code
     if species not in SPECIES2CODE:
         raise Exception("Species %s not managed by smarter" % (species))
@@ -52,7 +54,7 @@ def getSmarterId(
     sequence_name = f"sample{species}"
 
     # get the sequence number and define smarter id
-    sequence_id = getNextSequenceValue(sequence_name, mongodb)
+    sequence_id = getNextSequenceValue(sequence_name, mongodb, session)
 
     # padding numbers
     sequence_id = str(sequence_id).zfill(4)
@@ -91,8 +93,12 @@ class SampleSheep():
         for key in self.__attrs:
             data[key] = getattr(self, key)
 
-        smarter_id = getSmarterId(
-            self.species, self.country, self.breed, db)
+        with self.__client.start_session() as session:
+            with session.start_transaction():
+                smarter_id = getSmarterId(
+                    self.species, self.country, self.breed, db, session)
 
-        data['smarterId'] = smarter_id
-        collection.insert_one(data)
+                raise Exception("test")
+
+                data['smarterId'] = smarter_id
+                collection.insert_one(data, session)

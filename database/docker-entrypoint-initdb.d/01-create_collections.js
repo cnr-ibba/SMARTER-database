@@ -76,13 +76,13 @@ db.createCollection("counters", {
 })
 
 // initialize counter values
-db.counters.insertMany([
-  {
-    _id: "sampleSheep",
-    sequence_value: NumberInt("0")
-  },
-  {
-    _id: "sampleGoat",
-    sequence_value: NumberInt("0")
-  },
-])
+// db.counters.insertMany([
+//   {
+//     _id: "sampleSheep",
+//     sequence_value: NumberInt("0")
+//   },
+//   {
+//     _id: "sampleGoat",
+//     sequence_value: NumberInt("0")
+//   },
+// ])
