@@ -28,6 +28,8 @@ def read_snpChimp(path: str, size=2048):
         # sanitize column names
         header = [column.lower() for column in header]
 
+        logger.info(header)
+
         # define a datatype for my data
         SnpChimp = collections.namedtuple("SnpChimp", header)
 
@@ -36,6 +38,9 @@ def read_snpChimp(path: str, size=2048):
             # forcing data types
             record[header.index('position')] = int(
                 record[header.index('position')])
+
+            # transform NULL valies in None
+            record = [None if col == 'NULL' else col for col in record]
 
             # convert into collection
             record = SnpChimp._make(record)
