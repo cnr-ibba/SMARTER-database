@@ -67,6 +67,7 @@ def read_snpMap(path: str, size=2048, skip=0):
 
 def read_snpChip(path: str, size=2048, skip=0, delimiter=None):
     sniffer = csv.Sniffer()
+    pattern = re.compile(r"\[(.*)\]")
 
     with open(path) as handle:
         if delimiter:
@@ -94,6 +95,8 @@ def read_snpChip(path: str, size=2048, skip=0, delimiter=None):
         # sanitize column names
         header = [sanitize(column) for column in header]
 
+        logger.info(header)
+
         # define a datatype for my data
         SnpChip = collections.namedtuple("SnpChip", header)
 
@@ -112,6 +115,12 @@ def read_snpChip(path: str, size=2048, skip=0, delimiter=None):
             except ValueError as e:
                 logging.warning(
                     "Cannot parse %s:%s" % (record, str(e)))
+
+            # drop brakets from SNP [A/G] -> A/G
+            record[header.index('snp')] = re.sub(
+                r'[\[\]]',
+                "",
+                record[header.index('snp')])
 
             # convert into collection
             record = SnpChip._make(record)

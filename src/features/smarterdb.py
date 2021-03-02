@@ -123,6 +123,8 @@ class Location(mongoengine.EmbeddedDocument):
     position = mongoengine.IntField()
     contig = mongoengine.StringField()
     alleles = mongoengine.StringField()
+    illumina = mongoengine.StringField()
+    illumina_top = mongoengine.StringField()
     illumina_forward = mongoengine.StringField()
     ilmnstrand = mongoengine.StringField()
     strand = mongoengine.StringField()
@@ -135,7 +137,6 @@ class Consequence(mongoengine.EmbeddedDocument):
 
 class VariantSheep(mongoengine.Document):
     rs_id = mongoengine.StringField()
-    illumina_top = mongoengine.StringField()
     chip_name = mongoengine.ListField(mongoengine.StringField())
     name = mongoengine.StringField(unique=True)
     consequences = mongoengine.ListField(
@@ -149,3 +150,6 @@ class VariantSheep(mongoengine.Document):
         'db_alias': DB_ALIAS,
         'collection': 'variantSheep'
     }
+
+    def __str__(self):
+        return (f"name='{self.name}', rs_id='{self.rs_id}'")
