@@ -6,9 +6,12 @@ Created on Tue Feb 23 16:21:35 2021
 @author: Paolo Cozzi <paolo.cozzi@ibba.cnr.it>
 """
 
+import os
 import pycountry
-from pymongo import database, ReturnDocument
+import mongoengine
 
+from pymongo import database, ReturnDocument
+from dotenv import find_dotenv, load_dotenv
 
 SPECIES2CODE = {
     "Sheep": "OA",
@@ -16,6 +19,21 @@ SPECIES2CODE = {
 }
 
 SMARTERDB = "smarter"
+DB_ALIAS = "smarterdb"
+
+
+def global_connection():
+    # find .env automagically by walking up directories until it's found, then
+    # load up the .env entries as environment variables
+    load_dotenv(find_dotenv())
+
+    # TODO: track connection somewhere
+    return mongoengine.connect(
+        SMARTERDB,
+        username=os.getenv("MONGODB_ROOT_USER"),
+        password=os.getenv("MONGODB_ROOT_PASS"),
+        authentication_source='admin',
+        alias=DB_ALIAS)
 
 
 def getNextSequenceValue(
@@ -96,3 +114,38 @@ class SampleSheep():
 
         data['smarterId'] = smarter_id
         collection.insert_one(data)
+
+
+class Location(mongoengine.EmbeddedDocument):
+    ss_id = mongoengine.StringField()
+    version = mongoengine.StringField()
+    chrom = mongoengine.StringField()
+    position = mongoengine.IntField()
+    contig = mongoengine.StringField()
+    alleles = mongoengine.StringField()
+    illumina_forward = mongoengine.StringField()
+    ilmnstrand = mongoengine.StringField()
+    strand = mongoengine.StringField()
+    imported_from = mongoengine.StringField()
+
+
+class Consequence(mongoengine.EmbeddedDocument):
+    pass
+
+
+class VariantSheep(mongoengine.Document):
+    rs_id = mongoengine.StringField()
+    illumina_top = mongoengine.StringField()
+    chip_name = mongoengine.ListField(mongoengine.StringField())
+    name = mongoengine.StringField(unique=True)
+    consequences = mongoengine.ListField(
+        mongoengine.EmbeddedDocumentField(Consequence))
+    sequence = mongoengine.StringField()
+    locations = mongoengine.ListField(
+        mongoengine.EmbeddedDocumentField(Location))
+    sender = mongoengine.StringField()
+
+    meta = {
+        'db_alias': DB_ALIAS,
+        'collection': 'variantSheep'
+    }
