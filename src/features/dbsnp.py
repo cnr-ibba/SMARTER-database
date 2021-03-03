@@ -80,64 +80,50 @@ def process_element(path: list, elem: ET.Element, snp: dict):
     return snp
 
 
-def read_dbSNP(path: str):
-    keys = list()
+def process_rs_elem(elem: ET.Element):
+    def clean_tag(tag: str):
+        return re.sub(r"\{.*\}", "", tag)
+
+    def recurse_children(snp: dict, path: list, elem: ET.Element):
+        for item in elem.iterchildren():
+            path.append(clean_tag(item.tag))
+            snp = process_element(path, item, snp)
+            snp = recurse_children(snp, path, item)
+            path.pop()
+
+        return snp
+
+    path = ['ExchangeSet']
     snp = dict()
 
+    # create a snp instance
+    path.append(clean_tag(elem.tag))
+    snp = process_element(path, elem, snp)
+
+    # iterate over children
+    snp = recurse_children(snp, path, elem)
+
+    return snp
+
+
+def read_dbSNP(path: str):
     with gzip.open(path) as handle:
-        for event, elem in ET.iterparse(
-                handle,
-                events=("start", "end")):
-
-            logger.debug(
-                f"event: {event}, tag: {elem.tag}, "
-                f"attrib: {elem.attrib}, text: {elem.text}")
-
+        for event, elem in ET.iterparse(handle, events=("end", )):
             tag = re.sub(r"\{.*\}", "", elem.tag)
 
-            if event == "start":
-                # appending tag to the path keys
-                keys.append(tag)
-
+            if tag.lower() == "rs":
                 logger.debug(
-                    f"Got {event} event for '{tag}'. Keys are: {keys}")
-
-                # processing element
-                try:
-                    snp = process_element(keys, elem, snp)
-
-                except AttributeError as e:
-                    logger.error(
-                        f"Error while reading {keys} "
-                        f"for rs{snp['rsId']}: {e}")
-
-            elif event == "end":
-                # remove last elemenent from path keys
-                key = keys.pop()
-
-                if key != tag:
-                    raise Exception(
-                        f"Remove a key different from last tag {key}<>{tag}")
-
-                logger.debug(
-                    f"Got {event} event for '{key}'. Keys are: {keys}")
-
-                # debug
-                if key == "Rs":
-                    logger.debug(f"Found rsID {snp['rsId']}")
-                    yield snp
-
-                    # reset snp
-                    snp = dict()
+                    f"Found tag: {elem.tag}, "
+                    f"attrib: {elem.attrib}, text: {str(elem.text).strip()}")
+                yield process_rs_elem(elem)
 
                 # release memory after processing elem
                 elem.clear()
 
-            # case event
-
-        # cicle elementtree
-
-    # closing file
+            else:
+                logger.debug(
+                    f"Ignoring tag: {elem.tag}, "
+                    f"attrib: {elem.attrib}, text: {str(elem.text).strip()}")
 
 
 def search_chip_snps(snp, handle="AGR_BS"):
