@@ -9,7 +9,8 @@ Created on Wed Mar  3 10:54:15 2021
 import re
 import gzip
 import logging
-import xml.etree.ElementTree as ET
+
+from lxml import etree as ET
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -18,19 +19,19 @@ logger = logging.getLogger(__name__)
 def process_element(path: list, elem: ET.Element, snp: dict):
     if path == ['ExchangeSet', 'Rs']:
         logger.debug(f"Creating a new SNP: {elem.attrib}")
-        snp = elem.attrib
+        snp = dict(elem.attrib)
 
     elif path == ['ExchangeSet', 'Rs', 'Create']:
         logger.debug(f"Update snp: {elem.attrib}")
-        snp["create"] = elem.attrib
+        snp["create"] = dict(elem.attrib)
 
     elif path == ['ExchangeSet', 'Rs', 'Update']:
         logger.debug(f"Update snp: {elem.attrib}")
-        snp["update"] = elem.attrib
+        snp["update"] = dict(elem.attrib)
 
     elif path == ['ExchangeSet', 'Rs', 'Sequence']:
         logger.debug(f"Create exemplar: {elem.attrib}")
-        snp["exemplar"] = elem.attrib
+        snp["exemplar"] = dict(elem.attrib)
 
     elif path == ['ExchangeSet', 'Rs', 'Sequence', 'Observed']:
         logger.debug(f"Update exemplar: {elem.text.strip()}")
@@ -39,10 +40,10 @@ def process_element(path: list, elem: ET.Element, snp: dict):
     elif path == ['ExchangeSet', 'Rs', 'Ss']:
         if 'ss' in snp:
             logger.debug(f"Update snp. Append ss: {elem.attrib}")
-            snp["ss"].append(elem.attrib)
+            snp["ss"].append(dict(elem.attrib))
         else:
             logger.debug(f"Update snp. Create ss: {elem.attrib}")
-            snp["ss"] = [elem.attrib]
+            snp["ss"] = [dict(elem.attrib)]
 
     elif path == ['ExchangeSet', 'Rs', 'Ss', 'Sequence', 'Seq5']:
         logger.debug(f"Update seq5 for ss {snp['ss'][-1]['ssId']}")
@@ -58,19 +59,19 @@ def process_element(path: list, elem: ET.Element, snp: dict):
 
     elif path == ['ExchangeSet', 'Rs', 'Assembly']:
         logger.debug(f"Adding assembly record: {elem.attrib}")
-        snp["assembly"] = elem.attrib
+        snp["assembly"] = dict(elem.attrib)
 
     elif path == ['ExchangeSet', 'Rs', 'Assembly', 'Component']:
         logger.debug(f"Update assembly record: {elem.attrib}")
-        snp["assembly"]["component"] = elem.attrib
+        snp["assembly"]["component"] = dict(elem.attrib)
 
     elif path == ['ExchangeSet', 'Rs', 'Assembly', 'Component', 'MapLoc']:
         logger.debug(f"Update assembly record: {elem.attrib}")
-        snp["assembly"]["component"]["maploc"] = elem.attrib
+        snp["assembly"]["component"]["maploc"] = dict(elem.attrib)
 
     elif path == ['ExchangeSet', 'Rs', 'Assembly', 'SnpStat']:
         logger.debug(f"Update assembly record: {elem.attrib}")
-        snp["assembly"]["snpstat"] = elem.attrib
+        snp["assembly"]["snpstat"] = dict(elem.attrib)
 
     else:
         logger.debug(
@@ -137,3 +138,10 @@ def read_dbSNP(path: str):
         # cicle elementtree
 
     # closing file
+
+
+def search_chip_snps(snp, handle="AGR_BS"):
+    for ss in snp['ss']:
+        if ss['handle'] == handle:
+            return True
+    return False
