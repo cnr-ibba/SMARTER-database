@@ -67,7 +67,6 @@ def read_snpMap(path: str, size=2048, skip=0):
 
 def read_snpChip(path: str, size=2048, skip=0, delimiter=None):
     sniffer = csv.Sniffer()
-    pattern = re.compile(r"\[(.*)\]")
 
     with open(path) as handle:
         if delimiter:
