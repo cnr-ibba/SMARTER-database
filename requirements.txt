@@ -23,6 +23,7 @@ defusedxml==0.6.0
 deprecated==1.2.11
 docutils==0.15.2
 entrypoints==0.3
+et-xmlfile==1.0.1
 flake8==3.8.4
 fsspec==0.8.5
 idna==2.10
@@ -32,6 +33,7 @@ ipykernel==5.4.3
 ipython==7.20.0
 ipython-genutils==0.2.0
 ipywidgets==7.6.3
+jdcal==1.4.1
 jedi==0.18.0
 jinja2==2.11.3
 jmespath==0.10.0
@@ -59,6 +61,7 @@ nbformat==5.1.2
 nest-asyncio==1.5.1
 notebook==6.2.0
 numpy==1.20.1
+openpyxl==3.0.6
 packaging==20.9
 pandas==1.2.2
 pandas-plink==2.2.4
@@ -118,4 +121,5 @@ webencodings==0.5.1
 widgetsnbextension==3.5.1
 wrapt==1.12.1
 xarray==0.16.2
+xlrd==2.0.1
 zstandard==0.15.1
