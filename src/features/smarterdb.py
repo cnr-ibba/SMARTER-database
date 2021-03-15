@@ -7,6 +7,7 @@ Created on Tue Feb 23 16:21:35 2021
 """
 
 import os
+import logging
 import pycountry
 import mongoengine
 
@@ -20,6 +21,9 @@ SPECIES2CODE = {
 
 SMARTERDB = "smarter"
 DB_ALIAS = "smarterdb"
+
+# Get an instance of a logger
+logger = logging.getLogger(__name__)
 
 
 def global_connection():
@@ -80,6 +84,37 @@ def getSmarterId(
     return smarter_id
 
 
+class Dataset(mongoengine.Document):
+    """Describe a dataset instace with fields owned by data types"""
+
+    file = mongoengine.StringField(required=True, unique=True)
+    uploader = mongoengine.StringField()
+    size_ = mongoengine.StringField(db_field="size")
+    partner = mongoengine.StringField()
+
+    # HINT: should country, species and breeds be a list of items?
+    country = mongoengine.StringField()
+    species = mongoengine.StringField()
+    breed = mongoengine.StringField()
+
+    n_of_individuals = mongoengine.IntField()
+    n_of_records = mongoengine.IntField()
+    trait = mongoengine.StringField()
+    gene_array = mongoengine.StringField()
+
+    # add type tag
+    type_ = mongoengine.ListField(mongoengine.StringField(), db_field="type")
+
+    meta = {
+        'db_alias': DB_ALIAS,
+        'collection': 'dataset'
+    }
+
+    def __str__(self):
+        return f"file={self.file}, uploader={self.uploader}"
+
+
+# TODO: convert to a mongoengine derived class
 class SampleSheep():
     def __init__(self, mongoclient=None, **kwargs):
         # track database connection

@@ -6,23 +6,18 @@ Created on Mon Feb 22 18:32:54 2021
 @author: Paolo Cozzi <paolo.cozzi@ibba.cnr.it>
 """
 
-import os
-import re
 import csv
 import json
 import click
 import logging
+import collections
 
 from pathlib import Path
 
 from dotenv import find_dotenv, load_dotenv
-from pymongo import MongoClient
 
-
-# function to convert string to camelCase
-def camelCase(string):
-    string = re.sub(r"(_|-|\.)+", " ", string).title().replace(" ", "")
-    return string[0].lower() + string[1:]
+from src.features.smarterdb import global_connection, Dataset
+from src.features.utils import sanitize
 
 
 @click.command()
@@ -41,56 +36,42 @@ def main(input_filepath, output_filepath, types):
     logger = logging.getLogger(__name__)
 
     # connect to database
-    client = MongoClient(
-        'mongodb://localhost:27017/',
-        username=os.getenv("MONGODB_ROOT_USER"),
-        password=os.getenv("MONGODB_ROOT_PASS")
-    )
-
-    # get database and collection
-    db = client['smarter']
-    collection = db['dataset']
+    global_connection()
 
     with open(input_filepath) as handle:
         reader = csv.reader(handle, delimiter=";")
 
         header = next(reader)
-        header[0] = 'id'
+
+        # remove header id
+        del(header[0])
 
         # sanitize column
-        header = [camelCase(col) for col in header]
+        header = [sanitize(col) for col in header]
 
         logger.info("Got %s as header" % header)
 
+        # define a datatype for my data
+        Record = collections.namedtuple("Record", header)
+
         for line in reader:
-            record = dict()
+            # remove id from record
+            del(line[0])
 
-            # skip the header id column
-            for i, col in enumerate(header[1:], 1):
-                record[col] = line[i]
+            # remove empty string
+            line = [col if col != '' else None for col in line]
 
-            # add type data
-            record['type'] = types
+            record = Record._make(line)
+            logger.debug(record)
 
-            logger.info("Inserting %s" % str(record))
-
-            collection.update_one(
-                {"file": record["file"]},
-                {"$set": record},
-                upsert=True
-            )
+            # insert or update with a mongodb method
+            Dataset.objects(file=record.file).upsert_one(
+                **record._asdict(),
+                type_=types)
 
     with open(output_filepath, "w") as handle:
         # after insert collect all data of the same type
-        docs = list(
-            collection.find(
-                {'type': {'$all': types}},
-                {'_id': 0}
-            )
-        )
-
-        # write a record in json file
-        json.dump(docs, handle, indent=2)
+        handle.write(Dataset.objects.to_json(indent=2))
 
     logger.info(f"Data written into database and in {output_filepath}")
 

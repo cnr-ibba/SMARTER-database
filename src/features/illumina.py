@@ -12,13 +12,10 @@ import logging
 import itertools
 import collections
 
+from src.features.utils import sanitize
+
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
-
-
-def sanitize(word):
-    # remove spaces from column name and lowercase all
-    return re.sub(r"\s+", "_", word).lower()
 
 
 def read_snpMap(path: str, size=2048, skip=0):
