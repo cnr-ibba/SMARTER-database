@@ -105,6 +105,9 @@ class Dataset(mongoengine.Document):
     # add type tag
     type_ = mongoengine.ListField(mongoengine.StringField(), db_field="type")
 
+    # file contents
+    contents = mongoengine.ListField(mongoengine.StringField())
+
     meta = {
         'db_alias': DB_ALIAS,
         'collection': 'dataset'

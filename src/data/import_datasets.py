@@ -7,14 +7,12 @@ Created on Mon Feb 22 18:32:54 2021
 """
 
 import csv
-import json
 import click
 import logging
+import zipfile
 import collections
 
 from pathlib import Path
-
-from dotenv import find_dotenv, load_dotenv
 
 from src.features.smarterdb import global_connection, Dataset
 from src.features.utils import sanitize
@@ -64,10 +62,28 @@ def main(input_filepath, output_filepath, types):
             record = Record._make(line)
             logger.debug(record)
 
+            # search for the archive file
+            archive = next(project_dir.rglob(record.file))
+            logger.info(f"Found {archive} as archive")
+
+            archive = zipfile.ZipFile(archive)
+
+            logger.debug("Get file contents")
+            contents = archive.namelist()
+            logger.debug(contents)
+
             # insert or update with a mongodb method
-            Dataset.objects(file=record.file).upsert_one(
+            dataset = Dataset.objects(file=record.file).upsert_one(
                 **record._asdict(),
-                type_=types)
+                type_=types,
+                contents=contents)
+
+            # ok extract content to working directory
+            # TODO: don't work with plain text files, try to work with
+            # compressed data
+            working_dir = project_dir / f"data/interim/{dataset.id}"
+            working_dir.mkdir(exist_ok=True)
+            archive.extractall(working_dir)
 
     with open(output_filepath, "w") as handle:
         # after insert collect all data of the same type
@@ -80,11 +96,7 @@ if __name__ == '__main__':
     log_fmt = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     logging.basicConfig(level=logging.DEBUG, format=log_fmt)
 
-    # not used in this stub but often useful for finding various files
+    # this is the root of SMARTER-database project
     project_dir = Path(__file__).resolve().parents[2]
-
-    # find .env automagically by walking up directories until it's found, then
-    # load up the .env entries as environment variables
-    load_dotenv(find_dotenv())
 
     main()
