@@ -40,6 +40,58 @@ def global_connection():
         alias=DB_ALIAS)
 
 
+class Breed(mongoengine.Document):
+    class EmbeddedBreed(mongoengine.EmbeddedDocument):
+        name = mongoengine.StringField(required=True)
+        code = mongoengine.StringField(required=True)
+
+    species = mongoengine.StringField(required=True)
+    breed = mongoengine.EmbeddedDocumentField(EmbeddedBreed, required=True)
+    aliases = mongoengine.ListField(mongoengine.StringField())
+    n_individuals = mongoengine.IntField(db_field='nIndividuals')
+
+    meta = {
+        'db_alias': DB_ALIAS,
+        'collection': 'breeds'
+    }
+
+    def __str__(self):
+        return f"{self.breed.name} ({self.breed.code}) {self.species}"
+
+
+class Dataset(mongoengine.Document):
+    """Describe a dataset instace with fields owned by data types"""
+
+    file = mongoengine.StringField(required=True, unique=True)
+    uploader = mongoengine.StringField()
+    size_ = mongoengine.StringField(db_field="size")
+    partner = mongoengine.StringField()
+
+    # HINT: should country, species and breeds be a list of items?
+    country = mongoengine.StringField()
+    species = mongoengine.StringField()
+    breed = mongoengine.StringField()
+
+    n_of_individuals = mongoengine.IntField()
+    n_of_records = mongoengine.IntField()
+    trait = mongoengine.StringField()
+    gene_array = mongoengine.StringField()
+
+    # add type tag
+    type_ = mongoengine.ListField(mongoengine.StringField(), db_field="type")
+
+    # file contents
+    contents = mongoengine.ListField(mongoengine.StringField())
+
+    meta = {
+        'db_alias': DB_ALIAS,
+        'collection': 'dataset'
+    }
+
+    def __str__(self):
+        return f"file={self.file}, uploader={self.uploader}"
+
+
 def getNextSequenceValue(
         sequence_name: str, mongodb: database.Database):
     # this method is something similar to findAndModify,
@@ -84,74 +136,44 @@ def getSmarterId(
     return smarter_id
 
 
-class Dataset(mongoengine.Document):
-    """Describe a dataset instace with fields owned by data types"""
+class SampleSheep(mongoengine.Document):
+    original_id = mongoengine.StringField(
+        required=True, db_field="originalId")
 
-    file = mongoengine.StringField(required=True, unique=True)
-    uploader = mongoengine.StringField()
-    size_ = mongoengine.StringField(db_field="size")
-    partner = mongoengine.StringField()
+    smarter_id = mongoengine.StringField(
+        required=True, db_field="smarterId")
 
-    # HINT: should country, species and breeds be a list of items?
     country = mongoengine.StringField()
     species = mongoengine.StringField()
     breed = mongoengine.StringField()
 
-    n_of_individuals = mongoengine.IntField()
-    n_of_records = mongoengine.IntField()
-    trait = mongoengine.StringField()
-    gene_array = mongoengine.StringField()
-
-    # add type tag
-    type_ = mongoengine.ListField(mongoengine.StringField(), db_field="type")
-
-    # file contents
-    contents = mongoengine.ListField(mongoengine.StringField())
+    dataset = mongoengine.ReferenceField(Dataset, db_field="dataset_id")
 
     meta = {
         'db_alias': DB_ALIAS,
-        'collection': 'dataset'
+        'collection': 'sampleSheep'
     }
 
+    def save(self, *args, **kwargs):
+        """Custom save method. Deal with smarter_id before save"""
+
+        if not self.smarter_id:
+            logger.debug(f"Determining smarter id for {self.original_id}")
+
+            # get the pymongo connection object
+            conn = mongoengine.connection.get_db(alias=DB_ALIAS)
+
+            self.smarter_id = getSmarterId(
+                self.species,
+                self.country,
+                self.breed,
+                conn)
+
+        # default save method
+        super(SampleSheep, self).save(*args, **kwargs)
+
     def __str__(self):
-        return f"file={self.file}, uploader={self.uploader}"
-
-
-# TODO: convert to a mongoengine derived class
-class SampleSheep():
-    def __init__(self, mongoclient=None, **kwargs):
-        # track database connection
-        self.__client = mongoclient
-        self.__collection = "sampleSheep"
-
-        # those are my smarter ids (which are mandatory for validation)
-        self._id = None
-        self.smarterId = None
-        self.originalId = None
-
-        # those are all others field defined by this instance
-        self.__attrs = set()
-
-        for key, value in kwargs.items():
-            setattr(self, key, value)
-            self.__attrs.add(key)
-
-    def save(self):
-        # get a database instance
-        db = self.__client[SMARTERDB]
-        collection = db[self.__collection]
-
-        # initialize a data object
-        data = dict()
-
-        for key in self.__attrs:
-            data[key] = getattr(self, key)
-
-        smarter_id = getSmarterId(
-            self.species, self.country, self.breed, db)
-
-        data['smarterId'] = smarter_id
-        collection.insert_one(data)
+        return f"{self.smarter_id} ({self.original_id})"
 
 
 class Location(mongoengine.EmbeddedDocument):
