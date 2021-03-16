@@ -41,22 +41,27 @@ def global_connection():
 
 
 class Breed(mongoengine.Document):
-    class EmbeddedBreed(mongoengine.EmbeddedDocument):
-        name = mongoengine.StringField(required=True)
-        code = mongoengine.StringField(required=True)
-
     species = mongoengine.StringField(required=True)
-    breed = mongoengine.EmbeddedDocumentField(EmbeddedBreed, required=True)
+    name = mongoengine.StringField(required=True)
+    code = mongoengine.StringField(required=True)
     aliases = mongoengine.ListField(mongoengine.StringField())
-    n_individuals = mongoengine.IntField(db_field='nIndividuals')
+    n_individuals = mongoengine.IntField()
 
     meta = {
         'db_alias': DB_ALIAS,
-        'collection': 'breeds'
+        'collection': 'breeds',
+        'indexes': [{
+            'fields': [
+                "species",
+                "code"
+            ],
+            'unique': True,
+            'collation': {'locale': 'en', 'strength': 1}
+        }]
     }
 
     def __str__(self):
-        return f"{self.breed.name} ({self.breed.code}) {self.species}"
+        return f"{self.name} ({self.code}) {self.species}"
 
 
 class Dataset(mongoengine.Document):
@@ -118,9 +123,9 @@ def getSmarterId(
     country = pycountry.countries.get(name=country)
     country_code = country.alpha_2
 
-    # get breed code from database. Nested documents are nested dicts
+    # get breed code from database
     breed_code = mongodb.breeds.find_one(
-        {"species": species, "breed.name": breed})["breed"]["code"]
+        {"species": species, "name": breed})["code"]
 
     # derive sequence_name from species
     sequence_name = f"sample{species}"
@@ -137,15 +142,13 @@ def getSmarterId(
 
 
 class SampleSheep(mongoengine.Document):
-    original_id = mongoengine.StringField(
-        required=True, db_field="originalId")
-
-    smarter_id = mongoengine.StringField(
-        required=True, db_field="smarterId")
+    original_id = mongoengine.StringField(required=True)
+    smarter_id = mongoengine.StringField(required=True, unique=True)
 
     country = mongoengine.StringField()
     species = mongoengine.StringField()
     breed = mongoengine.StringField()
+    breed_code = mongoengine.StringField(max_length=3, min_length=3)
 
     dataset = mongoengine.ReferenceField(Dataset, db_field="dataset_id")
 

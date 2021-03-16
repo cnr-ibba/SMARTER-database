@@ -105,7 +105,7 @@ def main(mapfile, pedfile, dataset):
 
             # check for breed in database
             breed = Breed.objects(
-                Q(breed__name=line[0]) | Q(aliases__in=[line[0]])
+                Q(name=line[0]) | Q(aliases__in=[line[0]])
             ).get()
 
             logger.debug(f"Found breed {breed}")
@@ -124,7 +124,8 @@ def main(mapfile, pedfile, dataset):
                     original_id=line[1],
                     country=dataset.country,
                     species=dataset.species,
-                    breed=breed.breed.name,
+                    breed=breed.name,
+                    breed_code=breed.code,
                     dataset=dataset
                 )
                 sample.save()
@@ -134,7 +135,7 @@ def main(mapfile, pedfile, dataset):
                 breed.save()
 
             # updating ped line with smarter ids
-            line[0] = breed.breed.code
+            line[0] = breed.code
             line[1] = sample.smarter_id
 
             logger.info(f"Smarter: {line[:10]+ ['...']}")
