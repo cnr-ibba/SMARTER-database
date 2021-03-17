@@ -20,9 +20,11 @@ import itertools
 
 from pathlib import Path
 from mongoengine.queryset.visitor import Q
+from tqdm import tqdm
 
 from src.features.smarterdb import (
-    global_connection, Dataset, Breed, SampleSheep)
+    global_connection, Dataset, Breed, SampleSheep, VariantSheep)
+from src.features.utils import TqdmToLogger
 
 logger = logging.getLogger(__name__)
 
@@ -92,6 +94,38 @@ def main(mapfile, pedfile, dataset):
         logger.debug(line)
 
     logger.info(f"Read {len(mapdata)} snps from {mappath}")
+
+    logger.info("Writing a new map with updated coordinates")
+
+    output_dir = working_dir / "OARV3"
+    output_dir.mkdir(exist_ok=True)
+    output_map = Path(mapfile).stem + "_updated" + Path(mapfile).suffix
+    output_map = output_dir / output_map
+
+    # I need to track genotypes
+    genotypes = list()
+
+    with open(output_map, 'w') as handle:
+        writer = csv.writer(handle, delimiter=' ', lineterminator="\n")
+
+        tqdm_out = TqdmToLogger(logger, level=logging.INFO)
+
+        for line in tqdm(mapdata, file=tqdm_out, mininterval=3):
+            variant = VariantSheep.objects(name=line[1]).get()
+            location = variant.get_location(version='Oar_v3.1')
+
+            # get illumina top values from this variant
+            genotype = location.illumina_top.split("/")
+            genotypes.append(genotype)
+
+            writer.writerow([
+                location.chrom,
+                line[1],
+                line[2],
+                location.position
+            ])
+
+    logger.debug(f"collected {len(genotypes)} in 'Oar_v3.1' coordinates")
 
     with open(pedpath) as handle:
         logger.debug(f"Reading '{pedpath}' content")

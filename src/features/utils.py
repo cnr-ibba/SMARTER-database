@@ -6,7 +6,12 @@ Created on Mon Mar 15 14:13:51 2021
 @author: Paolo Cozzi <paolo.cozzi@ibba.cnr.it>
 """
 
+import io
 import re
+import logging
+
+# Get an instance of a logger
+logger = logging.getLogger(__name__)
 
 
 def sanitize(word: str, chars=['.', ","], check_mongoengine=True) -> str:
@@ -47,3 +52,24 @@ def camelCase(string: str) -> str:
 
     string = re.sub(r"(_|-|\.)+", " ", string).title().replace(" ", "")
     return string[0].lower() + string[1:]
+
+
+class TqdmToLogger(io.StringIO):
+    """
+        Output stream for TQDM which will output to logger module instead of
+        the StdOut.
+    """
+    logger = None
+    level = None
+    buf = ''
+
+    def __init__(self, logger, level=None):
+        super(TqdmToLogger, self).__init__()
+        self.logger = logger
+        self.level = level or logging.INFO
+
+    def write(self, buf):
+        self.buf = buf.strip('\r\n\t ')
+
+    def flush(self):
+        self.logger.log(self.level, self.buf)

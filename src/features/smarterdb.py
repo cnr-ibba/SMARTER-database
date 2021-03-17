@@ -193,6 +193,12 @@ class Location(mongoengine.EmbeddedDocument):
     strand = mongoengine.StringField()
     imported_from = mongoengine.StringField()
 
+    def __str__(self):
+        return (
+            f"({self.imported_from}:{self.version}) "
+            f"{self.chrom}:{self.position}"
+        )
+
 
 class Consequence(mongoengine.EmbeddedDocument):
     pass
@@ -216,3 +222,30 @@ class VariantSheep(mongoengine.Document):
 
     def __str__(self):
         return (f"name='{self.name}', rs_id='{self.rs_id}'")
+
+    def get_location(self, version: str, imported_from='SNPchiMp v.3'):
+        """Returns location for assembly version and imported source
+
+        Args:
+            version (str): assembly version (ex: 'Oar_v3.1')
+            imported_from (str): coordinates source (ex: 'SNPchiMp v.3')
+
+        Returns:
+            Position: the genomic coordinates
+        """
+
+        def custom_filter(location: Location):
+            if (location.version == version and
+                    location.imported_from == imported_from):
+                return True
+
+            return False
+
+        locations = list(filter(custom_filter, self.locations))
+
+        if len(locations) != 1:
+            raise Exception(
+                "Couldn't determine a unique location for "
+                f"{self.name} '{version}' '{imported_from}'")
+
+        return locations[0]
