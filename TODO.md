@@ -5,9 +5,6 @@ TODO
 Database
 --------
 
-* Add a counter collection for samples
-* Get country code list
-* define IDS like VarGoats format FRCH-PVC-0001 = CO(untry)SP(ecies)-BREED-ID
 * load breeds into database
 * create samples collection (one for goat, one for sheep)
 * create a variation collection (one for goat, one for sheep)
@@ -19,7 +16,10 @@ Database
   - import SNPchimp data into database (the proper variation collection)
   - parse dbSNP data and update position
   - parse EVA data and EnsEMBL data and update positions
-* configure replica set and transactions:
+* configure mongodb replica set and transactions:
   - https://docs.mongodb.com/manual/tutorial/enforce-keyfile-access-control-in-existing-replica-set/
   - https://stackoverflow.com/questions/61846280/how-to-add-configuration-for-mongodb-4-2-transaction-in-spring-boot
   - https://docs.mongodb.com/manual/tutorial/deploy-replica-set-for-testing/
+* manage python packages with [poetry](https://python-poetry.org/)
+* upgrade `mongoengine` to solve warnings while generating documentation with `sphinx`
+  (the `one-to-many-with-listfields` reference was fixed after version `0.23.0`)
