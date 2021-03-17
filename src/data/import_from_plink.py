@@ -4,6 +4,13 @@
 Created on Tue Mar 16 10:36:56 2021
 
 @author: Paolo Cozzi <paolo.cozzi@ibba.cnr.it>
+
+This script will upload data into smarter database starting from a couple of
+MAP/PED (plink) files and the archive file used for the dataset upload in the
+smarter database. Dataset country and species are mandatory and need to be
+correctly define, breed also must be loaded in database in order to define
+the full smarter id like CO(untry)SP(ecies)-BREED-ID
+
 """
 
 import csv
@@ -28,8 +35,8 @@ logger = logging.getLogger(__name__)
     help="The raw dataset file name (zip archive)"
 )
 def main(mapfile, pedfile, dataset):
-    """ Runs data processing scripts to turn raw data from (../raw) into
-        cleaned data ready to be analyzed (saved in ../processed).
+    """Read sample names from map/ped files and updata smarter database (insert
+    a record if necessary and define a smarter id for each sample)
     """
 
     logger.info(f"{Path(__file__).name} started")
@@ -117,8 +124,10 @@ def main(mapfile, pedfile, dataset):
                 logger.debug(f"Sample '{line[1]}' found in database")
                 sample = qs.get()
 
+                # TODO: update records if necessary
+
             else:
-                # TODO: insert sample into database
+                # nsert sample into database
                 logger.info(f"Registering sample '{line[1]}' in database")
                 sample = SampleSheep(
                     original_id=line[1],
