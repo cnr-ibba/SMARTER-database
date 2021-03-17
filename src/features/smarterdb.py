@@ -189,7 +189,7 @@ class Location(mongoengine.EmbeddedDocument):
     illumina = mongoengine.StringField()
     illumina_top = mongoengine.StringField()
     illumina_forward = mongoengine.StringField()
-    ilmnstrand = mongoengine.StringField()
+    illumina_strand = mongoengine.StringField()
     strand = mongoengine.StringField()
     imported_from = mongoengine.StringField()
 

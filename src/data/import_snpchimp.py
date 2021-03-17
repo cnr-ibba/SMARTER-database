@@ -42,7 +42,7 @@ def main():
             position=snpchimp.position,
             illumina_top=snpchimp.alleles_a_b_top,
             illumina_forward=snpchimp.alleles_a_b_forward,
-            ilmnstrand=snpchimp.orient,
+            illumina_strand=snpchimp.orient,
             strand=snpchimp.strand,
             alleles=snpchimp.alleles,
             imported_from="SNPchiMp v.3"

@@ -37,7 +37,7 @@ def main():
             chrom=snpchip.chr,
             position=snpchip.mapinfo,
             illumina=snpchip.snp,
-            ilmnstrand=snpchip.ilmnstrand,
+            illumina_strand=snpchip.ilmnstrand,
             strand=snpchip.sourcestrand,
             imported_from="manifest"
         )
