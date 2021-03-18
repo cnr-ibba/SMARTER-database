@@ -34,8 +34,8 @@ def global_connection():
     # TODO: track connection somewhere
     return mongoengine.connect(
         SMARTERDB,
-        username=os.getenv("MONGODB_ROOT_USER"),
-        password=os.getenv("MONGODB_ROOT_PASS"),
+        username=os.getenv("MONGODB_SMARTER_USER"),
+        password=os.getenv("MONGODB_SMARTER_PASS"),
         authentication_source='admin',
         alias=DB_ALIAS)
 

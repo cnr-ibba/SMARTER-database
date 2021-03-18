@@ -38,8 +38,8 @@ def main():
     # connect to database
     conn = MongoClient(
         'mongodb://localhost:27017/',
-        username=os.getenv("MONGODB_ROOT_USER"),
-        password=os.getenv("MONGODB_ROOT_PASS")
+        username=os.getenv("MONGODB_SMARTER_USER"),
+        password=os.getenv("MONGODB_SMARTER_PASS")
     )
 
     # get my snp names from database
