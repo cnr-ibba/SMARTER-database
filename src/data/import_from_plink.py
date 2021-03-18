@@ -23,10 +23,31 @@ from mongoengine.queryset.visitor import Q
 from tqdm import tqdm
 
 from src.features.smarterdb import (
-    global_connection, Dataset, Breed, SampleSheep, VariantSheep)
+    global_connection, Dataset, Breed, SampleSheep, VariantSheep, Location)
 from src.features.utils import TqdmToLogger
 
 logger = logging.getLogger(__name__)
+
+
+def is_top(genotype: list, location: Location, missing: str = "0") -> bool:
+    """Return True if genotype is compatible with illumina TOP coding
+
+    Returns:
+        bool: True if in top coordinates
+    """
+
+    # get illumina data as an array
+    top = location.illumina_top.split("/")
+
+    for allele in genotype:
+        # mind to missing values. If missing can't be equal to illumina_top
+        if allele == missing:
+            continue
+
+        if allele not in top:
+            return False
+
+    return True
 
 
 @click.command()
@@ -67,7 +88,8 @@ def main(mapfile, pedfile, dataset):
         return
 
     # check for working directory
-    working_dir = project_dir / f"data/interim/{dataset.id}"
+    working_dir = dataset.working_dir
+
     if not working_dir.exists():
         logger.critical("Could find dataset directory {working_dir}")
         return
@@ -95,7 +117,7 @@ def main(mapfile, pedfile, dataset):
 
     logger.info(f"Read {len(mapdata)} snps from {mappath}")
 
-    logger.info("Writing a new map with updated coordinates")
+    logger.info("Writing a new map file with updated coordinates")
 
     output_dir = working_dir / "OARV3"
     output_dir.mkdir(exist_ok=True)
@@ -103,7 +125,7 @@ def main(mapfile, pedfile, dataset):
     output_map = output_dir / output_map
 
     # I need to track genotypes
-    genotypes = list()
+    locations = list()
 
     with open(output_map, 'w') as handle:
         writer = csv.writer(handle, delimiter=' ', lineterminator="\n")
@@ -114,9 +136,8 @@ def main(mapfile, pedfile, dataset):
             variant = VariantSheep.objects(name=line[1]).get()
             location = variant.get_location(version='Oar_v3.1')
 
-            # get illumina top values from this variant
-            genotype = location.illumina_top.split("/")
-            genotypes.append(genotype)
+            # track data for this location
+            locations.append(location)
 
             writer.writerow([
                 location.chrom,
@@ -125,7 +146,13 @@ def main(mapfile, pedfile, dataset):
                 location.position
             ])
 
-    logger.debug(f"collected {len(genotypes)} in 'Oar_v3.1' coordinates")
+    logger.debug(f"collected {len(locations)} in 'Oar_v3.1' coordinates")
+
+    # opening ped file for writing updated genotypes
+    output_ped = Path(pedfile).stem + "_updated" + Path(pedfile).suffix
+    output_ped = output_dir / output_ped
+    handle_ped = open(output_ped, "w")
+    writer = csv.writer(handle_ped, delimiter=' ', lineterminator="\n")
 
     with open(pedpath) as handle:
         logger.debug(f"Reading '{pedpath}' content")
@@ -181,9 +208,28 @@ def main(mapfile, pedfile, dataset):
             line[0] = breed.code
             line[1] = sample.smarter_id
 
-            logger.info(f"Smarter: {line[:10]+ ['...']}")
+            # ok now is time to update genotypes
+            for j in range(len(mapdata)):
+                # get the proper position
+                location = locations[j]
+
+                # replacing the i-th genotypes. Skip 6 columns
+                a1 = line[6+j*2]
+                a2 = line[6+j*2+1]
+
+                genotype = [a1, a2]
+
+                if not is_top(genotype, location):
+                    raise Exception("Not illumina top format")
+
+            # write updated line into updated ped file
+            logger.info(f"Writing: {line[:10]+ ['...']}")
+            writer.writerow(line)
 
         logger.info(f"Processed {i+1} individuals")
+
+    # closing output ped file
+    handle_ped.close()
 
     logger.info(f"{Path(__file__).name} ended")
 
@@ -191,8 +237,5 @@ def main(mapfile, pedfile, dataset):
 if __name__ == '__main__':
     log_fmt = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     logging.basicConfig(level=logging.DEBUG, format=log_fmt)
-
-    # this is the root of SMARTER-database project
-    project_dir = Path(__file__).resolve().parents[2]
 
     main()

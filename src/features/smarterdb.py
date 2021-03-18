@@ -8,11 +8,14 @@ Created on Tue Feb 23 16:21:35 2021
 
 import os
 import logging
+import pathlib
 import pycountry
 import mongoengine
 
 from pymongo import database, ReturnDocument
 from dotenv import find_dotenv, load_dotenv
+
+from .utils import get_project_dir
 
 SPECIES2CODE = {
     "Sheep": "OA",
@@ -95,6 +98,22 @@ class Dataset(mongoengine.Document):
 
     def __str__(self):
         return f"file={self.file}, uploader={self.uploader}"
+
+    @property
+    def working_dir(self) -> pathlib.PosixPath:
+        """returns the locations of dataset working directory. Could exists
+        or not
+
+        Returns:
+            pathlib.PosixPath: the smarter project base dir
+        """
+
+        if not self.id:
+            raise Exception(
+                "Can't define working dir. Object need to be stored in "
+                "database")
+
+        return get_project_dir() / f"data/interim/{self.id}"
 
 
 def getNextSequenceValue(
@@ -231,7 +250,7 @@ class VariantSheep(mongoengine.Document):
             imported_from (str): coordinates source (ex: 'SNPchiMp v.3')
 
         Returns:
-            Position: the genomic coordinates
+            Location: the genomic coordinates
         """
 
         def custom_filter(location: Location):

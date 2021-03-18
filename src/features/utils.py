@@ -9,6 +9,7 @@ Created on Mon Mar 15 14:13:51 2021
 import io
 import re
 import logging
+import pathlib
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -73,3 +74,13 @@ class TqdmToLogger(io.StringIO):
 
     def flush(self):
         self.logger.log(self.level, self.buf)
+
+
+def get_project_dir() -> pathlib.PosixPath:
+    """Return smarter project dir (which are three levels upper from the
+    module in which this function is stored)
+
+    Returns:
+        pathlib.PosixPath: the smarter project base dir
+    """
+    return pathlib.Path(__file__).parents[2]
