@@ -105,7 +105,7 @@ class Dataset(mongoengine.Document):
         or not
 
         Returns:
-            pathlib.PosixPath: the smarter project base dir
+            pathlib.PosixPath: a subdirectory in /data/interim/
         """
 
         if not self.id:
@@ -114,6 +114,22 @@ class Dataset(mongoengine.Document):
                 "database")
 
         return get_project_dir() / f"data/interim/{self.id}"
+
+    @property
+    def result_dir(self) -> pathlib.PosixPath:
+        """returns the locations of dataset processed directory. Could exists
+        or not
+
+        Returns:
+            pathlib.PosixPath: a subdirectory in /data/processed/
+        """
+
+        if not self.id:
+            raise Exception(
+                "Can't define result dir. Object need to be stored in "
+                "database")
+
+        return get_project_dir() / f"data/processed/{self.id}"
 
 
 def getNextSequenceValue(

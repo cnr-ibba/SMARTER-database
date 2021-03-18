@@ -17,6 +17,7 @@ import csv
 import click
 import logging
 import itertools
+import subprocess
 
 from pathlib import Path
 from mongoengine.queryset.visitor import Q
@@ -48,6 +49,24 @@ def is_top(genotype: list, location: Location, missing: str = "0") -> bool:
             return False
 
     return True
+
+
+def clean_chrom(chrom: str):
+    """Return 0 if chrom is 99 (unmapped for snpchimp)
+
+    Args:
+        chrom (str): the (SNPchiMp) chromsome
+
+    Returns:
+        str: 0 if chrom == 99 else chrom
+
+    """
+
+    # forcing type (should be string by database constraints)
+    if str(chrom) == "99":
+        return "0"
+
+    return chrom
 
 
 @click.command()
@@ -132,7 +151,7 @@ def main(mapfile, pedfile, dataset):
 
         tqdm_out = TqdmToLogger(logger, level=logging.INFO)
 
-        for line in tqdm(mapdata, file=tqdm_out, mininterval=3):
+        for line in tqdm(mapdata, file=tqdm_out, mininterval=1):
             variant = VariantSheep.objects(name=line[1]).get()
             location = variant.get_location(version='Oar_v3.1')
 
@@ -140,7 +159,7 @@ def main(mapfile, pedfile, dataset):
             locations.append(location)
 
             writer.writerow([
-                location.chrom,
+                clean_chrom(location.chrom),
                 line[1],
                 line[2],
                 location.position
@@ -151,6 +170,7 @@ def main(mapfile, pedfile, dataset):
     # opening ped file for writing updated genotypes
     output_ped = Path(pedfile).stem + "_updated" + Path(pedfile).suffix
     output_ped = output_dir / output_ped
+
     handle_ped = open(output_ped, "w")
     writer = csv.writer(handle_ped, delimiter=' ', lineterminator="\n")
 
@@ -230,6 +250,27 @@ def main(mapfile, pedfile, dataset):
 
     # closing output ped file
     handle_ped.close()
+
+    # ok check for results dir
+    results_dir = dataset.result_dir
+    results_dir = results_dir / "OARV3"
+    results_dir.mkdir(parents=True, exist_ok=True)
+
+    # ok time to convert data in plink binary format
+    cmd = [
+        "plink",
+        f"--{dataset.species.lower()}",
+        "--file",
+        f"{output_dir / output_ped.stem}",
+        "--make-bed",
+        "--out",
+        f"{results_dir / output_ped.stem}"
+    ]
+
+    # debug
+    logger.info("Executing: " + " ".join(cmd))
+
+    subprocess.run(cmd, check=True)
 
     logger.info(f"{Path(__file__).name} ended")
 
