@@ -20,6 +20,7 @@ import itertools
 import subprocess
 
 from pathlib import Path
+from mongoengine.errors import DoesNotExist
 from mongoengine.queryset.visitor import Q
 from tqdm import tqdm
 
@@ -146,18 +147,38 @@ def main(mapfile, pedfile, dataset):
     # I need to track genotypes
     locations = list()
 
+    # need to track also filtered snps
+    filtered = set()
+
     with open(output_map, 'w') as handle:
         writer = csv.writer(handle, delimiter=' ', lineterminator="\n")
 
         tqdm_out = TqdmToLogger(logger, level=logging.INFO)
 
-        for line in tqdm(mapdata, file=tqdm_out, mininterval=1):
-            variant = VariantSheep.objects(name=line[1]).get()
+        for i, line in enumerate(tqdm(mapdata, file=tqdm_out, mininterval=1)):
+            try:
+                variant = VariantSheep.objects(name=line[1]).get()
+
+            except DoesNotExist as e:
+                logger.error(f"Couldn't find {line[1]}: {e}")
+
+                # skip this variant (even in ped)
+                filtered.add(i)
+
+                # need to add an empty value in locations (or my indexes
+                # won't work properly)
+                locations.append(None)
+
+                # I don't need to write down a row in new mapfile
+                continue
+
+            # get location for snpchimp (defalt) in oarv3.1 coordinates
             location = variant.get_location(version='Oar_v3.1')
 
             # track data for this location
             locations.append(location)
 
+            # a new record in mapfile
             writer.writerow([
                 clean_chrom(location.chrom),
                 line[1],
@@ -230,16 +251,29 @@ def main(mapfile, pedfile, dataset):
 
             # ok now is time to update genotypes
             for j in range(len(mapdata)):
-                # get the proper position
-                location = locations[j]
-
                 # replacing the i-th genotypes. Skip 6 columns
                 a1 = line[6+j*2]
                 a2 = line[6+j*2+1]
 
                 genotype = [a1, a2]
 
+                # is this snp filtered out
+                if j in filtered:
+                    logger.warning(
+                        f"Skipping {mapdata[j][1]}:[{a1}/{a2}] "
+                        "not in database!"
+                    )
+
+                    continue
+
+                # get the proper position
+                location = locations[j]
+
                 if not is_top(genotype, location):
+                    logger.critical(
+                        f"Error for {mapdata[j][1]}: "
+                        f"{a1}/{a2} <> {location.illumina_top}"
+                    )
                     raise Exception("Not illumina top format")
 
             # write updated line into updated ped file
