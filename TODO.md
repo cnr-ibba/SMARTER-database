@@ -6,6 +6,7 @@ Database
 --------
 
 * load breeds into database
+* Should I check genotype coding **before** importing dataset?
 * create samples collection (one for goat, one for sheep)
 * create a variation collection (one for goat, one for sheep)
   - determine unique values for *bottom*, *top*, *forward*
