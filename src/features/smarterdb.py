@@ -235,6 +235,7 @@ class Location(mongoengine.EmbeddedDocument):
         )
 
 
+# HINT: should be relative to location?
 class Consequence(mongoengine.EmbeddedDocument):
     pass
 

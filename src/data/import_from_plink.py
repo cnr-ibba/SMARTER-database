@@ -8,8 +8,10 @@ Created on Tue Mar 16 10:36:56 2021
 This script will upload data into smarter database starting from a couple of
 MAP/PED (plink) files and the archive file used for the dataset upload in the
 smarter database. Dataset country and species are mandatory and need to be
-correctly define, breed also must be loaded in database in order to define
+correctly defined, breed also must be loaded in database in order to define
 the full smarter id like CO(untry)SP(ecies)-BREED-ID
+The default format is illumina top, but its possible to convert into it
+from an illumina forward format
 """
 
 import csv
