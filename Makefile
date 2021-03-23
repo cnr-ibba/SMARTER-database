@@ -28,6 +28,12 @@ requirements: test_environment
 data: requirements
 	$(PYTHON_INTERPRETER) src/data/import_datasets.py --types genotypes background data/raw/genotypes-bg.csv data/processed/genotypes-bg.json
 	$(PYTHON_INTERPRETER) src/data/import_datasets.py --types phenotypes background data/raw/phenotypes-bg.csv data/processed/phenotypes-bg.json
+	## HINT: when should I load features like SNP positions into database?
+	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --mapfile TEXEL_UY.map --pedfile TEXEL_UY.ped --dataset TEXEL_INIA_UY.zip
+	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --mapfile Frizarta54samples_ped_map_files/Frizarta54samples.map \
+		--pedfile Frizarta54samples_ped_map_files/Frizarta54samples.ped --dataset Frizarta54samples_ped_map_files.zip --coding forward
+	## TODO: merge SNPs into 1 file
+	# plink --sheep --merge-list smarter-dataset.txt --make-bed --out SMARTER_OA_TOP_OARV3_20210323
 
 ## Delete all compiled Python files
 clean:

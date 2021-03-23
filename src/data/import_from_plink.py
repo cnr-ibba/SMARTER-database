@@ -10,7 +10,6 @@ MAP/PED (plink) files and the archive file used for the dataset upload in the
 smarter database. Dataset country and species are mandatory and need to be
 correctly define, breed also must be loaded in database in order to define
 the full smarter id like CO(untry)SP(ecies)-BREED-ID
-
 """
 
 import csv
@@ -52,6 +51,51 @@ def is_top(genotype: list, location: Location, missing: str = "0") -> bool:
     return True
 
 
+def is_forward(genotype: list, location: Location, missing: str = "0") -> bool:
+    """Return True if genotype is compatible with illumina FORWARD coding
+
+    Returns:
+        bool: True if in top coordinates
+    """
+
+    # get illumina data as an array
+    forward = location.illumina_forward.split("/")
+
+    for allele in genotype:
+        # mind to missing values
+        if allele == missing:
+            continue
+
+        if allele not in forward:
+            return False
+
+    return True
+
+
+def to_forward(genotype: list, location: Location, missing: str = "0") -> list:
+    """Convert an illumina top SNP in a illumina forward snp
+
+    Returns:
+        list: The genotype in top format
+    """
+
+    # get illumina data as an array
+    forward = location.illumina_forward.split("/")
+    top = location.illumina_top.split("/")
+
+    result = []
+
+    for allele in genotype:
+        # mind to missing values
+        if allele == missing:
+            result.append(allele)
+
+        else:
+            result.append(top[forward.index(allele)])
+
+    return result
+
+
 def clean_chrom(chrom: str):
     """Return 0 if chrom is 99 (unmapped for snpchimp)
 
@@ -77,7 +121,15 @@ def clean_chrom(chrom: str):
     '--dataset', type=str, required=True,
     help="The raw dataset file name (zip archive)"
 )
-def main(mapfile, pedfile, dataset):
+@click.option(
+    '--coding',
+    type=click.Choice(
+        ['top', 'forward'],
+        case_sensitive=False),
+    default="top", show_default=True,
+    help="Illumina conding format"
+)
+def main(mapfile, pedfile, dataset, coding):
     """Read sample names from map/ped files and updata smarter database (insert
     a record if necessary and define a smarter id for each sample)
     """
@@ -259,7 +311,7 @@ def main(mapfile, pedfile, dataset):
 
                 # is this snp filtered out
                 if j in filtered:
-                    logger.warning(
+                    logger.debug(
                         f"Skipping {mapdata[j][1]}:[{a1}/{a2}] "
                         "not in database!"
                     )
@@ -269,15 +321,39 @@ def main(mapfile, pedfile, dataset):
                 # get the proper position
                 location = locations[j]
 
-                if not is_top(genotype, location):
-                    logger.critical(
-                        f"Error for {mapdata[j][1]}: "
-                        f"{a1}/{a2} <> {location.illumina_top}"
-                    )
-                    raise Exception("Not illumina top format")
+                if coding == 'top':
+                    if not is_top(genotype, location):
+                        logger.critical(
+                            f"Error for {mapdata[j][1]}: "
+                            f"{a1}/{a2} <> {location.illumina_top}"
+                        )
+                        raise Exception("Not illumina top format")
+
+                elif coding == 'forward':
+                    if not is_forward(genotype, location):
+                        logger.critical(
+                            f"Error for {mapdata[j][1]}: "
+                            f"{a1}/{a2} <> {location.illumina_top}"
+                        )
+                        raise Exception("Not illumina forward format")
+
+                    # change the allele coding
+                    forward_genotype = to_forward(genotype, location)
+                    line[6+j*2], line[6+j*2+1] = forward_genotype
+
+                else:
+                    raise NotImplementedError("Coding not supported")
+
+            # need to remove filtered snps from ped line
+            for index in sorted(filtered, reverse=True):
+                # index is snp position. Need to delete two fields
+                del line[6+index*2+1]
+                del line[6+index*2]
 
             # write updated line into updated ped file
-            logger.info(f"Writing: {line[:10]+ ['...']}")
+            logger.info(
+                f"Writing: {line[:10]+ ['...']} "
+                f"({int((len(line)-6)/2)} SNPs)")
             writer.writerow(line)
 
         logger.info(f"Processed {i+1} individuals")
@@ -311,6 +387,6 @@ def main(mapfile, pedfile, dataset):
 
 if __name__ == '__main__':
     log_fmt = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-    logging.basicConfig(level=logging.DEBUG, format=log_fmt)
+    logging.basicConfig(level=logging.INFO, format=log_fmt)
 
     main()
