@@ -48,10 +48,19 @@ MONGODB_ROOT_USER=<smarter root database username>
 MONGODB_ROOT_PASS=<smarter root database password>
 ```
 
+Fix permissions for mongodb-home folder
+---------------------------------------
+
+In order to avoid annoying messages, set `mongodb-home` *sticky dir* permission
+
+```
+$ chmod o+wt mongodb-home/
+```
+
 Build images and start them up
 ------------------------------
 
-Initialize the smater database with:
+Initialize the smarter database with:
 
 ```
 $ docker-compose pull
