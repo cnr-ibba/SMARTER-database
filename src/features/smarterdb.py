@@ -29,14 +29,14 @@ DB_ALIAS = "smarterdb"
 logger = logging.getLogger(__name__)
 
 
-def global_connection():
+def global_connection(database_name: str = SMARTERDB):
     # find .env automagically by walking up directories until it's found, then
     # load up the .env entries as environment variables
     load_dotenv(find_dotenv())
 
     # TODO: track connection somewhere
     return mongoengine.connect(
-        SMARTERDB,
+        database_name,
         username=os.getenv("MONGODB_SMARTER_USER"),
         password=os.getenv("MONGODB_SMARTER_PASS"),
         authentication_source='admin',
