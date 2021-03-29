@@ -4,3 +4,4 @@ mongodb-data/
 mongodb-home/.dbshell
 mongodb-home/*.json
 mongodb-home/.bash_history
+mongodb-home/*.gz
