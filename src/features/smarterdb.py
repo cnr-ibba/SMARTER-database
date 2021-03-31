@@ -275,10 +275,78 @@ class Location(mongoengine.EmbeddedDocument):
             f"{self.chrom}:{self.position}"
         )
 
+    def __check_coding(self, genotype: list, coding: str, missing: str):
+        """Internal method to check genotype coding"""
 
-# HINT: should be relative to location?
-class Consequence(mongoengine.EmbeddedDocument):
-    pass
+        # get illumina data as an array
+        data = getattr(self, coding).split("/")
+
+        for allele in genotype:
+            # mind to missing values. If missing can't be equal to illumina_top
+            if allele == missing:
+                continue
+
+            if allele not in data:
+                return False
+
+        return True
+
+    def is_top(self, genotype: list, missing: str = "0") -> bool:
+        """Return True if genotype is compatible with illumina TOP coding
+
+        Args:
+            genotype (list): a list of two alleles (ex ['A','C'])
+            missing (str): missing allele string (def "0")
+
+        Returns:
+            bool: True if in top coordinates
+        """
+
+        return self.__check_coding(genotype, "illumina_top", missing)
+
+    def is_forward(self, genotype: list, missing: str = "0") -> bool:
+        """Return True if genotype is compatible with illumina FORWARD coding
+
+        Args:
+            genotype (list): a list of two alleles (ex ['A','C'])
+            missing (str): missing allele string (def "0")
+
+        Returns:
+            bool: True if in top coordinates
+        """
+
+        return self.__check_coding(genotype, "illumina_forward", missing)
+
+    def forward2top(self, genotype: list, missing: str = "0") -> list:
+        """Convert an illumina forward SNP in a illumina top snp
+
+        Args:
+            genotype (list): a list of two alleles (ex ['A','C'])
+            missing (str): missing allele string (def "0")
+
+        Returns:
+            list: The genotype in top format
+        """
+
+        # get illumina data as an array
+        forward = self.illumina_forward.split("/")
+        top = self.illumina_top.split("/")
+
+        result = []
+
+        for allele in genotype:
+            # mind to missing values
+            if allele == missing:
+                result.append(allele)
+
+            elif allele not in forward:
+                raise SmarterDBException(
+                    "{genotype} is not in forward coding")
+
+            else:
+                result.append(top[forward.index(allele)])
+
+        return result
 
 
 class VariantSheep(mongoengine.Document):

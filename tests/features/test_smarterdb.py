@@ -36,7 +36,7 @@ class MongoMock(unittest.TestCase):
         disconnect()
 
 
-class VariantSheepTestCase(MongoMock):
+class VariantMixin():
     @classmethod
     def setUpClass(cls):
         with open(DATA_DIR / "variant.json") as handle:
@@ -44,6 +44,74 @@ class VariantSheepTestCase(MongoMock):
 
         super().setUpClass()
 
+
+class LocationTestCase(VariantMixin, MongoMock):
+    def setUp(self):
+        location = self.data["locations"][1]
+        self.location = Location.from_json(json.dumps(location))
+
+    def test__str(self):
+        self.assertEqual(
+            str(self.location),
+            "(SNPchiMp v.3:Oar_v3.1) 15:5870057"
+        )
+
+    def test_is_top(self):
+        for genotype in ["A/A", "A/G", "G/A", "G/G", "0/0"]:
+            genotype = genotype.split("/")
+
+            self.assertTrue(
+                self.location.is_top(genotype),
+                msg=f"{genotype} is not in top coordinates!"
+            )
+
+        # is not in not if contains an allele not in top format
+        for genotype in ["T/C", "A/C", "G/T"]:
+            self.assertFalse(
+                self.location.is_top(genotype),
+                msg=f"{genotype} is in top coordinates!"
+            )
+
+    def test_is_forward(self):
+        for genotype in ["T/C", "T/T", "C/T", "C/C", "0/0"]:
+            genotype = genotype.split("/")
+
+            self.assertTrue(
+                self.location.is_forward(genotype),
+                msg=f"{genotype} is not in forward coordinates!"
+            )
+
+        # is not in not if contains an allele not in top format
+        for genotype in ["A/A", "A/G", "G/A", "G/G"]:
+            self.assertFalse(
+                self.location.is_forward(genotype),
+                msg=f"{genotype} is in forward coordinates!"
+            )
+
+    def test_forward2top(self):
+        """Test forward to top conversion"""
+
+        forwards = ["T/C", "T/T", "C/T", "C/C", "0/0"]
+        tops = ["A/G", "A/A", "G/A", "G/G", "0/0"]
+
+        for i, genotype in enumerate(forwards):
+            reference = tops[i].split("/")
+            genotype = genotype.split("/")
+
+            test = self.location.forward2top(genotype)
+            self.assertEqual(reference, test)
+
+    def test_forward2top_error(self):
+        """Test exception with an allele not in forward coding"""
+        self.assertRaisesRegex(
+            SmarterDBException,
+            "is not in forward coding",
+            self.location.forward2top,
+            ["A", "T"]
+        )
+
+
+class VariantSheepTestCase(VariantMixin, MongoMock):
     def setUp(self):
         self.variant = VariantSheep.from_json(json.dumps(self.data))
 
