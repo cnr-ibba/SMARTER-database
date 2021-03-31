@@ -199,7 +199,7 @@ def getSmarterId(
     sequence_id = getNextSequenceValue(sequence_name, mongodb)
 
     # padding numbers
-    sequence_id = str(sequence_id).zfill(4)
+    sequence_id = str(sequence_id).zfill(9)
 
     smarter_id = f"{country_code}{species_code}-{breed_code}-{sequence_id}"
 
@@ -248,6 +248,10 @@ class SampleSheep(mongoengine.Document):
         return f"{self.smarter_id} ({self.original_id})"
 
 
+class Consequence(mongoengine.EmbeddedDocument):
+    pass
+
+
 class Location(mongoengine.EmbeddedDocument):
     ss_id = mongoengine.StringField()
     version = mongoengine.StringField()
@@ -261,6 +265,9 @@ class Location(mongoengine.EmbeddedDocument):
     illumina_strand = mongoengine.StringField()
     strand = mongoengine.StringField()
     imported_from = mongoengine.StringField()
+
+    consequences = mongoengine.ListField(
+        mongoengine.EmbeddedDocumentField(Consequence))
 
     def __str__(self):
         return (
@@ -278,8 +285,6 @@ class VariantSheep(mongoengine.Document):
     rs_id = mongoengine.StringField()
     chip_name = mongoengine.ListField(mongoengine.StringField())
     name = mongoengine.StringField(unique=True)
-    consequences = mongoengine.ListField(
-        mongoengine.EmbeddedDocumentField(Consequence))
     sequence = mongoengine.StringField()
     locations = mongoengine.ListField(
         mongoengine.EmbeddedDocumentField(Location))

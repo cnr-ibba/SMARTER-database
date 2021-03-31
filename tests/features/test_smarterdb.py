@@ -191,7 +191,7 @@ class SampleSheepTestCase(SmarterIDMixin, MongoMock):
         self.sample.save()
 
         # this will be the reference smarter_id
-        reference = "ITOA-TEX-0001"
+        reference = "ITOA-TEX-000000001"
 
         self.assertEqual(self.sample.smarter_id, reference)
 
