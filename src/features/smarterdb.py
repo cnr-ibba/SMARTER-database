@@ -29,6 +29,10 @@ DB_ALIAS = "smarterdb"
 logger = logging.getLogger(__name__)
 
 
+class SmarterDBException(Exception):
+    pass
+
+
 def global_connection(database_name: str = SMARTERDB):
     # find .env automagically by walking up directories until it's found, then
     # load up the .env entries as environment variables
@@ -41,6 +45,23 @@ def global_connection(database_name: str = SMARTERDB):
         password=os.getenv("MONGODB_SMARTER_PASS"),
         authentication_source='admin',
         alias=DB_ALIAS)
+
+
+class Counter(mongoengine.Document):
+    """A class to deal with counter collection (created when initializing
+    smarter database)
+    """
+
+    id = mongoengine.StringField(primary_key=True)
+    sequence_value = mongoengine.IntField(required=True, default=0)
+
+    meta = {
+        'db_alias': DB_ALIAS,
+        'collection': 'counters'
+    }
+
+    def __str__(self):
+        return f"{self.id}: {self.sequence_value}"
 
 
 class Breed(mongoengine.Document):
@@ -109,7 +130,7 @@ class Dataset(mongoengine.Document):
         """
 
         if not self.id:
-            raise Exception(
+            raise SmarterDBException(
                 "Can't define working dir. Object need to be stored in "
                 "database")
 
@@ -125,7 +146,7 @@ class Dataset(mongoengine.Document):
         """
 
         if not self.id:
-            raise Exception(
+            raise SmarterDBException(
                 "Can't define result dir. Object need to be stored in "
                 "database")
 
@@ -148,9 +169,18 @@ def getNextSequenceValue(
 
 def getSmarterId(
         species: str, country: str, breed: str, mongodb: database.Database):
+
+    # species, country and breed shold be defined in order to call this func
+    if not species or not country or not breed:
+        raise SmarterDBException(
+            "species, country and breed should be defined when calling "
+            "getSmarterId"
+        )
+
     # get species code
     if species not in SPECIES2CODE:
-        raise Exception("Species %s not managed by smarter" % (species))
+        raise SmarterDBException(
+            "Species %s not managed by smarter" % (species))
 
     species_code = SPECIES2CODE[species]
 
@@ -180,9 +210,9 @@ class SampleSheep(mongoengine.Document):
     original_id = mongoengine.StringField(required=True)
     smarter_id = mongoengine.StringField(required=True, unique=True)
 
-    country = mongoengine.StringField()
-    species = mongoengine.StringField()
-    breed = mongoengine.StringField()
+    country = mongoengine.StringField(required=True)
+    species = mongoengine.StringField(required=True)
+    breed = mongoengine.StringField(required=True)
     breed_code = mongoengine.StringField(max_length=3, min_length=3)
 
     dataset = mongoengine.ReferenceField(Dataset, db_field="dataset_id")
@@ -201,6 +231,10 @@ class SampleSheep(mongoengine.Document):
             # get the pymongo connection object
             conn = mongoengine.connection.get_db(alias=DB_ALIAS)
 
+            # even is species, country and breed are required fields for
+            # SampleSheep document, their value will not be evaluated until
+            # super().save() is called. I can't call it before determining
+            # a smarter_id
             self.smarter_id = getSmarterId(
                 self.species,
                 self.country,
@@ -280,7 +314,7 @@ class VariantSheep(mongoengine.Document):
         locations = list(filter(custom_filter, self.locations))
 
         if len(locations) != 1:
-            raise Exception(
+            raise SmarterDBException(
                 "Couldn't determine a unique location for "
                 f"{self.name} '{version}' '{imported_from}'")
 
