@@ -83,7 +83,14 @@ def main(input_filepath, output_filepath, types):
             # compressed data
             working_dir = project_dir / f"data/interim/{dataset.id}"
             working_dir.mkdir(exist_ok=True)
-            archive.extractall(working_dir)
+
+            for member in contents:
+                test = working_dir / member
+                if not test.exists():
+                    archive.extract(member, working_dir)
+
+                else:
+                    logger.debug(f"Skipping {member}: already extracted")
 
     with open(output_filepath, "w") as handle:
         # after insert collect all data of the same type

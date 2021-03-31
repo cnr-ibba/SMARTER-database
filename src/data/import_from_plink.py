@@ -26,76 +26,10 @@ from mongoengine.queryset.visitor import Q
 from tqdm import tqdm
 
 from src.features.smarterdb import (
-    global_connection, Dataset, Breed, SampleSheep, VariantSheep, Location)
+    global_connection, Dataset, Breed, SampleSheep, VariantSheep)
 from src.features.utils import TqdmToLogger
 
 logger = logging.getLogger(__name__)
-
-
-def is_top(genotype: list, location: Location, missing: str = "0") -> bool:
-    """Return True if genotype is compatible with illumina TOP coding
-
-    Returns:
-        bool: True if in top coordinates
-    """
-
-    # get illumina data as an array
-    top = location.illumina_top.split("/")
-
-    for allele in genotype:
-        # mind to missing values. If missing can't be equal to illumina_top
-        if allele == missing:
-            continue
-
-        if allele not in top:
-            return False
-
-    return True
-
-
-def is_forward(genotype: list, location: Location, missing: str = "0") -> bool:
-    """Return True if genotype is compatible with illumina FORWARD coding
-
-    Returns:
-        bool: True if in top coordinates
-    """
-
-    # get illumina data as an array
-    forward = location.illumina_forward.split("/")
-
-    for allele in genotype:
-        # mind to missing values
-        if allele == missing:
-            continue
-
-        if allele not in forward:
-            return False
-
-    return True
-
-
-def to_forward(genotype: list, location: Location, missing: str = "0") -> list:
-    """Convert an illumina top SNP in a illumina forward snp
-
-    Returns:
-        list: The genotype in top format
-    """
-
-    # get illumina data as an array
-    forward = location.illumina_forward.split("/")
-    top = location.illumina_top.split("/")
-
-    result = []
-
-    for allele in genotype:
-        # mind to missing values
-        if allele == missing:
-            result.append(allele)
-
-        else:
-            result.append(top[forward.index(allele)])
-
-    return result
 
 
 def clean_chrom(chrom: str):
@@ -324,7 +258,7 @@ def main(mapfile, pedfile, dataset, coding):
                 location = locations[j]
 
                 if coding == 'top':
-                    if not is_top(genotype, location):
+                    if not location.is_top(genotype):
                         logger.critical(
                             f"Error for {mapdata[j][1]}: "
                             f"{a1}/{a2} <> {location.illumina_top}"
@@ -332,7 +266,7 @@ def main(mapfile, pedfile, dataset, coding):
                         raise Exception("Not illumina top format")
 
                 elif coding == 'forward':
-                    if not is_forward(genotype, location):
+                    if not location.is_forward(genotype):
                         logger.critical(
                             f"Error for {mapdata[j][1]}: "
                             f"{a1}/{a2} <> {location.illumina_top}"
@@ -340,8 +274,8 @@ def main(mapfile, pedfile, dataset, coding):
                         raise Exception("Not illumina forward format")
 
                     # change the allele coding
-                    forward_genotype = to_forward(genotype, location)
-                    line[6+j*2], line[6+j*2+1] = forward_genotype
+                    top_genotype = location.forward2top(genotype)
+                    line[6+j*2], line[6+j*2+1] = top_genotype
 
                 else:
                     raise NotImplementedError("Coding not supported")

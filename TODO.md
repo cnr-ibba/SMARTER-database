@@ -9,7 +9,6 @@ Database
 * Should I check genotype coding **before** importing dataset?
 * create samples collection (one for goat, one for sheep)
 * create a variation collection (one for goat, one for sheep)
-  - determine unique values for *bottom*, *top*, *forward*
 * a function to convert plink/text to plink/binary with plink
   - how to deal with extra-chroms?
 * extract dataset file from an archive
