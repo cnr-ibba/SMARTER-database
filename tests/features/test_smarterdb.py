@@ -10,11 +10,11 @@ import json
 import unittest
 import pathlib
 
-from mongoengine import connect, disconnect
+from mongoengine import connect, disconnect, connection
 
 from src.features.smarterdb import (
     VariantSheep, Location, DB_ALIAS, SampleSheep, Breed, Counter,
-    SmarterDBException)
+    SmarterDBException, getSmarterId)
 
 
 # set data dir (like os.dirname(__file__)) + "fixtures"
@@ -28,6 +28,8 @@ class MongoMock(unittest.TestCase):
             'mongoenginetest',
             host='mongomock://localhost',
             alias=DB_ALIAS)
+
+        cls.connection = connection.get_db(alias=DB_ALIAS)
 
     @classmethod
     def tearDownClass(cls):
@@ -76,26 +78,94 @@ class VariantSheepTestCase(MongoMock):
         )
 
 
-class SampleSheepTestCase(MongoMock):
+class SmarterIDMixin():
+    """Common set up for classes which require a smarter id to work properly"""
     @classmethod
     def setUpClass(cls):
         # need to define a breed in order to get a smarter id
-        cls.breed = Breed(
+        breed = Breed(
             species="Sheep",
             name="Texel",
             code="TEX"
         )
-        cls.breed.save()
+        breed.save()
 
-        # need also a counter object
-        cls.counter = Counter(
+        # need also a counter object for sheep and goat
+        counter = Counter(
             pk="sampleSheep",
             sequence_value=0
         )
-        cls.counter.save()
+        counter.save()
+
+        counter = Counter(
+            pk="sampleGoat",
+            sequence_value=0
+        )
+        counter.save()
 
         super().setUpClass()
 
+    @classmethod
+    def tearDownClass(cls):
+        # delete breeds and counter objects
+        Breed.objects().delete()
+        Counter.objects().delete()
+
+        super().tearDownClass()
+
+
+class GetSmarterIdTestCase(SmarterIDMixin, MongoMock):
+    """Testing getSmarterId function"""
+
+    def test_missing_parameters(self):
+        """calling functions with missing parameters raise exception"""
+
+        with self.assertRaisesRegex(
+                SmarterDBException,
+                "species, country and breed should be defined when calling",
+                msg="SmarterDBException not raised for empty species"):
+            getSmarterId(
+                None,
+                "Italy",
+                "Texel",
+                self.connection
+            )
+
+        with self.assertRaisesRegex(
+                SmarterDBException,
+                "species, country and breed should be defined when calling",
+                msg="SmarterDBException not raised for empty country"):
+            getSmarterId(
+                "Sheep",
+                None,
+                "Texel",
+                self.connection
+            )
+
+        with self.assertRaisesRegex(
+                SmarterDBException,
+                "species, country and breed should be defined when calling",
+                msg="SmarterDBException not raised for empty breed"):
+            getSmarterId(
+                "Sheep",
+                "Italy",
+                None,
+                self.connection
+            )
+
+    def test_species_not_managed(self):
+        with self.assertRaisesRegex(
+                SmarterDBException,
+                "not managed"):
+            getSmarterId(
+                "Cow",
+                "Italy",
+                "Frisona",
+                self.connection
+            )
+
+
+class SampleSheepTestCase(SmarterIDMixin, MongoMock):
     def setUp(self):
         self.smarter_id = None
         self.original_id = "TEST"

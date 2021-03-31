@@ -28,3 +28,4 @@ Database
   (the `one-to-many-with-listfields` reference was fixed after version `0.23.0`)
 * mind permission while writing files/creating dirs
 * configure `mongodb-express` credentials
+* manage package version with bump2version. Add HISTORY to project
