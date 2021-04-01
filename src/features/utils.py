@@ -8,6 +8,7 @@ Created on Mon Mar 15 14:13:51 2021
 
 import io
 import re
+import gzip
 import logging
 import pathlib
 
@@ -104,3 +105,12 @@ def get_processed_dir() -> pathlib.PosixPath:
     """
 
     return get_project_dir() / "data/processed"
+
+
+def text_or_gzip_open(path: str):
+    if pathlib.Path(path).suffix == '.gz':
+        logger.debug(f"Gzip detected for {path}")
+        return gzip.open(path, mode='rt')
+
+    else:
+        return open(path)

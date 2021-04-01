@@ -12,7 +12,7 @@ import logging
 import itertools
 import collections
 
-from src.features.utils import sanitize
+from src.features.utils import sanitize, text_or_gzip_open
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -65,7 +65,7 @@ def read_snpMap(path: str, size=2048, skip=0):
 def read_snpChip(path: str, size=2048, skip=0, delimiter=None):
     sniffer = csv.Sniffer()
 
-    with open(path) as handle:
+    with text_or_gzip_open(path) as handle:
         if delimiter:
             reader = csv.reader(handle, delimiter=delimiter)
 

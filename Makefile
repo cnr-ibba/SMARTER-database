@@ -24,6 +24,17 @@ endif
 requirements: test_environment
 	$(PYTHON_INTERPRETER) -m pip install -r requirements.txt
 
+## Initialize database by loading stuff
+initialize: test_environment
+	## upload breeds into database and update aliases
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Texel --code TEX --alias TEXEL_UY
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Frizarta --code FRZ --alias 0
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Merino --code MER --alias MERINO_UY
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Corriedale --code CRR --alias CORRIEDALE_UY
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Creole --code CRL
+	## TODO: import manifest and SNPchimp for all assemblies
+	## TODO: donwload data from EVA and EnsEMBL
+
 ## Make Dataset
 data: requirements
 	$(PYTHON_INTERPRETER) src/data/import_datasets.py --types genotypes background data/raw/genotypes-bg.csv data/processed/genotypes-bg.json
