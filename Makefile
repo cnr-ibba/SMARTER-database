@@ -33,6 +33,11 @@ initialize: test_environment
 	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Corriedale --code CRR --alias CORRIEDALE_UY
 	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Creole --code CRL
 	## TODO: import manifest and SNPchimp for all assemblies
+	$(PYTHON_INTERPRETER) src/data/import_manifest.py --species sheep --manifest data/external/SHE/ILLUMINA/ovinesnp50-genome-assembly-oar-v3-1.csv.gz \
+		--chip_name IlluminaOvineSNP50 --version Oar_v3.1 --sender AGR_BS
+	$(PYTHON_INTERPRETER) src/data/import_manifest.py --species sheep --manifest data/external/SHE/ILLUMINA/ovinesnpHD-genome-assembly-oar-v3-1.csv.gz \
+		--chip_name IlluminaOvineHDSNP --version Oar_v3.1 --sender AGR_BS
+
 	## TODO: donwload data from EVA and EnsEMBL
 
 ## Make Dataset

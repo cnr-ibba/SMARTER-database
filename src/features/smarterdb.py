@@ -47,6 +47,23 @@ def global_connection(database_name: str = SMARTERDB):
         alias=DB_ALIAS)
 
 
+def complement(genotype: str):
+    bases = {
+        "A": "T",
+        "T": "A",
+        "C": "G",
+        "G": "C",
+        "/": "/"
+    }
+
+    result = ""
+
+    for base in genotype:
+        result += bases[base]
+
+    return result
+
+
 class Counter(mongoengine.Document):
     """A class to deal with counter collection (created when initializing
     smarter database)
@@ -270,10 +287,31 @@ class Location(mongoengine.EmbeddedDocument):
         mongoengine.EmbeddedDocumentField(Consequence))
 
     def __str__(self):
+        illumina = self.illumina
+
+        if not illumina:
+            illumina = self.illumina_top
+
         return (
             f"({self.imported_from}:{self.version}) "
-            f"{self.chrom}:{self.position}"
+            f"{self.chrom}:{self.position} [{illumina}]"
         )
+
+    def __eq__(self, other):
+        if super().__eq__(other):
+            return True
+
+        else:
+            # TODO: check by positions
+            logger.debug(f"{self.chrom} <> {other.chrom}")
+            logger.debug(f"{self.position} <> {other.position}")
+            # TODO: check genotype equality
+            logger.debug("Test for illumina genotype")
+            logger.debug(f"{self.illumina} <> {other.illumina}")
+            logger.debug(f"{self.illumina_top} <> {other.illumina_top}")
+            logger.debug(f"{self.illumina_strand} <> {other.illumina_strand}")
+            logger.debug(f"{self.strand} <> {other.strand}")
+            return False
 
     def __check_coding(self, genotype: list, coding: str, missing: str):
         """Internal method to check genotype coding"""
@@ -365,6 +403,26 @@ class VariantSheep(mongoengine.Document):
 
     def __str__(self):
         return (f"name='{self.name}', rs_id='{self.rs_id}'")
+
+    def get_location_index(self, version: str, imported_from='SNPchiMp v.3'):
+        """Returns location index for assembly version and imported source
+
+        Args:
+            version (str): assembly version (ex: 'Oar_v3.1')
+            imported_from (str): coordinates source (ex: 'SNPchiMp v.3')
+
+        Returns:
+            int: the index of the location requested
+        """
+
+        for index, location in enumerate(self.locations):
+            if (location.version == version and
+                    location.imported_from == imported_from):
+                return index
+
+        raise SmarterDBException(
+                f"Location '{version}' '{imported_from}' is not in locations"
+        )
 
     def get_location(self, version: str, imported_from='SNPchiMp v.3'):
         """Returns location for assembly version and imported source
