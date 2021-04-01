@@ -32,6 +32,10 @@ data: requirements
 	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --mapfile TEXEL_UY.map --pedfile TEXEL_UY.ped --dataset TEXEL_INIA_UY.zip
 	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --mapfile Frizarta54samples_ped_map_files/Frizarta54samples.map \
 		--pedfile Frizarta54samples_ped_map_files/Frizarta54samples.ped --dataset Frizarta54samples_ped_map_files.zip --coding forward
+	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --mapfile MERINO_UY_96_21_12_17_OV54k.map --pedfile MERINO_UY_96_21_12_17_OV54k.ped \
+		--dataset MERINO_INIA_UY.zip
+	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --mapfile CORRIEDALE_UY_60_INIA_Ovine_14sep2010.map --pedfile CORRIEDALE_UY_60_INIA_Ovine_14sep2010.ped \
+		--dataset CORRIEDALE_INIA_UY.zip
 	## merge SNPs into 1 file
 	$(PYTHON_INTERPRETER) src/data/merge_datasets.py --species sheep --assembly OARV3
 
