@@ -50,10 +50,62 @@ class LocationTestCase(VariantMixin, MongoMock):
         location = self.data["locations"][1]
         self.location = Location.from_json(json.dumps(location))
 
+    def test_illumina_top(self):
+        self.assertEqual(self.location.illumina_top, "A/G")
+
+        # assert the same but chaning illumina_strand
+        self.location.illumina_strand = "TOP"
+        self.assertEqual(self.location.illumina_top, "A/G")
+
+        self.location.illumina_strand = "BOT"
+        self.assertEqual(self.location.illumina_top, "T/C")
+
+    def test_illumina_top_not_managed(self):
+        self.location.illumina_strand = "bottom"
+
+        self.assertRaisesRegex(
+            SmarterDBException,
+            "not managed",
+            getattr,
+            self.location,
+            "illumina_top"
+        )
+
+    def test__eq(self):
+        location = self.data["locations"][1]
+        location = Location.from_json(json.dumps(location))
+
+        self.assertEqual(self.location, location)
+
+        # assert not equal relying positions
+        location.chrom = "1"
+        location.position = 5870057
+
+        self.assertNotEqual(self.location, location)
+
+        location.chrom = "15"
+        location.position = 1
+
+        self.assertNotEqual(self.location, location)
+
+        # assert not equal relying illumina_top (illumina_strand)
+        location.chrom = "15"
+        location.position = 5870057
+        location.illumina_strand = "BOT"
+
+        self.assertNotEqual(self.location, location)
+
+        # other changes returns True
+        location.illumina_strand = "forward"
+        location.illumina_forward = "A/G"
+        location.strand = "top"
+
+        self.assertEqual(self.location, location)
+
     def test__str(self):
         self.assertEqual(
             str(self.location),
-            "(SNPchiMp v.3:Oar_v3.1) 15:5870057"
+            "(SNPchiMp v.3:Oar_v3.1) 15:5870057 [A/G]"
         )
 
     def test_is_top(self):

@@ -2,16 +2,28 @@
 TODO
 ====
 
+Code
+----
+
+* a function to convert plink/text to plink/binary with plink
+  - how to deal with extra-chroms?
+* extract dataset file from an archive
+* manage python packages with [poetry](https://python-poetry.org/)
+* upgrade `mongoengine` to solve warnings while generating documentation with `sphinx`
+  (the `one-to-many-with-listfields` reference was fixed after version `0.23.0`)
+* mind permission while writing files/creating dirs
+* manage package version with bump2version. Add HISTORY to project
+* I should define always the illumina_top version of a location
+
+
 Database
 --------
 
 * load breeds into database
+* Trach genotype chip in samples
 * Should I check genotype coding **before** importing dataset?
 * create samples collection (one for goat, one for sheep)
 * create a variation collection (one for goat, one for sheep)
-* a function to convert plink/text to plink/binary with plink
-  - how to deal with extra-chroms?
-* extract dataset file from an archive
 * create a variation collection (for goat and sheep)
   - import ILLUMINA data with coordinates (make an entry for each snp)
   - import SNPchimp data into database (the proper variation collection)
@@ -22,9 +34,6 @@ Database
   - https://stackoverflow.com/questions/61846280/how-to-add-configuration-for-mongodb-4-2-transaction-in-spring-boot
   - https://docs.mongodb.com/manual/tutorial/deploy-replica-set-for-testing/
 * create a read only user `smarterro` (for web stuff?)
-* manage python packages with [poetry](https://python-poetry.org/)
-* upgrade `mongoengine` to solve warnings while generating documentation with `sphinx`
-  (the `one-to-many-with-listfields` reference was fixed after version `0.23.0`)
-* mind permission while writing files/creating dirs
 * configure `mongodb-express` credentials
-* manage package version with bump2version. Add HISTORY to project
+* Move breed aliases in dataset. Aliases are list of embedded document with `FID`,
+  *breed name* and *country* (for multi countries dataset)

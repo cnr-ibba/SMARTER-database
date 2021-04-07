@@ -277,7 +277,6 @@ class Location(mongoengine.EmbeddedDocument):
     contig = mongoengine.StringField()
     alleles = mongoengine.StringField()
     illumina = mongoengine.StringField()
-    illumina_top = mongoengine.StringField()
     illumina_forward = mongoengine.StringField()
     illumina_strand = mongoengine.StringField()
     strand = mongoengine.StringField()
@@ -286,15 +285,24 @@ class Location(mongoengine.EmbeddedDocument):
     consequences = mongoengine.ListField(
         mongoengine.EmbeddedDocumentField(Consequence))
 
+    @property
+    def illumina_top(self):
+        """Return genotype in illumina top format"""
+
+        if self.illumina_strand == 'BOT':
+            return complement(self.illumina)
+
+        elif self.illumina_strand in ['TOP', 'forward']:
+            return self.illumina
+
+        else:
+            raise SmarterDBException(
+                f"{self.illumina_strand} not managed")
+
     def __str__(self):
-        illumina = self.illumina
-
-        if not illumina:
-            illumina = self.illumina_top
-
         return (
             f"({self.imported_from}:{self.version}) "
-            f"{self.chrom}:{self.position} [{illumina}]"
+            f"{self.chrom}:{self.position} [{self.illumina_top}]"
         )
 
     def __eq__(self, other):
@@ -302,16 +310,16 @@ class Location(mongoengine.EmbeddedDocument):
             return True
 
         else:
-            # TODO: check by positions
-            logger.debug(f"{self.chrom} <> {other.chrom}")
-            logger.debug(f"{self.position} <> {other.position}")
-            # TODO: check genotype equality
-            logger.debug("Test for illumina genotype")
-            logger.debug(f"{self.illumina} <> {other.illumina}")
-            logger.debug(f"{self.illumina_top} <> {other.illumina_top}")
-            logger.debug(f"{self.illumina_strand} <> {other.illumina_strand}")
-            logger.debug(f"{self.strand} <> {other.strand}")
-            return False
+            # check by positions
+            for attribute in ["chrom", "position"]:
+                if getattr(self, attribute) != getattr(other, attribute):
+                    return False
+
+            # check genotype equality
+            if self.illumina_top != other.illumina_top:
+                return False
+
+            return True
 
     def __check_coding(self, genotype: list, coding: str, missing: str):
         """Internal method to check genotype coding"""

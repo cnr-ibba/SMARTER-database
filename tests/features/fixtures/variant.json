@@ -24,7 +24,7 @@
       "chrom": "15",
       "position": 5870057,
       "alleles": "C/T",
-      "illumina_top": "A/G",
+      "illumina": "A/G",
       "illumina_forward": "T/C",
       "illumina_strand": "forward",
       "strand": "bottom",
