@@ -21,7 +21,7 @@ def main():
     project_dir = Path(__file__).resolve().parents[2]
 
     snpchimp_file = (
-        "data/external/SHE/SNPCHIMP/SNPchimp_SHE_SNP50v1_oar3.1.csv")
+        "data/external/SHE/SNPCHIMP/SNPchimp_SHE_SNP50v1_oar3.1.csv.gz")
     snpchimp_path = project_dir / snpchimp_file
 
     # connect to database
@@ -40,7 +40,7 @@ def main():
             version="Oar_v3.1",
             chrom=snpchimp.chromosome,
             position=snpchimp.position,
-            illumina_top=snpchimp.alleles_a_b_top,
+            illumina=snpchimp.alleles_a_b_top,
             illumina_forward=snpchimp.alleles_a_b_forward,
             illumina_strand=snpchimp.orient,
             strand=snpchimp.strand,

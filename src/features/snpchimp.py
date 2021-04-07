@@ -10,6 +10,8 @@ import csv
 import logging
 import collections
 
+from src.features.utils import text_or_gzip_open
+
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
 
@@ -17,7 +19,7 @@ logger = logging.getLogger(__name__)
 def read_snpChimp(path: str, size=2048):
     sniffer = csv.Sniffer()
 
-    with open(path) as handle:
+    with text_or_gzip_open(path) as handle:
         dialect = sniffer.sniff(handle.read(size))
         handle.seek(0)
         reader = csv.reader(handle, dialect=dialect)

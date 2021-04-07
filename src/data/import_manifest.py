@@ -65,27 +65,9 @@ def main(species, manifest, chip_name, version, sender):
             update_variant(qs, variant, location)
 
         elif qs.count() == 0:
-            # TODO: add a new variant
-            logger.info(f"{snpchip.name} not in database")
+            new_variant(snpchip, variant, location)
 
-        # debug
-        # break
-
-        # variant = VariantSheep(
-        #     chip_name=[chip_name],
-        #     name=snpchip.name,
-        #     locations=[location],
-        #     sequence=snpchip.sourceseq,
-        #     sender=sender
-        # )
-
-        # logger.info(variant)
-
-        # try:
-        #     variant.save()
-
-        # except NotUniqueError as e:
-        #     logger.error(f"line {i}: Cannot insert {snpchip}, reason: {e}")
+        # queryset block
 
     logger.info("Completed")
 
@@ -97,7 +79,7 @@ def update_variant(
     """Update an existing variant (if necessary)"""
 
     record = qs.get()
-    logger.info(f"found {record} in database")
+    logger.debug(f"found {record} in database")
 
     # check chip_name in variant list
     record = update_chip_name(variant, record)
@@ -114,8 +96,10 @@ def update_chip_name(variant, record):
     # get new items as a difference of two sets
     new_chips = variant_set - record_set
 
-    # this will append the resulting set as a list
-    record.chip_name += list(new_chips)
+    if len(new_chips) > 0:
+        # this will append the resulting set as a list
+        record.chip_name += list(new_chips)
+        record.save()
 
     return record
 
@@ -134,13 +118,25 @@ def check_location(location, variant):
             f"Locations differ: {location} <> {variant.locations[index]}")
 
 
-def new_variant():
-    pass
+def new_variant(
+        variant: Union[VariantSheep],  # will model also VariantGoat
+        location: Location):
+
+    variant.locations.append(location)
+
+    logger.info(f"adding {variant} to database")
+
+    try:
+        variant.save()
+
+    except NotUniqueError as e:
+        logger.error(
+            f"Cannot insert {variant}, reason: {e}")
 
 
 if __name__ == '__main__':
     log_fmt = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-    logging.basicConfig(level=logging.DEBUG, format=log_fmt)
+    logging.basicConfig(level=logging.INFO, format=log_fmt)
 
     # connect to database
     global_connection()

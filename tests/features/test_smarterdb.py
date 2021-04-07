@@ -186,6 +186,16 @@ class VariantSheepTestCase(VariantMixin, MongoMock):
 
         self.assertEqual(reference, test)
 
+    def test_get_location_index(self):
+        "get a specific location from VariantSheep"
+
+        index = self.variant.get_location_index(
+            version="Oar_v3.1",
+            imported_from='SNPchiMp v.3'
+        )
+
+        self.assertEqual(index, 1)
+
     def test_no_location(self):
         "Search for a location not present in database raise exception"
 
@@ -193,6 +203,17 @@ class VariantSheepTestCase(VariantMixin, MongoMock):
             SmarterDBException,
             "Couldn't determine a unique location for",
             self.variant.get_location,
+            version="Oar_v4.0",
+            imported_from='SNPchiMp v.3'
+        )
+
+    def test_no_location_index(self):
+        "Search for a location not present in database raise exception"
+
+        self.assertRaisesRegex(
+            SmarterDBException,
+            "is not in locations",
+            self.variant.get_location_index,
             version="Oar_v4.0",
             imported_from='SNPchiMp v.3'
         )
