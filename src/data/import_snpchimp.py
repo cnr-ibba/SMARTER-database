@@ -6,41 +6,44 @@ Created on Tue Mar  2 10:38:05 2021
 @author: Paolo Cozzi <paolo.cozzi@ibba.cnr.it>
 """
 
+import click
 import logging
-
-from pathlib import Path
 
 from src.features.snpchimp import read_snpChimp
 from src.features.smarterdb import VariantSheep, Location, global_connection
 
+logger = logging.getLogger(__name__)
 
-def main():
-    logger = logging.getLogger(__name__)
 
-    # not used in this stub but often useful for finding various files
-    project_dir = Path(__file__).resolve().parents[2]
+@click.command()
+@click.option('--species', type=str, required=True)
+@click.option('--snpchimp', type=str, required=True)
+@click.option('--version', type=str, required=True)
+def main(species, snpchimp, version):
+    # fix input parameters
+    species = species.capitalize()
 
-    snpchimp_file = (
-        "data/external/SHE/SNPCHIMP/SNPchimp_SHE_SNP50v1_oar3.1.csv.gz")
-    snpchimp_path = project_dir / snpchimp_file
+    if species == 'Sheep':
+        VariantSpecie = VariantSheep
 
-    # connect to database
-    global_connection()
+    else:
+        raise NotImplementedError(f"'{species}' import not yet implemented")
 
-    logger.info(f"Reading from {snpchimp_path}")
+    logger.info(f"Reading from {snpchimp}")
 
     # grep a sample SNP
-    for i, snpchimp in enumerate(read_snpChimp(snpchimp_path)):
-        # get a variant from database
-        variant = VariantSheep.objects.get(name=snpchimp.snp_name)
+    for i, snpchimp in enumerate(read_snpChimp(snpchimp)):
+        # get a variant from database (I suppose to have a variant for
+        # each snpchimp record)
+        variant = VariantSpecie.objects.get(name=snpchimp.snp_name)
 
         # read location from SnpChimp data
         location = Location(
             ss_id=snpchimp.ss,
-            version="Oar_v3.1",
+            version=version,
             chrom=snpchimp.chromosome,
             position=snpchimp.position,
-            illumina=snpchimp.alleles_a_b_top,
+            illumina_top=snpchimp.alleles_a_b_top,
             illumina_forward=snpchimp.alleles_a_b_forward,
             illumina_strand=snpchimp.orient,
             strand=snpchimp.strand,
@@ -48,16 +51,42 @@ def main():
             imported_from="SNPchiMp v.3"
         )
 
+        # TODO: Should I update a location or not?
+        # variant.locations.append(location)
+        check_location(location, variant)
+
         # update variant with snpchimp data
         variant.rs_id = snpchimp.rs
-        variant.locations.append(location)
-        variant.save()
+        # variant.save()
 
     logger.info("Completed")
 
 
+def check_location(location, variant):
+    # get the old location as index
+    index = variant.get_location_index(
+        version=location.version, imported_from=location.imported_from)
+
+    # ok get the old location and check with the new one
+    if variant.locations[index] == location:
+        logger.debug(f"Locations match {location}")
+
+    else:
+        logger.warning(
+            f"Locations differ for '{variant.name}': {location} <> "
+            f"{variant.locations[index]}"
+        )
+
+        variant.locations[index] = location
+        logger.warning(
+            f"Updating {variant}")
+
+
 if __name__ == '__main__':
     log_fmt = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-    logging.basicConfig(level=logging.DEBUG, format=log_fmt)
+    logging.basicConfig(level=logging.INFO, format=log_fmt)
+
+    # connect to database
+    global_connection()
 
     main()

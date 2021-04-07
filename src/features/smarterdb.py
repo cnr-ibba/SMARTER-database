@@ -285,15 +285,43 @@ class Location(mongoengine.EmbeddedDocument):
     consequences = mongoengine.ListField(
         mongoengine.EmbeddedDocumentField(Consequence))
 
+    def __init__(self, *args, **kwargs):
+        illumina_top = None
+
+        # remove illumina top from arguments
+        if 'illumina_top' in kwargs:
+            illumina_top = kwargs.pop('illumina_top')
+
+        # initialize base object
+        super(Location, self).__init__(*args, **kwargs)
+
+        # fix illumina top if necessary
+        if illumina_top:
+            self.illumina_top = illumina_top
+
     @property
     def illumina_top(self):
         """Return genotype in illumina top format"""
 
-        if self.illumina_strand == 'BOT':
+        if self.illumina_strand in ['BOT', 'reverse']:
             return complement(self.illumina)
 
-        elif self.illumina_strand in ['TOP', 'forward']:
+        elif (not self.illumina_strand or
+              self.illumina_strand in ['TOP', 'forward']):
             return self.illumina
+
+        else:
+            raise SmarterDBException(
+                f"{self.illumina_strand} not managed")
+
+    @illumina_top.setter
+    def illumina_top(self, genotype: str):
+        if (not self.illumina_strand or
+                self.illumina_strand in ['TOP', 'forward']):
+            self.illumina = genotype
+
+        elif self.illumina_strand in ['BOT', 'reverse']:
+            self.illumina = complement(genotype)
 
         else:
             raise SmarterDBException(
