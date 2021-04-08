@@ -24,10 +24,10 @@
       "chrom": "15",
       "position": 5870057,
       "alleles": "C/T",
-      "illumina": "A/G",
+      "illumina": "T/C",
       "illumina_forward": "T/C",
-      "illumina_strand": "forward",
-      "strand": "bottom",
+      "illumina_strand": "bottom",
+      "strand": "forward",
       "imported_from": "SNPchiMp v.3"
     }
   ],

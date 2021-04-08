@@ -65,7 +65,7 @@ def main(species, manifest, chip_name, version, sender):
             update_variant(qs, variant, location)
 
         elif qs.count() == 0:
-            new_variant(snpchip, variant, location)
+            new_variant(variant, location)
 
         # queryset block
 

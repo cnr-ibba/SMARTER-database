@@ -303,11 +303,11 @@ class Location(mongoengine.EmbeddedDocument):
     def illumina_top(self):
         """Return genotype in illumina top format"""
 
-        if self.illumina_strand in ['BOT', 'reverse']:
+        if self.illumina_strand in ['BOT', 'bottom']:
             return complement(self.illumina)
 
         elif (not self.illumina_strand or
-              self.illumina_strand in ['TOP', 'forward']):
+              self.illumina_strand in ['TOP', 'top']):
             return self.illumina
 
         else:
@@ -317,10 +317,10 @@ class Location(mongoengine.EmbeddedDocument):
     @illumina_top.setter
     def illumina_top(self, genotype: str):
         if (not self.illumina_strand or
-                self.illumina_strand in ['TOP', 'forward']):
+                self.illumina_strand in ['TOP', 'top']):
             self.illumina = genotype
 
-        elif self.illumina_strand in ['BOT', 'reverse']:
+        elif self.illumina_strand in ['BOT', 'bottom']:
             self.illumina = complement(genotype)
 
         else:

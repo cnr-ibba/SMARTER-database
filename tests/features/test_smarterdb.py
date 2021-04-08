@@ -55,16 +55,16 @@ class LocationTestCase(VariantMixin, MongoMock):
 
         # assert the same but chaning illumina_strand
         self.location.illumina_strand = "TOP"
-        self.assertEqual(self.location.illumina_top, "A/G")
+        self.assertEqual(self.location.illumina_top, "T/C")
 
-        self.location.illumina_strand = "forward"
-        self.assertEqual(self.location.illumina_top, "A/G")
+        self.location.illumina_strand = "top"
+        self.assertEqual(self.location.illumina_top, "T/C")
 
         self.location.illumina_strand = "BOT"
-        self.assertEqual(self.location.illumina_top, "T/C")
+        self.assertEqual(self.location.illumina_top, "A/G")
 
-        self.location.illumina_strand = "reverse"
-        self.assertEqual(self.location.illumina_top, "T/C")
+        self.location.illumina_strand = "bottom"
+        self.assertEqual(self.location.illumina_top, "A/G")
 
     def test_illumina_top_setter(self):
         location = Location.from_json(
@@ -76,21 +76,21 @@ class LocationTestCase(VariantMixin, MongoMock):
                 "alleles": "A/G",
                 "illumina_top": "A/G",
                 "illumina_forward": "T/C",
-                "illumina_strand": "reverse",
-                "strand": "top",
+                "illumina_strand": "top",
+                "strand": "reverse",
                 "imported_from": "SNPchiMp v.3",
                 "consequences": []
             })
         )
 
-        self.assertEqual(location.illumina, "T/C")
+        self.assertEqual(location.illumina, "A/G")
 
         # assert the same but chaning illumina_strand
         location.illumina_strand = "TOP"
         location.illumina_top = "A/G"
         self.assertEqual(location.illumina, "A/G")
 
-        location.illumina_strand = "forward"
+        location.illumina_strand = "top"
         location.illumina_top = "A/G"
         self.assertEqual(location.illumina, "A/G")
 
@@ -98,7 +98,7 @@ class LocationTestCase(VariantMixin, MongoMock):
         location.illumina_top = "A/G"
         self.assertEqual(location.illumina, "T/C")
 
-        location.illumina_strand = "reverse"
+        location.illumina_strand = "bottom"
         location.illumina_top = "A/G"
         self.assertEqual(location.illumina, "T/C")
 
@@ -114,7 +114,7 @@ class LocationTestCase(VariantMixin, MongoMock):
         self.assertEqual(self.location.illumina, "A/T")
 
     def test_illumina_top_not_managed(self):
-        self.location.illumina_strand = "bottom"
+        self.location.illumina_strand = "reverse"
 
         self.assertRaisesRegex(
             SmarterDBException,
@@ -153,14 +153,14 @@ class LocationTestCase(VariantMixin, MongoMock):
         # assert not equal relying illumina_top (illumina_strand)
         location.chrom = "15"
         location.position = 5870057
-        location.illumina_strand = "BOT"
+        location.illumina_strand = "TOP"
 
         self.assertNotEqual(self.location, location)
 
         # other changes returns True
-        location.illumina_strand = "forward"
+        location.illumina_strand = "bottom"
         location.illumina_forward = "A/G"
-        location.strand = "top"
+        location.strand = "forward"
 
         self.assertEqual(self.location, location)
 

@@ -10,7 +10,8 @@ import click
 import logging
 
 from src.features.snpchimp import read_snpChimp
-from src.features.smarterdb import VariantSheep, Location, global_connection
+from src.features.smarterdb import (
+    VariantSheep, Location, global_connection, SmarterDBException)
 
 logger = logging.getLogger(__name__)
 
@@ -45,31 +46,40 @@ def main(species, snpchimp, version):
             position=snpchimp.position,
             illumina_top=snpchimp.alleles_a_b_top,
             illumina_forward=snpchimp.alleles_a_b_forward,
-            illumina_strand=snpchimp.orient,
-            strand=snpchimp.strand,
+            illumina_strand=snpchimp.strand,
+            strand=snpchimp.orient,
             alleles=snpchimp.alleles,
             imported_from="SNPchiMp v.3"
         )
 
-        # TODO: Should I update a location or not?
-        # variant.locations.append(location)
-        check_location(location, variant)
+        # Should I update a location or not?
+        if not check_and_update_location(location, variant):
+            logger.warning(snpchimp)
 
-        # update variant with snpchimp data
-        variant.rs_id = snpchimp.rs
-        # variant.save()
+        else:
+            # update variant with snpchimp data
+            variant.rs_id = snpchimp.rs
+            variant.save()
 
     logger.info("Completed")
 
 
-def check_location(location, variant):
+def check_and_update_location(location, variant) -> bool:
     # get the old location as index
-    index = variant.get_location_index(
-        version=location.version, imported_from=location.imported_from)
+    try:
+        index = variant.get_location_index(
+            version=location.version, imported_from=location.imported_from)
+
+    except SmarterDBException as exc:
+        # if a index does not exist, then insert feature without warnings
+        logger.debug(exc)
+        variant.locations.append(location)
+        return True
 
     # ok get the old location and check with the new one
     if variant.locations[index] == location:
         logger.debug(f"Locations match {location}")
+        return True
 
     else:
         logger.warning(
@@ -80,6 +90,8 @@ def check_location(location, variant):
         variant.locations[index] = location
         logger.warning(
             f"Updating {variant}")
+
+        return False
 
 
 if __name__ == '__main__':
