@@ -1,0 +1,115 @@
+[
+  {
+    "_id": {
+      "$oid": "606ebdcde8a99d4b7be85c6a"
+    },
+    "chip_name": [
+      "IlluminaOvineSNP50"
+    ],
+    "name": "250506CS3900065000002_1238.1",
+    "sequence": "NNNNNNNNNNNNNNNNCTGCTTCCGTATTTGGGTCTTCTCTCAACTTCTCTTCTTCTCCC[T/C]TGCTGAGGAGGAGGCACTTTCAGATGTATTATGTTAATGGAGAGAAAAAGCATAATATTG",
+    "locations": [
+      {
+        "version": "Oar_v3.1",
+        "chrom": "15",
+        "position": 5870057,
+        "illumina": "A/G",
+        "illumina_strand": "TOP",
+        "strand": "BOT",
+        "imported_from": "manifest",
+        "consequences": []
+      },
+      {
+        "ss_id": "ss836318713",
+        "version": "Oar_v3.1",
+        "chrom": "15",
+        "position": 5870057,
+        "alleles": "C/T",
+        "illumina": "T/C",
+        "illumina_forward": "T/C",
+        "illumina_strand": "bottom",
+        "strand": "forward",
+        "imported_from": "SNPchiMp v.3",
+        "consequences": []
+      }
+    ],
+    "sender": "AGR_BS",
+    "rs_id": "rs55630613"
+  },
+  {
+    "_id": {
+      "$oid": "606ebdcde8a99d4b7be85c6b"
+    },
+    "chip_name": [
+      "IlluminaOvineSNP50",
+      "IlluminaOvineHDSNP"
+    ],
+    "name": "250506CS3900140500001_312.1",
+    "sequence": "TATGCATGTACATTTTCTTGCCCTTTCCGGGCTTGCACTGTGTGCTTCTCACACCTTCTG[T/C]TTGAAAACTTATGTTACTTGGTATGCTCTGGAAGAGTATGTGAGGGAGTCAGGGATTGTG",
+    "locations": [
+      {
+        "version": "Oar_v3.1",
+        "chrom": "23",
+        "position": 26298017,
+        "illumina": "A/G",
+        "illumina_strand": "TOP",
+        "strand": "BOT",
+        "imported_from": "manifest",
+        "consequences": []
+      },
+      {
+        "ss_id": "ss836318714",
+        "version": "Oar_v3.1",
+        "chrom": "23",
+        "position": 26298017,
+        "alleles": "C/T",
+        "illumina": "T/C",
+        "illumina_forward": "T/C",
+        "illumina_strand": "bottom",
+        "strand": "forward",
+        "imported_from": "SNPchiMp v.3",
+        "consequences": []
+      }
+    ],
+    "sender": "AGR_BS",
+    "rs_id": "rs55630642"
+  },
+  {
+    "_id": {
+      "$oid": "606ebdcde8a99d4b7be85c6c"
+    },
+    "chip_name": [
+      "IlluminaOvineSNP50",
+      "IlluminaOvineHDSNP"
+    ],
+    "name": "250506CS3900176800001_906.1",
+    "sequence": "ACCTTAGTGTTAAAGGATTAACATAAGGAAACTGCAGCAGTATAGAAAAGACAAGACATT[T/C]TCTATTTAGATTGAACCCATTAAAATAATGACATTACAGGTGTAAAACCAAGACAATACT",
+    "locations": [
+      {
+        "version": "Oar_v3.1",
+        "chrom": "7",
+        "position": 81648528,
+        "illumina": "T/C",
+        "illumina_strand": "BOT",
+        "strand": "BOT",
+        "imported_from": "manifest",
+        "consequences": []
+      },
+      {
+        "ss_id": "ss836318715",
+        "version": "Oar_v3.1",
+        "chrom": "7",
+        "position": 81648528,
+        "alleles": "C/T",
+        "illumina": "T/C",
+        "illumina_forward": "T/C",
+        "illumina_strand": "bottom",
+        "strand": "forward",
+        "imported_from": "SNPchiMp v.3",
+        "consequences": []
+      }
+    ],
+    "sender": "AGR_BS",
+    "rs_id": "rs55630654"
+  }
+]
