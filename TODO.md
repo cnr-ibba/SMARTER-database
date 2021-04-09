@@ -12,15 +12,12 @@ Code
 * upgrade `mongoengine` to solve warnings while generating documentation with `sphinx`
   (the `one-to-many-with-listfields` reference was fixed after version `0.23.0`)
 * mind permission while writing files/creating dirs
-* manage package version with bump2version. Add HISTORY to project
-* I should define always the illumina_top version of a location
 
 
 Database
 --------
 
-* load breeds into database
-* Trach genotype chip in samples
+* Track genotype chip in samples
 * Should I check genotype coding **before** importing dataset?
 * create samples collection (one for goat, one for sheep)
 * create a variation collection (one for goat, one for sheep)
