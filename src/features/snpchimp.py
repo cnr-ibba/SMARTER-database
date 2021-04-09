@@ -16,6 +16,24 @@ from src.features.utils import text_or_gzip_open
 logger = logging.getLogger(__name__)
 
 
+def clean_chrom(chrom: str):
+    """Return 0 if chrom is 99 (unmapped for snpchimp)
+
+    Args:
+        chrom (str): the (SNPchiMp) chromsome
+
+    Returns:
+        str: 0 if chrom == 99 else chrom
+
+    """
+
+    # forcing type (should be string by database constraints)
+    if str(chrom) == "99":
+        return "0"
+
+    return chrom
+
+
 def read_snpChimp(path: str, size=2048):
     sniffer = csv.Sniffer()
 

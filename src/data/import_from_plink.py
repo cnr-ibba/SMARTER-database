@@ -25,29 +25,12 @@ from mongoengine.errors import DoesNotExist
 from mongoengine.queryset.visitor import Q
 from tqdm import tqdm
 
+from src.features.snpchimp import clean_chrom
 from src.features.smarterdb import (
     global_connection, Dataset, Breed, SampleSheep, VariantSheep)
 from src.features.utils import TqdmToLogger
 
 logger = logging.getLogger(__name__)
-
-
-def clean_chrom(chrom: str):
-    """Return 0 if chrom is 99 (unmapped for snpchimp)
-
-    Args:
-        chrom (str): the (SNPchiMp) chromsome
-
-    Returns:
-        str: 0 if chrom == 99 else chrom
-
-    """
-
-    # forcing type (should be string by database constraints)
-    if str(chrom) == "99":
-        return "0"
-
-    return chrom
 
 
 @click.command()
@@ -71,9 +54,6 @@ def main(mapfile, pedfile, dataset, coding):
     """
 
     logger.info(f"{Path(__file__).name} started")
-
-    # connect to database
-    global_connection()
 
     # get the dataset object
     dataset = Dataset.objects(file=dataset).get()
@@ -324,5 +304,8 @@ def main(mapfile, pedfile, dataset, coding):
 if __name__ == '__main__':
     log_fmt = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     logging.basicConfig(level=logging.INFO, format=log_fmt)
+
+    # connect to database
+    global_connection()
 
     main()

@@ -38,6 +38,7 @@ initialize: test_environment
 	$(PYTHON_INTERPRETER) src/data/import_snpchimp.py --species sheep --snpchimp data/external/SHE/SNPCHIMP/SNPchimp_SHE_SNP50v1_oar3.1.csv.gz --version Oar_v3.1
 	$(PYTHON_INTERPRETER) src/data/import_manifest.py --species sheep --manifest data/external/SHE/ILLUMINA/ovinesnpHD-genome-assembly-oar-v3-1.csv.gz \
 		--chip_name IlluminaOvineHDSNP --version Oar_v3.1 --sender AGR_BS
+	$(PYTHON_INTERPRETER) src/data/import_snpchimp.py --species sheep --snpchimp data/external/SHE/SNPCHIMP/SNPchimp_SHE_SNPHDv1_oar3.1.csv.gz --version Oar_v3.1
 
 	## TODO: donwload data from EVA and EnsEMBL
 
@@ -53,6 +54,7 @@ data: requirements
 		--dataset MERINO_INIA_UY.zip
 	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --mapfile CORRIEDALE_UY_60_INIA_Ovine_14sep2010.map --pedfile CORRIEDALE_UY_60_INIA_Ovine_14sep2010.ped \
 		--dataset CORRIEDALE_INIA_UY.zip
+	$(PYTHON_INTERPRETER) src/data/import_from_illumina.py --report JCM2357_UGY_FinalReport1.txt --snpfile OvineHDSNPList.txt --dataset CREOLE_INIA_UY.zip
 	## merge SNPs into 1 file
 	$(PYTHON_INTERPRETER) src/data/merge_datasets.py --species sheep --assembly OARV3
 

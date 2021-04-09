@@ -121,3 +121,54 @@ def read_snpChip(path: str, size=2048, skip=0, delimiter=None):
             # convert into collection
             record = SnpChip._make(record)
             yield record
+
+
+def read_snpList(path: str, size=2048, skip=0, delimiter=None):
+    sniffer = csv.Sniffer()
+
+    with text_or_gzip_open(path) as handle:
+        if delimiter:
+            reader = csv.reader(handle, delimiter=delimiter)
+
+        else:
+            # TODO: search for [Assay] row
+            if skip > 0:
+                logger.info(f"Skipping {skip} lines")
+                tmp = itertools.islice(handle, skip)
+                for line in tmp:
+                    logger.error(f"Skipping: {line}")
+
+            # try to determine dialect
+            dialect = sniffer.sniff(handle.read(size))
+            handle.seek(0)
+            reader = csv.reader(handle, dialect=dialect)
+
+        # get header
+        header = next(reader)
+
+        # sanitize column names
+        header = [sanitize(column) for column in header]
+
+        logger.info(header)
+
+        # define a datatype for my data
+        SnpList = collections.namedtuple("SnpList", header)
+
+        # add records to data
+        for record in reader:
+            # forcing data types
+            record[header.index('index')] = int(
+                record[header.index('index')])
+
+            record[header.index('position')] = int(
+                record[header.index('position')])
+
+            # drop brakets from SNP [A/G] -> A/G
+            record[header.index('snp')] = re.sub(
+                r'[\[\]]',
+                "",
+                record[header.index('snp')])
+
+            # convert into collection
+            record = SnpList._make(record)
+            yield record
