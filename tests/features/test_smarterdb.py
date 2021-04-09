@@ -10,30 +10,14 @@ import json
 import unittest
 import pathlib
 
-from mongoengine import connect, disconnect, connection
-
 from src.features.smarterdb import (
-    VariantSheep, Location, DB_ALIAS, SampleSheep, Breed, Counter,
+    VariantSheep, Location, SampleSheep, Breed, Counter,
     SmarterDBException, getSmarterId)
 
+from .common import MongoMockMixin
 
 # set data dir (like os.dirname(__file__)) + "fixtures"
 DATA_DIR = pathlib.Path(__file__).parent / "fixtures"
-
-
-class MongoMock(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        connect(
-            'mongoenginetest',
-            host='mongomock://localhost',
-            alias=DB_ALIAS)
-
-        cls.connection = connection.get_db(alias=DB_ALIAS)
-
-    @classmethod
-    def tearDownClass(cls):
-        disconnect()
 
 
 class VariantMixin():
@@ -45,7 +29,7 @@ class VariantMixin():
         super().setUpClass()
 
 
-class LocationTestCase(VariantMixin, MongoMock):
+class LocationTestCase(VariantMixin, MongoMockMixin, unittest.TestCase):
     def setUp(self):
         location = self.data["locations"][1]
         self.location = Location.from_json(json.dumps(location))
@@ -225,7 +209,7 @@ class LocationTestCase(VariantMixin, MongoMock):
         )
 
 
-class VariantSheepTestCase(VariantMixin, MongoMock):
+class VariantSheepTestCase(VariantMixin, MongoMockMixin, unittest.TestCase):
     def setUp(self):
         self.variant = VariantSheep.from_json(json.dumps(self.data))
 
@@ -285,6 +269,9 @@ class SmarterIDMixin():
     """Common set up for classes which require a smarter id to work properly"""
     @classmethod
     def setUpClass(cls):
+        # initialize the mongomock instance
+        super().setUpClass()
+
         # need to define a breed in order to get a smarter id
         breed = Breed(
             species="Sheep",
@@ -306,8 +293,6 @@ class SmarterIDMixin():
         )
         counter.save()
 
-        super().setUpClass()
-
     @classmethod
     def tearDownClass(cls):
         # delete breeds and counter objects
@@ -317,7 +302,7 @@ class SmarterIDMixin():
         super().tearDownClass()
 
 
-class GetSmarterIdTestCase(SmarterIDMixin, MongoMock):
+class GetSmarterIdTestCase(SmarterIDMixin, MongoMockMixin, unittest.TestCase):
     """Testing getSmarterId function"""
 
     def test_missing_parameters(self):
@@ -368,7 +353,7 @@ class GetSmarterIdTestCase(SmarterIDMixin, MongoMock):
             )
 
 
-class SampleSheepTestCase(SmarterIDMixin, MongoMock):
+class SampleSheepTestCase(SmarterIDMixin, MongoMockMixin, unittest.TestCase):
     def setUp(self):
         self.smarter_id = None
         self.original_id = "TEST"

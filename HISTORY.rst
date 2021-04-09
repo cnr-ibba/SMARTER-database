@@ -11,6 +11,7 @@ TODO
 * Import from an *illumina report* file
 * Deal with *AB* allele coding
 * Track ``chip_name`` with samples
+* Deal with plink text files using modules
 
 Features
 ^^^^^^^^
