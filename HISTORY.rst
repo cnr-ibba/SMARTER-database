@@ -12,6 +12,7 @@ TODO
 * Deal with *AB* allele coding
 * Track ``chip_name`` with samples
 * Deal with plink text files using modules
+* make rule to clean-up ``interim`` data
 
 Features
 ^^^^^^^^

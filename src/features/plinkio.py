@@ -10,7 +10,7 @@ Try to model data operations on plink files
 
 import csv
 import logging
-import collections
+from dataclasses import dataclass
 
 from tqdm import tqdm
 from mongoengine.errors import DoesNotExist
@@ -24,8 +24,16 @@ from .utils import TqdmToLogger
 logger = logging.getLogger(__name__)
 
 
-MapRecord = collections.namedtuple(
-    'MapRecord', ['chrom', 'name', 'cm', 'position'])
+@dataclass
+class MapRecord():
+    chrom: str
+    name: str
+    cm: str
+    position: int
+
+    def __post_init__(self):
+        # types are annotations. So, enforce position type:
+        self.position = int(self.position)
 
 
 class TextPlinkIO():
@@ -64,13 +72,22 @@ class TextPlinkIO():
             handle.seek(0)
             reader = csv.reader(handle, dialect=dialect)
 
-            self.mapdata = [MapRecord._make(record) for record in reader]
+            self.mapdata = [MapRecord(*record) for record in reader]
 
     def update_mapfile(self, outputfile: str):
+        # helper function to get default value for cM
+        def get_cM(record):
+            """Returns distance in cM or '0' (default for map file)"""
+
+            if hasattr(record, 'cm'):
+                return record.cm
+
+            return '0'
+
         with open(outputfile, 'w') as handle:
             writer = csv.writer(handle, delimiter=' ', lineterminator="\n")
 
-            for idx, record in self.mapdata:
+            for idx, record in enumerate(self.mapdata):
                 if idx in self.filtered:
                     logger.warning(f"Skipping {record}: not in database")
                     continue
@@ -82,7 +99,7 @@ class TextPlinkIO():
                 writer.writerow([
                     clean_chrom(location.chrom),
                     record.name,
-                    record.cm,
+                    get_cM(record),
                     location.position
                 ])
 

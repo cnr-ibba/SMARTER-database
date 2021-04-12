@@ -483,6 +483,6 @@ class VariantSheep(mongoengine.Document):
         if len(locations) != 1:
             raise SmarterDBException(
                 "Couldn't determine a unique location for "
-                f"{self.name} '{version}' '{imported_from}'")
+                f"'{self.name}' '{version}' '{imported_from}'")
 
         return locations[0]
