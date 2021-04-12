@@ -165,12 +165,12 @@ class TextPlinkIOPed(
         reference = self.lines[0]
         self.assertEqual(reference, test)
 
-    def test_get_or_create_sample(self):
+    def test__get_or_create_sample(self):
         # get a sample line
         line = self.lines[0]
 
         # get a breed
-        breed = Breed.objects(code=line[0]).get()
+        breed = Breed.objects(aliases__in=[line[0]]).get()
 
         # no individulas for such breeds
         self.assertEqual(breed.n_individuals, 0)
@@ -202,6 +202,43 @@ class TextPlinkIOPed(
         self.assertEqual(breed.n_individuals, 1)
 
         self.assertEqual(reference, test)
+
+    def test__process_pedline(self):
+        # get a sample line
+        line = self.lines[0]
+
+        # get a dataset
+        dataset = Dataset.objects(file="test.zip").get()
+
+        test = self.plinkio._process_pedline(line, dataset, 'top')
+
+        # define reference
+        reference = line.copy()
+        reference[0], reference[1] = ['TEX', 'ITOA-TEX-000000001']
+
+        # trow away the last snps (not found in database)
+        del(reference[-2:])
+
+        self.assertEqual(reference, test)
+
+    def test_update_pedfile(self):
+        # get a dataset
+        dataset = Dataset.objects(file="test.zip").get()
+
+        # create a temporary directory using the context manager
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            outfile = pathlib.Path(tmpdirname) / "plinktest_updated.ped"
+            self.plinkio.update_pedfile(str(outfile), dataset, 'top')
+
+            # now open outputfile and test stuff
+            test = TextPlinkIO(
+                mapfile=str(DATA_DIR / "plinktest.map"),
+                pedfile=str(outfile))
+
+            # assert two records written
+            self.assertEqual(len(list(test.read_pedfile())), 2)
+
+        # directory and contents have been removed
 
 
 if __name__ == '__main__':

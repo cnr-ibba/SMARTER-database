@@ -38,7 +38,8 @@ class SmarterIDMixin():
             species="Sheep",
             name="Texel",
             code="TEX",
-            n_individuals=0
+            n_individuals=0,
+            aliases=['TEX_IT']
         )
         breed.save()
 

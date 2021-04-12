@@ -211,6 +211,45 @@ class TextPlinkIO():
 
         return new_line
 
+    def _process_pedline(self, line: list, dataset: Dataset, coding: str):
+        # check genotypes size 2*mapdata (diploidy) + 6 extra columns:
+        if len(line) != len(self.mapdata)*2 + 6:
+            logger.critical(
+                f"SNPs sizes don't match in '{self.mapfile}' "
+                "and '{self.pedfile}'")
+            logger.critical("Please check file contents")
+            return
+
+        logger.debug(f"Processing {line[:10]+ ['...']}")
+
+        # check for breed in database
+        breed = Breed.objects(
+            Q(name=line[0]) | Q(aliases__in=[line[0]])
+        ).get()
+
+        logger.debug(f"Found breed {breed}")
+
+        # check for sample in database
+        sample = self.get_or_create_sample(line, dataset, breed)
+
+        # a new line obj
+        new_line = line.copy()
+
+        # updating ped line with smarter ids
+        new_line[0] = breed.code
+        new_line[1] = sample.smarter_id
+
+        # check and fix genotypes if necessary
+        new_line = self._process_genotypes(new_line, coding)
+
+        # need to remove filtered snps from ped line
+        for index in sorted(self.filtered, reverse=True):
+            # index is snp position. Need to delete two fields
+            del new_line[6+index*2+1]
+            del new_line[6+index*2]
+
+        return new_line
+
     def read_pedfile(self):
         """Open pedfile for reading return iterator"""
 
@@ -218,6 +257,28 @@ class TextPlinkIO():
             reader = get_reader(handle)
             for line in reader:
                 yield line
+
+    def update_pedfile(self, outputfile: str, dataset: Dataset, coding: str):
+        """Update ped contents"""
+
+        with open(outputfile, "w") as target:
+            writer = csv.writer(
+                target, delimiter=' ', lineterminator="\n")
+
+            for i, line in enumerate(self.read_pedfile()):
+                new_line = self._process_pedline(line, dataset, coding)
+
+                # write updated line into updated ped file
+                logger.info(
+                    f"Writing: {new_line[:10]+ ['...']} "
+                    f"({int((len(new_line)-6)/2)} SNPs)")
+                writer.writerow(new_line)
+
+            logger.info(f"Processed {i+1} individuals")
+
+            # output file block
+
+        # input file block
 
     def fetch_coordinates(self, version: str):
         """Search for variants in smarter database"""
