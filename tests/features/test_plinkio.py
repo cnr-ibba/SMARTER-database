@@ -7,21 +7,23 @@ Created on Fri Apr  9 17:42:03 2021
 """
 
 import json
+import types
 import unittest
 import pathlib
 import tempfile
 
-from src.features.smarterdb import VariantSheep, Location
+from src.features.smarterdb import (
+    VariantSheep, Location, Breed, Dataset, SampleSheep)
 from src.features.plinkio import TextPlinkIO, MapRecord
 
-from .common import MongoMockMixin
+from .common import MongoMockMixin, SmarterIDMixin
 
 # set data dir (like os.dirname(__file__)) + "fixtures"
 FIXTURES_DIR = pathlib.Path(__file__).parent / "fixtures"
 DATA_DIR = pathlib.Path(__file__).parent / "data"
 
 
-class SmarterMixin(MongoMockMixin):
+class VariantsMixin():
     @classmethod
     def setUpClass(cls):
         # initialize the mongomock instance
@@ -38,8 +40,14 @@ class SmarterMixin(MongoMockMixin):
             variant = VariantSheep(**item)
             variant.save()
 
+    @classmethod
+    def tearDownClass(cls):
+        VariantSheep.objects.delete()
 
-class TextPlinkIOTestCase(SmarterMixin, unittest.TestCase):
+        super().tearDownClass()
+
+
+class TextPlinkIOMap(VariantsMixin, MongoMockMixin, unittest.TestCase):
     def setUp(self):
         self.plinkio = TextPlinkIO(
             prefix=str(DATA_DIR / "plinktest"),
@@ -95,6 +103,105 @@ class TextPlinkIOTestCase(SmarterMixin, unittest.TestCase):
                 self.assertEqual(location.position, record.position)
 
         # directory and contents have been removed
+
+
+class TextPlinkIOPed(
+        VariantsMixin, SmarterIDMixin, MongoMockMixin, unittest.TestCase):
+
+    def setUp(self):
+        self.plinkio = TextPlinkIO(
+            prefix=str(DATA_DIR / "plinktest"),
+            species="Sheep")
+
+        # read info from map
+        self.plinkio.read_mapfile()
+        self.plinkio.fetch_coordinates(version="Oar_v3.1")
+
+        # read first line of ped file
+        self.lines = list(self.plinkio.read_pedfile())
+
+    def test_read_pedfile(self):
+        test = self.plinkio.read_pedfile()
+        self.assertIsInstance(test, types.GeneratorType)
+
+        # consume data and count rows
+        test = list(test)
+        self.assertEqual(len(test), 2)
+
+    def test_process_genotypes_top(self):
+        # first record is in top coordinates
+        line = self.lines[0]
+        test = self.plinkio._process_genotypes(line, 'top')
+
+        # a genotype in forward coordinates isn't modified
+        self.assertEqual(line, test)
+
+        # searching forward coordinates throws exception
+        self.assertRaisesRegex(
+            Exception,
+            "Not illumina forward format",
+            self.plinkio._process_genotypes,
+            line,
+            "forward"
+        )
+
+    def test_process_genotypes_forward(self):
+        # read a file in forward coordinates
+        self.plinkio.pedfile = str(DATA_DIR / "plinktest_forward.ped")
+        forward = next(self.plinkio.read_pedfile())
+
+        # searching top coordinates throws exception
+        self.assertRaisesRegex(
+            Exception,
+            "Not illumina top format",
+            self.plinkio._process_genotypes,
+            forward,
+            "top"
+        )
+
+        test = self.plinkio._process_genotypes(forward, 'forward')
+
+        # a genotype in forward coordinates returns in top
+        reference = self.lines[0]
+        self.assertEqual(reference, test)
+
+    def test_get_or_create_sample(self):
+        # get a sample line
+        line = self.lines[0]
+
+        # get a breed
+        breed = Breed.objects(code=line[0]).get()
+
+        # no individulas for such breeds
+        self.assertEqual(breed.n_individuals, 0)
+        self.assertEqual(SampleSheep.objects.count(), 0)
+
+        # get a dataset
+        dataset = Dataset.objects(file="test.zip").get()
+
+        # calling my function and collect sample
+        reference = self.plinkio.get_or_create_sample(line, dataset, breed)
+        self.assertIsInstance(reference, SampleSheep)
+
+        # assert an element in database
+        self.assertEqual(SampleSheep.objects.count(), 1)
+
+        # check individuals updated
+        breed.reload()
+        self.assertEqual(breed.n_individuals, 1)
+
+        # calling this function twice, returns the same individual
+        test = self.plinkio.get_or_create_sample(line, dataset, breed)
+        self.assertIsInstance(test, SampleSheep)
+
+        # assert an element in database
+        self.assertEqual(SampleSheep.objects.count(), 1)
+
+        # check individuals updated
+        breed.reload()
+        self.assertEqual(breed.n_individuals, 1)
+
+        self.assertEqual(reference, test)
 
 
 if __name__ == '__main__':

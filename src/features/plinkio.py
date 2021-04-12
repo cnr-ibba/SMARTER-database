@@ -137,6 +137,88 @@ class TextPlinkIO():
         # search for sample in database
         qs = self.SampleSpecies.objects(original_id=line[1])
 
+        if qs.count() == 1:
+            logger.debug(f"Sample '{line[1]}' found in database")
+            sample = qs.get()
+
+            # TODO: update records if necessary
+
+        else:
+            # insert sample into database
+            logger.info(f"Registering sample '{line[1]}' in database")
+            sample = self.SampleSpecies(
+                original_id=line[1],
+                country=dataset.country,
+                species=dataset.species,
+                breed=breed.name,
+                breed_code=breed.code,
+                dataset=dataset
+            )
+            sample.save()
+
+            # incrementing breed n_individuals counter
+            breed.n_individuals += 1
+            breed.save()
+
+        return sample
+
+    def _process_genotypes(self, line: list, coding: str):
+        new_line = line.copy()
+
+        # ok now is time to update genotypes
+        for j in range(len(self.mapdata)):
+            # replacing the i-th genotypes. Skip 6 columns
+            a1 = new_line[6+j*2]
+            a2 = new_line[6+j*2+1]
+
+            genotype = [a1, a2]
+
+            # is this snp filtered out
+            if j in self.filtered:
+                logger.debug(
+                    f"Skipping {self.mapdata[j].name}:[{a1}/{a2}] "
+                    "not in database!"
+                )
+
+                continue
+
+            # get the proper position
+            location = self.locations[j]
+
+            # TODO: coding need to be a dataset attribute
+            if coding == 'top':
+                if not location.is_top(genotype):
+                    logger.critical(
+                        f"Error for {self.mapdata[j].name}: "
+                        f"{a1}/{a2} <> {location.illumina_top}"
+                    )
+                    raise Exception("Not illumina top format")
+
+            elif coding == 'forward':
+                if not location.is_forward(genotype):
+                    logger.critical(
+                        f"Error for {self.mapdata[j].name}: "
+                        f"{a1}/{a2} <> {location.illumina_top}"
+                    )
+                    raise Exception("Not illumina forward format")
+
+                # change the allele coding
+                top_genotype = location.forward2top(genotype)
+                new_line[6+j*2], new_line[6+j*2+1] = top_genotype
+
+            else:
+                raise NotImplementedError(f"Coding '{coding}' not supported")
+
+        return new_line
+
+    def read_pedfile(self):
+        """Open pedfile for reading return iterator"""
+
+        with open(self.pedfile) as handle:
+            reader = get_reader(handle)
+            for line in reader:
+                yield line
+
     def fetch_coordinates(self, version: str):
         """Search for variants in smarter database"""
 

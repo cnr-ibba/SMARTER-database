@@ -11,10 +11,10 @@ import unittest
 import pathlib
 
 from src.features.smarterdb import (
-    VariantSheep, Location, SampleSheep, Breed, Counter,
+    VariantSheep, Location, SampleSheep,
     SmarterDBException, getSmarterId)
 
-from .common import MongoMockMixin
+from .common import MongoMockMixin, SmarterIDMixin
 
 # set data dir (like os.dirname(__file__)) + "fixtures"
 DATA_DIR = pathlib.Path(__file__).parent / "fixtures"
@@ -265,43 +265,6 @@ class VariantSheepTestCase(VariantMixin, MongoMockMixin, unittest.TestCase):
         )
 
 
-class SmarterIDMixin():
-    """Common set up for classes which require a smarter id to work properly"""
-    @classmethod
-    def setUpClass(cls):
-        # initialize the mongomock instance
-        super().setUpClass()
-
-        # need to define a breed in order to get a smarter id
-        breed = Breed(
-            species="Sheep",
-            name="Texel",
-            code="TEX"
-        )
-        breed.save()
-
-        # need also a counter object for sheep and goat
-        counter = Counter(
-            pk="sampleSheep",
-            sequence_value=0
-        )
-        counter.save()
-
-        counter = Counter(
-            pk="sampleGoat",
-            sequence_value=0
-        )
-        counter.save()
-
-    @classmethod
-    def tearDownClass(cls):
-        # delete breeds and counter objects
-        Breed.objects().delete()
-        Counter.objects().delete()
-
-        super().tearDownClass()
-
-
 class GetSmarterIdTestCase(SmarterIDMixin, MongoMockMixin, unittest.TestCase):
     """Testing getSmarterId function"""
 
@@ -362,6 +325,9 @@ class SampleSheepTestCase(SmarterIDMixin, MongoMockMixin, unittest.TestCase):
             original_id=self.original_id,
             smarter_id=self.smarter_id
         )
+
+    def tearDown(self):
+        SampleSheep.objects().delete()
 
     def test__str(self):
         self.assertEqual(
