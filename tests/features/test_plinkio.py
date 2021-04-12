@@ -41,7 +41,9 @@ class SmarterMixin(MongoMockMixin):
 
 class TextPlinkIOTestCase(SmarterMixin, unittest.TestCase):
     def setUp(self):
-        self.plinkio = TextPlinkIO(prefix=str(DATA_DIR / "plinktest"))
+        self.plinkio = TextPlinkIO(
+            prefix=str(DATA_DIR / "plinktest"),
+            species="Sheep")
 
     def test_read_mapfile(self):
         self.plinkio.read_mapfile()
@@ -52,7 +54,7 @@ class TextPlinkIOTestCase(SmarterMixin, unittest.TestCase):
 
     def test_fetch_coordinates(self):
         self.plinkio.read_mapfile()
-        self.plinkio.fetch_coordinates(species="Sheep", version="Oar_v3.1")
+        self.plinkio.fetch_coordinates(version="Oar_v3.1")
 
         self.assertIsInstance(self.plinkio.locations, list)
         self.assertEqual(len(self.plinkio.locations), 4)
@@ -74,7 +76,7 @@ class TextPlinkIOTestCase(SmarterMixin, unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmpdirname:
             outfile = pathlib.Path(tmpdirname) / "plinktest_updated.map"
             self.plinkio.read_mapfile()
-            self.plinkio.fetch_coordinates(species="Sheep", version="Oar_v3.1")
+            self.plinkio.fetch_coordinates(version="Oar_v3.1")
             self.plinkio.update_mapfile(str(outfile))
 
             # now open outputfile and test stuff

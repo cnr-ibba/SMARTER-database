@@ -8,15 +8,17 @@ Created on Fri Apr  9 15:58:40 2021
 Try to model data operations on plink files
 """
 
+import io
 import csv
 import logging
 from dataclasses import dataclass
 
 from tqdm import tqdm
 from mongoengine.errors import DoesNotExist
+from mongoengine.queryset.visitor import Q
 
 from .snpchimp import clean_chrom
-from .smarterdb import VariantSheep
+from .smarterdb import VariantSheep, SampleSheep, Breed, Dataset
 from .utils import TqdmToLogger
 
 
@@ -36,18 +38,32 @@ class MapRecord():
         self.position = int(self.position)
 
 
+def get_reader(handle: io.TextIOWrapper):
+    logger.debug(f"Reading '{handle.name}' content")
+
+    sniffer = csv.Sniffer()
+    dialect = sniffer.sniff(handle.read(2048))
+    handle.seek(0)
+    return csv.reader(handle, dialect=dialect)
+
+
 class TextPlinkIO():
     mapfile = None
     pedfile = None
     mapdata = list()
     locations = list()
     filtered = set()
+    _species = None
+    VariantSpecies = None
+    SampleSpecies = None
 
     def __init__(
             self,
             prefix: str = None,
             mapfile: str = None,
-            pedfile: str = None):
+            pedfile: str = None,
+            species: str = None):
+
         if prefix:
             self.mapfile = prefix + ".map"
             self.pedfile = prefix + ".ped"
@@ -59,19 +75,33 @@ class TextPlinkIO():
         if self.mapfile:
             self.read_mapfile()
 
+        if species:
+            self.species = species
+
+    @property
+    def species(self):
+        return self._species
+
+    @species.setter
+    def species(self, species):
+        # determine the SampleClass
+        if species == 'Sheep':
+            self.VariantSpecies = VariantSheep
+            self.SampleSpecies = SampleSheep
+
+        else:
+            raise NotImplementedError(
+                f"Species '{species}' not yet implemented"
+            )
+
+        self._species = species
+
     def read_mapfile(self):
         """Read map data and track informations in memory. Useful to process
         data files"""
 
-        sniffer = csv.Sniffer()
-
         with open(self.mapfile) as handle:
-            logger.debug(f"Reading '{self.mapfile}' content")
-
-            dialect = sniffer.sniff(handle.read(2048))
-            handle.seek(0)
-            reader = csv.reader(handle, dialect=dialect)
-
+            reader = get_reader(handle)
             self.mapdata = [MapRecord(*record) for record in reader]
 
     def update_mapfile(self, outputfile: str):
@@ -103,27 +133,23 @@ class TextPlinkIO():
                     location.position
                 ])
 
-    def fetch_coordinates(self, species: str, version: str):
+    def get_or_create_sample(self, line: list, dataset: Dataset, breed: Breed):
+        # search for sample in database
+        qs = self.SampleSpecies.objects(original_id=line[1])
+
+    def fetch_coordinates(self, version: str):
         """Search for variants in smarter database"""
 
         # reset meta informations
         self.locations = list()
         self.filtered = set()
 
-        # determine the SampleClass
-        if species == 'Sheep':
-            VariantSpecies = VariantSheep
-        else:
-            raise NotImplementedError(
-                f"Species '{species}' not yet implemented"
-            )
-
         tqdm_out = TqdmToLogger(logger, level=logging.INFO)
 
         for idx, record in enumerate(tqdm(
                 self.mapdata, file=tqdm_out, mininterval=1)):
             try:
-                variant = VariantSpecies.objects(name=record.name).get()
+                variant = self.VariantSpecies.objects(name=record.name).get()
 
             except DoesNotExist as e:
                 logger.error(f"Couldn't find {record.name}: {e}")
