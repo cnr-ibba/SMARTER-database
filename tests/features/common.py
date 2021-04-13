@@ -60,7 +60,11 @@ class SmarterIDMixin():
         dataset = Dataset(
             file="test.zip",
             country="Italy",
-            species="Sheep"
+            species="Sheep",
+            contents=[
+                "plinktest.map",
+                "plinktest.ped"
+            ]
         )
         dataset.save()
 

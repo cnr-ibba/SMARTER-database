@@ -64,7 +64,7 @@ def main(mapfile, pedfile, dataset, coding):
     working_dir = dataset.working_dir
 
     if not working_dir.exists():
-        logger.critical("Could find dataset directory {working_dir}")
+        logger.critical(f"Could find dataset directory {working_dir}")
         return
 
     # determine full file paths
