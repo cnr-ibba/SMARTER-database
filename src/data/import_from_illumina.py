@@ -18,9 +18,8 @@ import subprocess
 
 from pathlib import Path
 
-from src.features.plinkio import TextPlinkIO
+from src.features.plinkio import IlluminaReportIO
 from src.features.smarterdb import Dataset, global_connection
-from src.features.illumina import read_snpList
 
 logger = logging.getLogger(__name__)
 
@@ -59,16 +58,15 @@ def main(dataset, snpfile, report):
     reportpath = working_dir / report
 
     # instantiating a TextPlinkIO object
-    text_plink = TextPlinkIO(
+    report = IlluminaReportIO(
+        snpfile=snpfilepath,
+        report=reportpath,
         species=dataset.species
     )
 
-    # deal with map file first
-    mapdata = list(read_snpList(snpfilepath))
-
     # set mapdata and read updated coordinates from db
-    text_plink.mapdata = mapdata
-    text_plink.fetch_coordinates(version="Oar_v3.1")
+    report.read_snpfile()
+    report.fetch_coordinates(version="Oar_v3.1")
 
     logger.info("Writing a new map file with updated coordinates")
 
@@ -77,7 +75,7 @@ def main(dataset, snpfile, report):
     output_map = Path(reportpath).stem + "_updated.map"
     output_map = output_dir / output_map
 
-    text_plink.update_mapfile(str(output_map))
+    report.update_mapfile(str(output_map))
 
     logger.info(f"{Path(__file__).name} ended")
 

@@ -20,6 +20,7 @@ from mongoengine.queryset.visitor import Q
 from .snpchimp import clean_chrom
 from .smarterdb import VariantSheep, SampleSheep, Breed, Dataset
 from .utils import TqdmToLogger
+from .illumina import read_snpList
 
 
 # Get an instance of a logger
@@ -51,33 +52,15 @@ def get_reader(handle: io.TextIOWrapper):
     return csv.reader(handle, dialect=dialect)
 
 
-class TextPlinkIO():
-    mapfile = None
-    pedfile = None
+class SmarterMixin():
+    """Common features of a Smarter related dataset file"""
+
+    _species = None
     mapdata = list()
     locations = list()
     filtered = set()
-    _species = None
     VariantSpecies = None
     SampleSpecies = None
-
-    def __init__(
-            self,
-            prefix: str = None,
-            mapfile: str = None,
-            pedfile: str = None,
-            species: str = None):
-
-        if prefix:
-            self.mapfile = prefix + ".map"
-            self.pedfile = prefix + ".ped"
-
-        elif mapfile and pedfile:
-            self.mapfile = mapfile
-            self.pedfile = pedfile
-
-        if species:
-            self.species = species
 
     @property
     def species(self):
@@ -96,14 +79,6 @@ class TextPlinkIO():
             )
 
         self._species = species
-
-    def read_mapfile(self):
-        """Read map data and track informations in memory. Useful to process
-        data files"""
-
-        with open(self.mapfile) as handle:
-            reader = get_reader(handle)
-            self.mapdata = [MapRecord(*record) for record in reader]
 
     def update_mapfile(self, outputfile: str):
         # helper function to get default value for cM
@@ -162,6 +137,72 @@ class TextPlinkIO():
             breed.save()
 
         return sample
+
+    def fetch_coordinates(self, version: str):
+        """Search for variants in smarter database"""
+
+        # reset meta informations
+        self.locations = list()
+        self.filtered = set()
+
+        tqdm_out = TqdmToLogger(logger, level=logging.INFO)
+
+        for idx, record in enumerate(tqdm(
+                self.mapdata, file=tqdm_out, mininterval=1)):
+            try:
+                variant = self.VariantSpecies.objects(name=record.name).get()
+
+            except DoesNotExist as e:
+                logger.error(f"Couldn't find {record.name}: {e}")
+
+                # skip this variant (even in ped)
+                self.filtered.add(idx)
+
+                # need to add an empty value in locations (or my indexes
+                # won't work properly)
+                self.locations.append(None)
+
+                continue
+
+            # get location for snpchimp (defalt) in oarv3.1 coordinates
+            location = variant.get_location(version=version)
+
+            # track data for this location
+            self.locations.append(location)
+
+        logger.debug(
+            f"collected {len(self.locations)} in '{version}' coordinates")
+
+
+class TextPlinkIO(SmarterMixin):
+    mapfile = None
+    pedfile = None
+
+    def __init__(
+            self,
+            prefix: str = None,
+            mapfile: str = None,
+            pedfile: str = None,
+            species: str = None):
+
+        if prefix:
+            self.mapfile = prefix + ".map"
+            self.pedfile = prefix + ".ped"
+
+        elif mapfile and pedfile:
+            self.mapfile = mapfile
+            self.pedfile = pedfile
+
+        if species:
+            self.species = species
+
+    def read_mapfile(self):
+        """Read map data and track informations in memory. Useful to process
+        data files"""
+
+        with open(self.mapfile) as handle:
+            reader = get_reader(handle)
+            self.mapdata = [MapRecord(*record) for record in reader]
 
     def _process_genotypes(self, line: list, coding: str):
         new_line = line.copy()
@@ -293,37 +334,26 @@ class TextPlinkIO():
 
         # input file block
 
-    def fetch_coordinates(self, version: str):
-        """Search for variants in smarter database"""
 
-        # reset meta informations
-        self.locations = list()
-        self.filtered = set()
+class IlluminaReportIO(SmarterMixin):
+    snpfile = None
+    report = None
 
-        tqdm_out = TqdmToLogger(logger, level=logging.INFO)
+    def __init__(
+            self,
+            snpfile: str = None,
+            report: str = None,
+            species: str = None):
 
-        for idx, record in enumerate(tqdm(
-                self.mapdata, file=tqdm_out, mininterval=1)):
-            try:
-                variant = self.VariantSpecies.objects(name=record.name).get()
+        if snpfile and report:
+            self.snpfile = snpfile
+            self.report = report
 
-            except DoesNotExist as e:
-                logger.error(f"Couldn't find {record.name}: {e}")
+        if species:
+            self.species = species
 
-                # skip this variant (even in ped)
-                self.filtered.add(idx)
+    def read_snpfile(self):
+        """Read snp data and track informations in memory. Useful to process
+        data files"""
 
-                # need to add an empty value in locations (or my indexes
-                # won't work properly)
-                self.locations.append(None)
-
-                continue
-
-            # get location for snpchimp (defalt) in oarv3.1 coordinates
-            location = variant.get_location(version=version)
-
-            # track data for this location
-            self.locations.append(location)
-
-        logger.debug(
-            f"collected {len(self.locations)} in '{version}' coordinates")
+        self.mapdata = list(read_snpList(self.snpfile))
