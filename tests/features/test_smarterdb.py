@@ -23,8 +23,8 @@ DATA_DIR = pathlib.Path(__file__).parent / "fixtures"
 class VariantMixin():
     @classmethod
     def setUpClass(cls):
-        with open(DATA_DIR / "variant.json") as handle:
-            cls.data = json.load(handle)
+        with open(DATA_DIR / "variants.json") as handle:
+            cls.data = json.load(handle)[0]
 
         super().setUpClass()
 
@@ -205,6 +205,45 @@ class LocationTestCase(VariantMixin, MongoMockMixin, unittest.TestCase):
             SmarterDBException,
             "is not in forward coding",
             self.location.forward2top,
+            ["A", "T"]
+        )
+
+    def test_is_ab(self):
+        for genotype in ["A/A", "A/B", "B/A", "B/B", "0/0"]:
+            genotype = genotype.split("/")
+
+            self.assertTrue(
+                self.location.is_ab(genotype),
+                msg=f"{genotype} is not in ab coordinates!"
+            )
+
+        # is not in not if contains an allele not in top format
+        # HINT: "A/A" is a special case since cam be top or AB in the same time
+        for genotype in ["T/C", "A/C", "G/T", "G/G", "A/G"]:
+            self.assertFalse(
+                self.location.is_top(genotype),
+                msg=f"{genotype} is in ab coordinates!"
+            )
+
+    def test_ab2top(self):
+        """Test ab to top conversion"""
+
+        ab = ["A/B", "A/A", "B/A", "B/B", "0/0"]
+        tops = ["A/G", "A/A", "G/A", "G/G", "0/0"]
+
+        for i, genotype in enumerate(ab):
+            reference = tops[i].split("/")
+            genotype = genotype.split("/")
+
+            test = self.location.ab2top(genotype)
+            self.assertEqual(reference, test)
+
+    def test_ab2top_error(self):
+        """Test exception with an allele not in ab coding"""
+        self.assertRaisesRegex(
+            SmarterDBException,
+            "is not in ab coding",
+            self.location.ab2top,
             ["A", "T"]
         )
 

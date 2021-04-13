@@ -26,6 +26,10 @@ from .utils import TqdmToLogger
 logger = logging.getLogger(__name__)
 
 
+class CodingException(Exception):
+    pass
+
+
 @dataclass
 class MapRecord():
     chrom: str
@@ -189,7 +193,7 @@ class TextPlinkIO():
                         f"Error for {self.mapdata[j].name}: "
                         f"{a1}/{a2} <> {location.illumina_top}"
                     )
-                    raise Exception("Not illumina top format")
+                    raise CodingException("Not illumina top format")
 
             elif coding == 'forward':
                 if not location.is_forward(genotype):
@@ -197,7 +201,7 @@ class TextPlinkIO():
                         f"Error for {self.mapdata[j].name}: "
                         f"{a1}/{a2} <> {location.illumina_top}"
                     )
-                    raise Exception("Not illumina forward format")
+                    raise CodingException("Not illumina forward format")
 
                 # change the allele coding
                 top_genotype = location.forward2top(genotype)

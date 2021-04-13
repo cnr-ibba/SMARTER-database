@@ -14,7 +14,7 @@ import tempfile
 
 from src.features.smarterdb import (
     VariantSheep, Location, Breed, Dataset, SampleSheep)
-from src.features.plinkio import TextPlinkIO, MapRecord
+from src.features.plinkio import TextPlinkIO, MapRecord, CodingException
 
 from .common import MongoMockMixin, SmarterIDMixin
 
@@ -138,11 +138,20 @@ class TextPlinkIOPed(
 
         # searching forward coordinates throws exception
         self.assertRaisesRegex(
-            Exception,
+            CodingException,
             "Not illumina forward format",
             self.plinkio._process_genotypes,
             line,
             "forward"
+        )
+
+        # searching ab coordinates throws exception
+        self.assertRaisesRegex(
+            CodingException,
+            "Not illumina ab format",
+            self.plinkio._process_genotypes,
+            line,
+            "ab"
         )
 
     def test_process_genotypes_forward(self):
@@ -152,14 +161,52 @@ class TextPlinkIOPed(
 
         # searching top coordinates throws exception
         self.assertRaisesRegex(
-            Exception,
+            CodingException,
             "Not illumina top format",
             self.plinkio._process_genotypes,
             forward,
             "top"
         )
 
+        # searching ab coordinates throws exception
+        self.assertRaisesRegex(
+            CodingException,
+            "Not illumina ab format",
+            self.plinkio._process_genotypes,
+            forward,
+            "ab"
+        )
+
         test = self.plinkio._process_genotypes(forward, 'forward')
+
+        # a genotype in forward coordinates returns in top
+        reference = self.lines[0]
+        self.assertEqual(reference, test)
+
+    def test_process_genotypes_ab(self):
+        # read a file in forward coordinates
+        self.plinkio.pedfile = str(DATA_DIR / "plinktest_ab.ped")
+        ab = next(self.plinkio.read_pedfile())
+
+        # searching top coordinates throws exception
+        self.assertRaisesRegex(
+            CodingException,
+            "Not illumina top format",
+            self.plinkio._process_genotypes,
+            ab,
+            "top"
+        )
+
+        # searching forward coordinates throws exception
+        self.assertRaisesRegex(
+            CodingException,
+            "Not illumina forward format",
+            self.plinkio._process_genotypes,
+            ab,
+            "forward"
+        )
+
+        test = self.plinkio._process_genotypes(ab, 'ab')
 
         # a genotype in forward coordinates returns in top
         reference = self.lines[0]
