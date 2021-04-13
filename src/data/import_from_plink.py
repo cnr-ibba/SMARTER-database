@@ -14,21 +14,14 @@ The default format is illumina top, but its possible to convert into it
 from an illumina forward format
 """
 
-import csv
 import click
 import logging
-import itertools
 import subprocess
 
 from pathlib import Path
-from mongoengine.errors import DoesNotExist
-from mongoengine.queryset.visitor import Q
-from tqdm import tqdm
 
-from src.features.snpchimp import clean_chrom
-from src.features.smarterdb import (
-    global_connection, Dataset, Breed, SampleSheep, VariantSheep)
-from src.features.utils import TqdmToLogger
+from src.features.plinkio import TextPlinkIO
+from src.features.smarterdb import Dataset, global_connection
 
 logger = logging.getLogger(__name__)
 
@@ -60,14 +53,6 @@ def main(mapfile, pedfile, dataset, coding):
 
     logger.debug(f"Found {dataset}")
 
-    # determine the SampleClass
-    if dataset.species == 'Sheep':
-        SampleSpecies = SampleSheep
-    else:
-        raise NotImplementedError(
-            f"Species '{dataset.species}' not yet implemented"
-        )
-
     # check files are in dataset
     if mapfile not in dataset.contents or pedfile not in dataset.contents:
         logger.critical(
@@ -86,24 +71,16 @@ def main(mapfile, pedfile, dataset, coding):
     mappath = working_dir / mapfile
     pedpath = working_dir / pedfile
 
-    sniffer = csv.Sniffer()
+    # instantiating a TextPlinkIO object
+    text_plink = TextPlinkIO(
+        mapfile=str(mappath),
+        pedfile=str(pedpath),
+        species=dataset.species
+    )
 
-    # deal with map file first
-    mapdata = []
-
-    with open(mappath) as handle:
-        logger.debug(f"Reading '{mappath}' content")
-
-        dialect = sniffer.sniff(handle.read(2048))
-        handle.seek(0)
-        reader = csv.reader(handle, dialect=dialect)
-
-        mapdata = list(reader)
-
-    for line in itertools.islice(mapdata, 5):
-        logger.debug(line)
-
-    logger.info(f"Read {len(mapdata)} snps from {mappath}")
+    # read mapdata and read updated coordinates from db
+    text_plink.read_mapfile()
+    text_plink.fetch_coordinates(version="Oar_v3.1")
 
     logger.info("Writing a new map file with updated coordinates")
 
@@ -112,170 +89,13 @@ def main(mapfile, pedfile, dataset, coding):
     output_map = Path(mapfile).stem + "_updated" + Path(mapfile).suffix
     output_map = output_dir / output_map
 
-    # I need to track genotypes
-    locations = list()
+    text_plink.update_mapfile(str(output_map))
 
-    # need to track also filtered snps
-    filtered = set()
-
-    with open(output_map, 'w') as handle:
-        writer = csv.writer(handle, delimiter=' ', lineterminator="\n")
-
-        tqdm_out = TqdmToLogger(logger, level=logging.INFO)
-
-        for i, line in enumerate(tqdm(mapdata, file=tqdm_out, mininterval=1)):
-            try:
-                variant = VariantSheep.objects(name=line[1]).get()
-
-            except DoesNotExist as e:
-                logger.error(f"Couldn't find {line[1]}: {e}")
-
-                # skip this variant (even in ped)
-                filtered.add(i)
-
-                # need to add an empty value in locations (or my indexes
-                # won't work properly)
-                locations.append(None)
-
-                # I don't need to write down a row in new mapfile
-                continue
-
-            # get location for snpchimp (defalt) in oarv3.1 coordinates
-            location = variant.get_location(version='Oar_v3.1')
-
-            # track data for this location
-            locations.append(location)
-
-            # a new record in mapfile
-            writer.writerow([
-                clean_chrom(location.chrom),
-                line[1],
-                line[2],
-                location.position
-            ])
-
-    logger.debug(f"collected {len(locations)} in 'Oar_v3.1' coordinates")
-
-    # opening ped file for writing updated genotypes
+    # creating ped file for writing updated genotypes
     output_ped = Path(pedfile).stem + "_updated" + Path(pedfile).suffix
     output_ped = output_dir / output_ped
 
-    handle_ped = open(output_ped, "w")
-    writer = csv.writer(handle_ped, delimiter=' ', lineterminator="\n")
-
-    with open(pedpath) as handle:
-        logger.debug(f"Reading '{pedpath}' content")
-
-        dialect = sniffer.sniff(handle.read(2048))
-        handle.seek(0)
-        reader = csv.reader(handle, dialect=dialect)
-
-        for i, line in enumerate(reader):
-            # check genotypes size 2*mapdata (diploidy) + 6 extra columns:
-            if len(line) != len(mapdata)*2 + 6:
-                logger.critical(
-                    f"SNPs sizes don't match in '{mapfile}' and '{pedfile}'")
-                logger.critical("Please check file contents")
-                return
-
-            logger.debug(f"Processing {line[:10]+ ['...']}")
-
-            # check for breed in database
-            breed = Breed.objects(
-                Q(name=line[0]) | Q(aliases__in=[line[0]])
-            ).get()
-
-            logger.debug(f"Found breed {breed}")
-
-            # search for sample in database
-            qs = SampleSpecies.objects(original_id=line[1])
-
-            if qs.count() == 1:
-                logger.debug(f"Sample '{line[1]}' found in database")
-                sample = qs.get()
-
-                # TODO: update records if necessary
-
-            else:
-                # nsert sample into database
-                logger.info(f"Registering sample '{line[1]}' in database")
-                sample = SampleSheep(
-                    original_id=line[1],
-                    country=dataset.country,
-                    species=dataset.species,
-                    breed=breed.name,
-                    breed_code=breed.code,
-                    dataset=dataset
-                )
-                sample.save()
-
-                # incrementing breed n_individuals counter
-                breed.n_individuals += 1
-                breed.save()
-
-            # updating ped line with smarter ids
-            line[0] = breed.code
-            line[1] = sample.smarter_id
-
-            # ok now is time to update genotypes
-            for j in range(len(mapdata)):
-                # replacing the i-th genotypes. Skip 6 columns
-                a1 = line[6+j*2]
-                a2 = line[6+j*2+1]
-
-                genotype = [a1, a2]
-
-                # is this snp filtered out
-                if j in filtered:
-                    logger.debug(
-                        f"Skipping {mapdata[j][1]}:[{a1}/{a2}] "
-                        "not in database!"
-                    )
-
-                    continue
-
-                # get the proper position
-                location = locations[j]
-
-                if coding == 'top':
-                    if not location.is_top(genotype):
-                        logger.critical(
-                            f"Error for {mapdata[j][1]}: "
-                            f"{a1}/{a2} <> {location.illumina_top}"
-                        )
-                        raise Exception("Not illumina top format")
-
-                elif coding == 'forward':
-                    if not location.is_forward(genotype):
-                        logger.critical(
-                            f"Error for {mapdata[j][1]}: "
-                            f"{a1}/{a2} <> {location.illumina_top}"
-                        )
-                        raise Exception("Not illumina forward format")
-
-                    # change the allele coding
-                    top_genotype = location.forward2top(genotype)
-                    line[6+j*2], line[6+j*2+1] = top_genotype
-
-                else:
-                    raise NotImplementedError("Coding not supported")
-
-            # need to remove filtered snps from ped line
-            for index in sorted(filtered, reverse=True):
-                # index is snp position. Need to delete two fields
-                del line[6+index*2+1]
-                del line[6+index*2]
-
-            # write updated line into updated ped file
-            logger.info(
-                f"Writing: {line[:10]+ ['...']} "
-                f"({int((len(line)-6)/2)} SNPs)")
-            writer.writerow(line)
-
-        logger.info(f"Processed {i+1} individuals")
-
-    # closing output ped file
-    handle_ped.close()
+    text_plink.update_pedfile(output_ped, dataset, coding)
 
     # ok check for results dir
     results_dir = dataset.result_dir

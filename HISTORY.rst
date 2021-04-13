@@ -11,12 +11,12 @@ TODO
 * Import from an *illumina report* file
 * Deal with *AB* allele coding
 * Track ``chip_name`` with samples
-* Deal with plink text files using modules
 * make rule to clean-up ``interim`` data
 
 Features
 ^^^^^^^^
 
+* Deal with plink text files using modules
 * Fix *SNPchiMp* data import
 * Determine ``illumina_top`` coding as a *property* relying on database data
 * Support multi-manifest upload (extend database with *HD* chip)

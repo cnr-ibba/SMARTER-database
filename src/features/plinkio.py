@@ -72,9 +72,6 @@ class TextPlinkIO():
             self.mapfile = mapfile
             self.pedfile = pedfile
 
-        if self.mapfile:
-            self.read_mapfile()
-
         if species:
             self.species = species
 
