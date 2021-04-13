@@ -10,13 +10,13 @@ TODO
 
 * Import from an *illumina report* file
 * Move imported binary file in ``interim`` subfolder
-* Deal with *AB* allele coding
 * Track ``chip_name`` with samples
 * make rule to clean-up ``interim`` data
 
 Features
 ^^^^^^^^
 
+* Deal with *AB* allele coding
 * Deal with plink text files using modules
 * Fix *SNPchiMp* data import
 * Determine ``illumina_top`` coding as a *property* relying on database data

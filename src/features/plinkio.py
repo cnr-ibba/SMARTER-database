@@ -207,6 +207,18 @@ class TextPlinkIO():
                 top_genotype = location.forward2top(genotype)
                 new_line[6+j*2], new_line[6+j*2+1] = top_genotype
 
+            elif coding == 'ab':
+                if not location.is_ab(genotype):
+                    logger.critical(
+                        f"Error for {self.mapdata[j].name}: "
+                        f"{a1}/{a2} <> {location.illumina_top}"
+                    )
+                    raise CodingException("Not illumina ab format")
+
+                # change the allele coding
+                top_genotype = location.ab2top(genotype)
+                new_line[6+j*2], new_line[6+j*2+1] = top_genotype
+
             else:
                 raise NotImplementedError(f"Coding '{coding}' not supported")
 
