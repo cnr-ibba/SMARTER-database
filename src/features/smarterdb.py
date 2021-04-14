@@ -391,7 +391,7 @@ class Location(mongoengine.EmbeddedDocument):
 
         return self.__check_coding(genotype, "illumina_forward", missing)
 
-    def is_ab(self, genotype: list, missing: str = "0") -> bool:
+    def is_ab(self, genotype: list, missing: str = "-") -> bool:
         """Return True if genotype is compatible with illumina AB coding
 
         Args:
@@ -404,7 +404,7 @@ class Location(mongoengine.EmbeddedDocument):
 
         for allele in genotype:
             # mind to missing valies
-            if allele not in ["A", "B", "0"]:
+            if allele not in ["A", "B", missing]:
                 return False
 
         return True
@@ -440,12 +440,12 @@ class Location(mongoengine.EmbeddedDocument):
 
         return result
 
-    def ab2top(self, genotype: list, missing: str = "0") -> list:
+    def ab2top(self, genotype: list, missing: str = "-") -> list:
         """Convert an illumina ab SNP in a illumina top snp
 
         Args:
             genotype (list): a list of two alleles (ex ['A','B'])
-            missing (str): missing allele string (def "0")
+            missing (str): missing allele string (def "-")
 
         Returns:
             list: The genotype in top format
@@ -460,9 +460,9 @@ class Location(mongoengine.EmbeddedDocument):
         for allele in genotype:
             # mind to missing values
             if allele == missing:
-                result.append(allele)
+                result.append("0")
 
-            elif allele not in ["A", "B", "0"]:
+            elif allele not in ["A", "B"]:
                 raise SmarterDBException(
                     "{genotype} is not in ab coding")
 

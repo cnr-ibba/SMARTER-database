@@ -209,7 +209,7 @@ class LocationTestCase(VariantMixin, MongoMockMixin, unittest.TestCase):
         )
 
     def test_is_ab(self):
-        for genotype in ["A/A", "A/B", "B/A", "B/B", "0/0"]:
+        for genotype in ["A/A", "A/B", "B/A", "B/B", "-/-"]:
             genotype = genotype.split("/")
 
             self.assertTrue(
@@ -219,7 +219,7 @@ class LocationTestCase(VariantMixin, MongoMockMixin, unittest.TestCase):
 
         # is not in not if contains an allele not in top format
         # HINT: "A/A" is a special case since cam be top or AB in the same time
-        for genotype in ["T/C", "A/C", "G/T", "G/G", "A/G"]:
+        for genotype in ["T/C", "A/C", "G/T", "G/G", "A/G", "0/0"]:
             self.assertFalse(
                 self.location.is_top(genotype),
                 msg=f"{genotype} is in ab coordinates!"
@@ -228,7 +228,7 @@ class LocationTestCase(VariantMixin, MongoMockMixin, unittest.TestCase):
     def test_ab2top(self):
         """Test ab to top conversion"""
 
-        ab = ["A/B", "A/A", "B/A", "B/B", "0/0"]
+        ab = ["A/B", "A/A", "B/A", "B/B", "-/-"]
         tops = ["A/G", "A/A", "G/A", "G/G", "0/0"]
 
         for i, genotype in enumerate(ab):
