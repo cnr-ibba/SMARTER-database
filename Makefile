@@ -54,7 +54,8 @@ data: requirements
 		--dataset MERINO_INIA_UY.zip
 	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --mapfile CORRIEDALE_UY_60_INIA_Ovine_14sep2010.map --pedfile CORRIEDALE_UY_60_INIA_Ovine_14sep2010.ped \
 		--dataset CORRIEDALE_INIA_UY.zip
-	$(PYTHON_INTERPRETER) src/data/import_from_illumina.py --report JCM2357_UGY_FinalReport1.txt --snpfile OvineHDSNPList.txt --dataset CREOLE_INIA_UY.zip
+	$(PYTHON_INTERPRETER) src/data/import_from_illumina.py --report JCM2357_UGY_FinalReport1.txt --snpfile OvineHDSNPList.txt --dataset CREOLE_INIA_UY.zip --breed_code CRL
+	$(PYTHON_INTERPRETER) src/data/import_from_illumina.py --report JCM2357_UGY_FinalReport2.txt --snpfile OvineHDSNPList.txt --dataset CREOLE_INIA_UY.zip --breed_code CRL
 	## merge SNPs into 1 file
 	$(PYTHON_INTERPRETER) src/data/merge_datasets.py --species sheep --assembly OARV3
 

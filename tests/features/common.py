@@ -63,7 +63,9 @@ class SmarterIDMixin():
             species="Sheep",
             contents=[
                 "plinktest.map",
-                "plinktest.ped"
+                "plinktest.ped",
+                "snplist.txt",
+                "finalreport.txt"
             ]
         )
         dataset.save()

@@ -39,7 +39,7 @@ logger = logging.getLogger(__name__)
         ['top', 'forward'],
         case_sensitive=False),
     default="top", show_default=True,
-    help="Illumina conding format"
+    help="Illumina coding format"
 )
 def main(mapfile, pedfile, dataset, coding):
     """Read sample names from map/ped files and updata smarter database (insert

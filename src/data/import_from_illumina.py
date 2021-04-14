@@ -25,13 +25,25 @@ logger = logging.getLogger(__name__)
 
 
 @click.command()
-@click.option('--report', type=str, required=True)
-@click.option('--snpfile', type=str, required=True)
 @click.option(
     '--dataset', type=str, required=True,
     help="The raw dataset file name (zip archive)"
 )
-def main(dataset, snpfile, report):
+@click.option('--snpfile', type=str, required=True)
+@click.option('--report', type=str, required=True)
+@click.option(
+    '--coding',
+    type=click.Choice(
+        ['ab'],
+        case_sensitive=False),
+    default="ab", show_default=True,
+    help="Illumina coding format"
+)
+@click.option(
+    '--breed_code',
+    type=str,
+    required=True)
+def main(dataset, snpfile, report, coding, breed_code):
     logger.info(f"{Path(__file__).name} started")
 
     # get the dataset object
@@ -76,6 +88,33 @@ def main(dataset, snpfile, report):
     output_map = output_dir / output_map
 
     report.update_mapfile(str(output_map))
+
+    # creating ped file for writing updated genotypes
+    output_ped = Path(reportpath).stem + "_updated.ped"
+    output_ped = output_dir / output_ped
+
+    report.update_pedfile(output_ped, dataset, coding, fid=breed_code)
+
+    # ok check for results dir
+    results_dir = dataset.result_dir
+    results_dir = results_dir / "OARV3"
+    results_dir.mkdir(parents=True, exist_ok=True)
+
+    # ok time to convert data in plink binary format
+    cmd = [
+        "plink",
+        f"--{dataset.species.lower()}",
+        "--file",
+        f"{output_dir / output_ped.stem}",
+        "--make-bed",
+        "--out",
+        f"{results_dir / output_ped.stem}"
+    ]
+
+    # debug
+    logger.info("Executing: " + " ".join(cmd))
+
+    subprocess.run(cmd, check=True)
 
     logger.info(f"{Path(__file__).name} ended")
 
