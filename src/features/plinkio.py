@@ -67,6 +67,9 @@ class SmarterMixin():
     VariantSpecies = None
     SampleSpecies = None
 
+    # this need to be set to the proper read genotype method
+    read_genotype_method = None
+
     @property
     def species(self):
         return self._species
@@ -178,37 +181,6 @@ class SmarterMixin():
         logger.debug(
             f"collected {len(self.locations)} in '{version}' coordinates")
 
-
-class TextPlinkIO(SmarterMixin):
-    mapfile = None
-    pedfile = None
-
-    def __init__(
-            self,
-            prefix: str = None,
-            mapfile: str = None,
-            pedfile: str = None,
-            species: str = None):
-
-        if prefix:
-            self.mapfile = prefix + ".map"
-            self.pedfile = prefix + ".ped"
-
-        elif mapfile or pedfile:
-            self.mapfile = mapfile
-            self.pedfile = pedfile
-
-        if species:
-            self.species = species
-
-    def read_mapfile(self):
-        """Read map data and track informations in memory. Useful to process
-        data files"""
-
-        with open(self.mapfile) as handle:
-            reader = get_reader(handle)
-            self.mapdata = [MapRecord(*record) for record in reader]
-
     def _process_genotypes(self, line: list, coding: str):
         new_line = line.copy()
 
@@ -283,7 +255,7 @@ class TextPlinkIO(SmarterMixin):
 
         # check for breed in database
         breed = Breed.objects(
-            Q(name=line[0]) | Q(aliases__in=[line[0]])
+            Q(code=line[0]) | Q(aliases__in=[line[0]])
         ).get()
 
         logger.debug(f"Found breed {breed}")
@@ -309,22 +281,17 @@ class TextPlinkIO(SmarterMixin):
 
         return new_line
 
-    def read_pedfile(self):
-        """Open pedfile for reading return iterator"""
-
-        with open(self.pedfile) as handle:
-            reader = get_reader(handle)
-            for line in reader:
-                yield line
-
-    def update_pedfile(self, outputfile: str, dataset: Dataset, coding: str):
+    def update_pedfile(
+            self, outputfile: str, dataset: Dataset, coding: str,
+            *args, **kwargs):
         """Update ped contents"""
 
         with open(outputfile, "w") as target:
             writer = csv.writer(
                 target, delimiter=' ', lineterminator="\n")
 
-            for i, line in enumerate(self.read_pedfile()):
+            for i, line in enumerate(
+                    self.read_genotype_method(*args, **kwargs)):
                 new_line = self._process_pedline(line, dataset, coding)
 
                 # write updated line into updated ped file
@@ -340,6 +307,48 @@ class TextPlinkIO(SmarterMixin):
         # input file block
 
 
+class TextPlinkIO(SmarterMixin):
+    mapfile = None
+    pedfile = None
+
+    def __init__(
+            self,
+            prefix: str = None,
+            mapfile: str = None,
+            pedfile: str = None,
+            species: str = None):
+
+        # need to be set in order to write a genotype
+        self.read_genotype_method = self.read_pedfile
+
+        if prefix:
+            self.mapfile = prefix + ".map"
+            self.pedfile = prefix + ".ped"
+
+        elif mapfile or pedfile:
+            self.mapfile = mapfile
+            self.pedfile = pedfile
+
+        if species:
+            self.species = species
+
+    def read_mapfile(self):
+        """Read map data and track informations in memory. Useful to process
+        data files"""
+
+        with open(self.mapfile) as handle:
+            reader = get_reader(handle)
+            self.mapdata = [MapRecord(*record) for record in reader]
+
+    def read_pedfile(self):
+        """Open pedfile for reading return iterator"""
+
+        with open(self.pedfile) as handle:
+            reader = get_reader(handle)
+            for line in reader:
+                yield line
+
+
 class IlluminaReportIO(SmarterMixin):
     snpfile = None
     report = None
@@ -349,6 +358,9 @@ class IlluminaReportIO(SmarterMixin):
             snpfile: str = None,
             report: str = None,
             species: str = None):
+
+        # need to be set in order to write a genotype
+        self.read_genotype_method = self.read_reportfile
 
         if snpfile or report:
             self.snpfile = snpfile
@@ -363,7 +375,7 @@ class IlluminaReportIO(SmarterMixin):
 
         self.mapdata = list(read_snpList(self.snpfile))
 
-    def read_reportfile(self):
+    def read_reportfile(self, fid: str):
         """Open illumina report returns iterator"""
 
         # determine genotype length
@@ -384,14 +396,16 @@ class IlluminaReportIO(SmarterMixin):
         # tray to returns something like a ped row
         for row in read_illuminaRow(self.report):
             if row.sample_id != last_sample:
+                logger.debug(f"Reading sample {row.sample_id}")
                 if last_sample:
                     yield line
 
                 # initialize an empty array
                 line = ["0"] * size
 
-                # set values
-                line[1], line[5] = row.sample_id, -1
+                # set values. I need to set a breed code in order to get a
+                # proper ped line
+                line[0], line[1], line[5] = fid, row.sample_id, -1
 
                 # track last sample
                 last_sample = row.sample_id

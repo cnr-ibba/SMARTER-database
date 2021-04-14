@@ -355,13 +355,36 @@ class IlluminaReportIOPed(
         self.plinkio.read_snpfile()
         self.plinkio.fetch_coordinates(version="Oar_v3.1")
 
+        # read first line of ped file
+        self.lines = list(self.plinkio.read_reportfile(fid="TEX"))
+
     def test_read_reportfile(self):
-        test = self.plinkio.read_reportfile()
+        test = self.plinkio.read_reportfile(fid="TEX")
         self.assertIsInstance(test, types.GeneratorType)
 
         # consume data and count rows
         test = list(test)
         self.assertEqual(len(test), 2)
+
+    def test_update_pedfile(self):
+        # get a dataset
+        dataset = Dataset.objects(file="test.zip").get()
+
+        # create a temporary directory using the context manager
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            outfile = pathlib.Path(tmpdirname) / "plinktest_updated.ped"
+            self.plinkio.update_pedfile(
+                str(outfile), dataset, 'ab', fid="TEX")
+
+            # now open outputfile and test stuff
+            test = TextPlinkIO(
+                mapfile=str(DATA_DIR / "plinktest.map"),
+                pedfile=str(outfile))
+
+            # assert two records written
+            self.assertEqual(len(list(test.read_pedfile())), 2)
+
+        # directory and contents have been removed
 
 
 if __name__ == '__main__':
