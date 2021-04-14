@@ -11,6 +11,7 @@ Try to model data operations on plink files
 import io
 import csv
 import logging
+
 from dataclasses import dataclass
 
 from tqdm import tqdm
@@ -20,7 +21,7 @@ from mongoengine.queryset.visitor import Q
 from .snpchimp import clean_chrom
 from .smarterdb import VariantSheep, SampleSheep, Breed, Dataset
 from .utils import TqdmToLogger
-from .illumina import read_snpList
+from .illumina import read_snpList, read_illuminaRow
 
 
 # Get an instance of a logger
@@ -28,6 +29,10 @@ logger = logging.getLogger(__name__)
 
 
 class CodingException(Exception):
+    pass
+
+
+class IlluminaReportException(Exception):
     pass
 
 
@@ -189,7 +194,7 @@ class TextPlinkIO(SmarterMixin):
             self.mapfile = prefix + ".map"
             self.pedfile = prefix + ".ped"
 
-        elif mapfile and pedfile:
+        elif mapfile or pedfile:
             self.mapfile = mapfile
             self.pedfile = pedfile
 
@@ -345,7 +350,7 @@ class IlluminaReportIO(SmarterMixin):
             report: str = None,
             species: str = None):
 
-        if snpfile and report:
+        if snpfile or report:
             self.snpfile = snpfile
             self.report = report
 
@@ -357,3 +362,55 @@ class IlluminaReportIO(SmarterMixin):
         data files"""
 
         self.mapdata = list(read_snpList(self.snpfile))
+
+    def read_reportfile(self):
+        """Open illumina report returns iterator"""
+
+        # determine genotype length
+        size = 6 + 2*len(self.mapdata)
+
+        # track sample
+        last_sample = None
+
+        # need to have snp indexes
+        indexes = [record.name for record in self.mapdata]
+
+        # this will be the returned row
+        line = list()
+
+        # this is the snp position index
+        idx = 0
+
+        # tray to returns something like a ped row
+        for row in read_illuminaRow(self.report):
+            if row.sample_id != last_sample:
+                if last_sample:
+                    yield line
+
+                # initialize an empty array
+                line = ["0"] * size
+
+                # set values
+                line[1], line[5] = row.sample_id, -1
+
+                # track last sample
+                last_sample = row.sample_id
+
+                # reset index
+                idx = 0
+
+            # check snp name consistency
+            if indexes[idx] != row.snp_name:
+                raise IlluminaReportException(
+                    f"snp positions doens't match "
+                    f"{indexes[idx]}<>{row.snp_name}"
+                )
+
+            # update line relying on records
+            line[6+idx*2], line[6+idx*2+1] = row.allele1_ab, row.allele2_ab
+
+            # updating indexes
+            idx += 1
+
+        # after completing rows, I need to return last one
+        yield line

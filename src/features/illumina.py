@@ -172,3 +172,40 @@ def read_snpList(path: str, size=2048, skip=0, delimiter=None):
             # convert into collection
             record = SnpList._make(record)
             yield record
+
+
+def read_illuminaRow(path: str, size=2048):
+    sniffer = csv.Sniffer()
+    position = 0
+
+    with text_or_gzip_open(path) as handle:
+        # search for [DATA] record
+        while True:
+            line = handle.readline()
+            position = handle.tell()
+            line = line.strip()
+
+            if line == '[Data]':
+                break
+
+            logger.warning(f"Skipping: {line}")
+
+        # try to determine dialect
+        dialect = sniffer.sniff(handle.read(size))
+        handle.seek(position)
+        reader = csv.reader(handle, dialect=dialect)
+
+        # get header
+        header = next(reader)
+
+        # sanitize column names
+        header = [sanitize(column) for column in header]
+
+        # define a datatype for my data
+        IlluminaRow = collections.namedtuple("IlluminaRow", header)
+
+        # add records to data
+        for record in reader:
+            # convert into collection
+            record = IlluminaRow._make(record)
+            yield record

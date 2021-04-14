@@ -14,7 +14,8 @@ import tempfile
 
 from src.features.smarterdb import (
     VariantSheep, Location, Breed, Dataset, SampleSheep)
-from src.features.plinkio import TextPlinkIO, MapRecord, CodingException
+from src.features.plinkio import (
+    TextPlinkIO, MapRecord, CodingException, IlluminaReportIO)
 
 from .common import MongoMockMixin, SmarterIDMixin
 
@@ -212,7 +213,7 @@ class TextPlinkIOPed(
         reference = self.lines[0]
         self.assertEqual(reference, test)
 
-    def test__get_or_create_sample(self):
+    def test_get_or_create_sample(self):
         # get a sample line
         line = self.lines[0]
 
@@ -250,7 +251,7 @@ class TextPlinkIOPed(
 
         self.assertEqual(reference, test)
 
-    def test__process_pedline(self):
+    def test_process_pedline(self):
         # get a sample line
         line = self.lines[0]
 
@@ -286,6 +287,81 @@ class TextPlinkIOPed(
             self.assertEqual(len(list(test.read_pedfile())), 2)
 
         # directory and contents have been removed
+
+
+class IlluminaReportIOMap(VariantsMixin, MongoMockMixin, unittest.TestCase):
+    def setUp(self):
+        self.plinkio = IlluminaReportIO(
+            snpfile=str(DATA_DIR / "snplist.txt"),
+            report=str(DATA_DIR / "finalreport.txt"),
+            species="Sheep")
+
+        self.plinkio.read_snpfile()
+
+    def test_read_snpfile(self):
+        self.assertIsInstance(self.plinkio.mapdata, list)
+        self.assertEqual(len(self.plinkio.mapdata), 2)
+        for record in self.plinkio.mapdata:
+            self.assertIsInstance(record, tuple)
+
+    def test_fetch_coordinates(self):
+        self.plinkio.fetch_coordinates(version="Oar_v3.1")
+
+        self.assertIsInstance(self.plinkio.locations, list)
+        self.assertEqual(len(self.plinkio.locations), 2)
+
+        self.assertIsInstance(self.plinkio.filtered, set)
+        self.assertEqual(len(self.plinkio.filtered), 0)
+
+        for idx, record in enumerate(self.plinkio.locations):
+            self.assertIsInstance(record, Location)
+
+    def test_update_mapfile(self):
+        # create a temporary directory using the context manager
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            # this is the temporary output file
+            outfile = pathlib.Path(tmpdirname) / "plinktest_updated.map"
+
+            self.plinkio.fetch_coordinates(version="Oar_v3.1")
+            self.plinkio.update_mapfile(str(outfile))
+
+            # now open outputfile and test stuff
+            test = TextPlinkIO(mapfile=str(outfile))
+            test.read_mapfile()
+
+            # there was only two snps into dataset
+            # HINT: could be in final report SNPs not included in database?
+            self.assertEqual(len(test.mapdata), 2)
+
+            for record in test.mapdata:
+                variant = VariantSheep.objects(name=record.name).get()
+                location = variant.get_location(version="Oar_v3.1")
+                self.assertEqual(location.chrom, record.chrom)
+                self.assertEqual(location.position, record.position)
+
+        # directory and contents have been removed
+
+
+class IlluminaReportIOPed(
+        VariantsMixin, SmarterIDMixin, MongoMockMixin, unittest.TestCase):
+
+    def setUp(self):
+        self.plinkio = IlluminaReportIO(
+            snpfile=str(DATA_DIR / "snplist.txt"),
+            report=str(DATA_DIR / "finalreport.txt"),
+            species="Sheep")
+
+        # read info from map
+        self.plinkio.read_snpfile()
+        self.plinkio.fetch_coordinates(version="Oar_v3.1")
+
+    def test_read_reportfile(self):
+        test = self.plinkio.read_reportfile()
+        self.assertIsInstance(test, types.GeneratorType)
+
+        # consume data and count rows
+        test = list(test)
+        self.assertEqual(len(test), 2)
 
 
 if __name__ == '__main__':

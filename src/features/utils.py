@@ -16,7 +16,7 @@ import pathlib
 logger = logging.getLogger(__name__)
 
 
-def sanitize(word: str, chars=['.', ","], check_mongoengine=True) -> str:
+def sanitize(word: str, chars=['.', ",", "-"], check_mongoengine=True) -> str:
     """Sanitize a word by removing unwanted characters and lowercase it.
 
     Args:
