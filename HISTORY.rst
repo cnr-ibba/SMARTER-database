@@ -8,7 +8,6 @@ History
 TODO
 ^^^^
 
-* Import from an *illumina report* file
 * Move imported binary file in ``interim`` subfolder
 * Track ``chip_name`` with samples
 * make rule to clean-up ``interim`` data
@@ -16,6 +15,7 @@ TODO
 Features
 ^^^^^^^^
 
+* Import from an *illumina report* file
 * Deal with *AB* allele coding
 * Deal with plink text files using modules
 * Fix *SNPchiMp* data import

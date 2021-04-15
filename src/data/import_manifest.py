@@ -67,7 +67,10 @@ def main(species, manifest, chip_name, version, sender):
         elif qs.count() == 0:
             new_variant(variant, location)
 
-        # queryset block
+        if (i+1) % 5000 == 0:
+            logger.info(f"{i+1} variants processed")
+
+    logger.info(f"{i+1} variants processed")
 
     logger.info("Completed")
 

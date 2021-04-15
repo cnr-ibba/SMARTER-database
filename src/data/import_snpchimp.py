@@ -61,6 +61,11 @@ def main(species, snpchimp, version):
             variant.rs_id = snpchimp.rs
             variant.save()
 
+        if (i+1) % 5000 == 0:
+            logger.info(f"{i+1} variants processed")
+
+    logger.info(f"{i+1} variants processed")
+
     logger.info("Completed")
 
 
