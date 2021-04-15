@@ -11,10 +11,12 @@ TODO
 * Move imported binary file in ``interim`` subfolder
 * Track ``chip_name`` with samples
 * make rule to clean-up ``interim`` data
+* skip already processed file from import
 
 Features
 ^^^^^^^^
 
+* Merge multiple files per dataset
 * Import from an *illumina report* file
 * Deal with *AB* allele coding
 * Deal with plink text files using modules

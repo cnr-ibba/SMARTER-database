@@ -366,6 +366,22 @@ class IlluminaReportIOPed(
         test = list(test)
         self.assertEqual(len(test), 2)
 
+    def test_process_pedline(self):
+        # define reference
+        reference = [
+            'TEX', 'ITOA-TEX-000000001', '0', '0', '0', -9,
+            'A', 'A', 'G', 'G']
+
+        # get a line for testing
+        line = self.lines[0]
+
+        # get a dataset
+        dataset = Dataset.objects(file="test.zip").get()
+
+        test = self.plinkio._process_pedline(line, dataset, 'ab')
+
+        self.assertEqual(reference, test)
+
     def test_update_pedfile(self):
         # get a dataset
         dataset = Dataset.objects(file="test.zip").get()

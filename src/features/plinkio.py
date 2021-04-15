@@ -405,7 +405,7 @@ class IlluminaReportIO(SmarterMixin):
 
                 # set values. I need to set a breed code in order to get a
                 # proper ped line
-                line[0], line[1], line[5] = fid, row.sample_id, -1
+                line[0], line[1], line[5] = fid, row.sample_id, -9
 
                 # track last sample
                 last_sample = row.sample_id
