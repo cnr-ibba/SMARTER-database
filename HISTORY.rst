@@ -2,9 +2,6 @@
 History
 =======
 
-0.2.0.dev0
-----------
-
 TODO
 ^^^^
 
@@ -12,6 +9,9 @@ TODO
 * Track ``chip_name`` with samples
 * make rule to clean-up ``interim`` data
 * skip already processed file from import
+
+0.2.0 (2021-04-15)
+------------------
 
 Features
 ^^^^^^^^
