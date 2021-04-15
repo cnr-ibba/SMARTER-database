@@ -13,8 +13,8 @@ import logging
 import subprocess
 
 from pathlib import Path
-from datetime import datetime
 
+from src import __version__
 from src.features.utils import get_interim_dir, get_processed_dir
 from src.features.smarterdb import global_connection, Dataset, SPECIES2CODE
 
@@ -27,17 +27,11 @@ logger = logging.getLogger(__name__)
 def main(species, assembly):
     logger.info(f"{Path(__file__).name} started")
 
-    # connect to database
-    global_connection()
-
-    # get time
-    now = datetime.now()
-
     # open a file to track files to merge
     smarter_tag = "SMARTER-{specie}-{assembly}-top-{version}".format(
         specie=SPECIES2CODE[species.capitalize()],
         assembly=assembly.upper(),
-        version=now.strftime("%Y%m%d")
+        version=__version__
     )
     merge_file = get_interim_dir() / smarter_tag
 
@@ -52,19 +46,18 @@ def main(species, assembly):
                 logger.info(f"Found {results_dir}")
 
                 # search for bed files
-                bed_files = list(results_dir.glob('*.bed'))
+                bed_files = results_dir.glob('*.bed')
 
-                if len(bed_files) != 1:
-                    raise Exception(
-                        f"Couldn't define a unique bed file for {dataset}: "
-                        f"{bed_files}"
-                    )
+                # I can have more than 1 file for dataset (If one or more
+                # files are included into dataset)
+                for bed_file in bed_files:
+                    # determine the bedfile full path
+                    prefix = results_dir / bed_file.stem
 
-                # determine the bedfile full path
-                bed_file = results_dir / bed_files[0].stem
+                    logger.info(f"Appeding {prefix} for merge")
 
-                # track file to merge
-                handle.write(f"{bed_file}\n")
+                    # track file to merge
+                    handle.write(f"{prefix}\n")
 
     # ok check for results dir
     final_dir = get_processed_dir() / "OARV3"
@@ -92,5 +85,8 @@ def main(species, assembly):
 if __name__ == '__main__':
     log_fmt = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     logging.basicConfig(level=logging.INFO, format=log_fmt)
+
+    # connect to database
+    global_connection()
 
     main()
