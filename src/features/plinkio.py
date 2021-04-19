@@ -19,7 +19,8 @@ from mongoengine.errors import DoesNotExist
 from mongoengine.queryset.visitor import Q
 
 from .snpchimp import clean_chrom
-from .smarterdb import VariantSheep, SampleSheep, Breed, Dataset
+from .smarterdb import (
+    VariantSheep, SampleSheep, Breed, Dataset, SmarterDBException)
 from .utils import TqdmToLogger
 from .illumina import read_snpList, read_illuminaRow
 
@@ -119,7 +120,8 @@ class SmarterMixin():
 
     def get_or_create_sample(self, line: list, dataset: Dataset, breed: Breed):
         # search for sample in database
-        qs = self.SampleSpecies.objects(original_id=line[1])
+        qs = self.SampleSpecies.objects(
+            original_id=line[1], dataset=dataset)
 
         if qs.count() == 1:
             logger.debug(f"Sample '{line[1]}' found in database")
@@ -127,7 +129,7 @@ class SmarterMixin():
 
             # TODO: update records if necessary
 
-        else:
+        elif qs.count() == 0:
             # insert sample into database
             logger.info(f"Registering sample '{line[1]}' in database")
             sample = self.SampleSpecies(
@@ -143,6 +145,10 @@ class SmarterMixin():
             # incrementing breed n_individuals counter
             breed.n_individuals += 1
             breed.save()
+
+        else:
+            raise SmarterDBException(
+                f"Got {qs.count()} results for '{line[1]}'")
 
         return sample
 

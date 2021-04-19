@@ -232,6 +232,7 @@ class SampleSheep(mongoengine.Document):
     breed = mongoengine.StringField(required=True)
     breed_code = mongoengine.StringField(max_length=3, min_length=3)
 
+    # required to search a sample relying only on original ID
     dataset = mongoengine.ReferenceField(Dataset, db_field="dataset_id")
 
     meta = {

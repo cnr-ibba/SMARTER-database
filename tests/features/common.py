@@ -8,7 +8,8 @@ Created on Fri Apr  9 17:44:00 2021
 
 from mongoengine import connect, disconnect, connection
 
-from src.features.smarterdb import DB_ALIAS, Breed, Counter, Dataset
+from src.features.smarterdb import (
+    DB_ALIAS, Breed, Counter, Dataset, SampleSheep)
 
 
 class MongoMockMixin():
@@ -69,6 +70,20 @@ class SmarterIDMixin():
             ]
         )
         dataset.save()
+
+    def tearDown(self):
+        """Reset all to initial state"""
+
+        # drop created samples
+        SampleSheep.objects.delete()
+
+        # reset counters
+        Counter.objects.update(sequence_value=0)
+
+        # reset breed counters
+        Breed.objects.update(n_individuals=0)
+
+        super().tearDown()
 
     @classmethod
     def tearDownClass(cls):

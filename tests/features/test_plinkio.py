@@ -11,6 +11,7 @@ import types
 import unittest
 import pathlib
 import tempfile
+from copy import deepcopy
 
 from src.features.smarterdb import (
     VariantSheep, Location, Breed, Dataset, SampleSheep)
@@ -50,6 +51,8 @@ class VariantsMixin():
 
 class TextPlinkIOMap(VariantsMixin, MongoMockMixin, unittest.TestCase):
     def setUp(self):
+        super().setUp()
+
         self.plinkio = TextPlinkIO(
             prefix=str(DATA_DIR / "plinktest"),
             species="Sheep")
@@ -103,13 +106,13 @@ class TextPlinkIOMap(VariantsMixin, MongoMockMixin, unittest.TestCase):
                 self.assertEqual(location.chrom, record.chrom)
                 self.assertEqual(location.position, record.position)
 
-        # directory and contents have been removed
-
 
 class TextPlinkIOPed(
         VariantsMixin, SmarterIDMixin, MongoMockMixin, unittest.TestCase):
 
     def setUp(self):
+        super().setUp()
+
         self.plinkio = TextPlinkIO(
             prefix=str(DATA_DIR / "plinktest"),
             species="Sheep")
@@ -251,6 +254,33 @@ class TextPlinkIOPed(
 
         self.assertEqual(reference, test)
 
+    def test_sample_relies_dataset(self):
+        """Getting two sample with the same original id is not a problem"""
+
+        # get a sample line
+        line = self.lines[0]
+
+        # get a breed
+        breed = Breed.objects(aliases__in=[line[0]]).get()
+
+        # create a copy of dataset
+        dataset = Dataset.objects(file="test.zip").get()
+        new_dataset = deepcopy(dataset)
+
+        new_dataset.file = "test2.zip"
+        new_dataset.id = None
+        new_dataset.save()
+
+        # ok create a samplesheep object with the same original_id
+        first = self.plinkio.get_or_create_sample(line, dataset, breed)
+        second = self.plinkio.get_or_create_sample(line, new_dataset, breed)
+
+        self.assertEqual(SampleSheep.objects.count(), 2)
+        self.assertEqual(first.original_id, second.original_id)
+
+        # reset database to original state
+        new_dataset.delete()
+
     def test_process_pedline(self):
         # get a sample line
         line = self.lines[0]
@@ -286,11 +316,11 @@ class TextPlinkIOPed(
             # assert two records written
             self.assertEqual(len(list(test.read_pedfile())), 2)
 
-        # directory and contents have been removed
-
 
 class IlluminaReportIOMap(VariantsMixin, MongoMockMixin, unittest.TestCase):
     def setUp(self):
+        super().setUp()
+
         self.plinkio = IlluminaReportIO(
             snpfile=str(DATA_DIR / "snplist.txt"),
             report=str(DATA_DIR / "finalreport.txt"),
@@ -339,13 +369,13 @@ class IlluminaReportIOMap(VariantsMixin, MongoMockMixin, unittest.TestCase):
                 self.assertEqual(location.chrom, record.chrom)
                 self.assertEqual(location.position, record.position)
 
-        # directory and contents have been removed
-
 
 class IlluminaReportIOPed(
         VariantsMixin, SmarterIDMixin, MongoMockMixin, unittest.TestCase):
 
     def setUp(self):
+        super().setUp()
+
         self.plinkio = IlluminaReportIO(
             snpfile=str(DATA_DIR / "snplist.txt"),
             report=str(DATA_DIR / "finalreport.txt"),
@@ -399,8 +429,6 @@ class IlluminaReportIOPed(
 
             # assert two records written
             self.assertEqual(len(list(test.read_pedfile())), 2)
-
-        # directory and contents have been removed
 
 
 if __name__ == '__main__':
