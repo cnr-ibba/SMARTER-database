@@ -105,6 +105,46 @@ class Breed(mongoengine.Document):
         return f"{self.name} ({self.code}) {self.species}"
 
 
+def get_or_create_breed(
+        species: str, name: str, code: str, aliases: list = []):
+
+    logger.debug(f"Checking: '{species}':'{name}':'{code}'")
+
+    # get a breed object relying on parameters
+    qs = Breed.objects(species=species, name=name, code=code)
+
+    modified = False
+
+    if qs.count() == 1:
+        breed = qs.get()
+        logger.debug(f"Got {breed}")
+        for alias in aliases:
+            if alias not in breed.aliases:
+                # track for update
+                modified = True
+
+                logger.info(f"Adding '{alias}' to '{breed}' aliases")
+                breed.aliases.append(alias)
+
+    elif qs.count() == 0:
+        logger.debug("Create a new breed object")
+        modified = True
+
+        breed = Breed(
+            species=species,
+            name=name,
+            code=code,
+            aliases=aliases,
+            n_individuals=0
+        )
+
+    if modified:
+        logger.debug(f"Save '{breed}' to database")
+        breed.save()
+
+    return breed, modified
+
+
 class Dataset(mongoengine.Document):
     """Describe a dataset instace with fields owned by data types"""
 

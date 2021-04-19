@@ -113,3 +113,15 @@ db.auth("smarter", "<password>")
 
 Such smarter credentials need to be defined in the `SMARTER-database` root folder
 in order to be used by the `SMARTER-database` scripts
+
+Some useful queries in `smarter` database:
+
+```javascript
+// get only SNPchiMp location using projection (need to declare the projected column names)
+db.variantSheep.findOne({}, {name: 1, rs_id: 1, locations: {$elemMatch: { imported_from: "SNPchiMp v.3"}}})
+// count sample by breeds using aggregation framework
+db.sampleSheep.aggregate([{ $group: { _id: { breed: "$breed" }, total: { $sum: 1 } } }])
+// same query as before but relying on breed collection (which count samples
+// when a new sample is added by application)
+db.breeds.find({}, {name: 1, n_individuals: 1})
+```

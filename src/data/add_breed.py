@@ -13,7 +13,7 @@ import logging
 
 from pathlib import Path
 
-from src.features.smarterdb import global_connection, Breed
+from src.features.smarterdb import global_connection, get_or_create_breed
 
 logger = logging.getLogger(__name__)
 
@@ -31,33 +31,14 @@ def main(species, name, code, alias):
     # fix input parameters
     aliases = alias
     species = species.capitalize()
-    name = name.capitalize()
     code = code.upper()
 
     # get a breed object relying on parameters
-    qs = Breed.objects(species=species, name=name, code=code)
+    breed, modified = get_or_create_breed(
+        species=species, name=name, code=code, aliases=aliases)
 
-    if qs.count() == 1:
-        breed = qs.get()
-        logger.debug(f"Got {breed}")
-        for alias in aliases:
-            if alias not in breed.aliases:
-                logger.info(f"Adding {alias} to {breed} aliases")
-                breed.aliases.append(alias)
-
-    elif qs.count() == 0:
-        logger.info("Create a new breed object")
-        breed = Breed(
-            species=species,
-            name=name,
-            code=code,
-            aliases=aliases,
-            n_individuals=0
-        )
-
-    # update a breed object
-    logger.info("Updating database")
-    breed.save()
+    if modified:
+        logger.info(f"{breed} added to database")
 
     logger.info(f"{Path(__file__).name} ended")
 
