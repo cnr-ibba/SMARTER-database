@@ -10,10 +10,12 @@ TODO
 * make rule to clean-up ``interim`` data
 * skip already processed file from import
 * Deal with binary plink files
-* Deal with breeds in ``.xlsx`` files
+* Breed aliases should be used only on specified ``dataset``
 
 0.2.1.dev0
 ----------
+
+* Add breeds from ``.xlsx`` files
 
 Features
 ^^^^^^^^

@@ -56,6 +56,13 @@ data: requirements
 		--dataset CORRIEDALE_INIA_UY.zip
 	$(PYTHON_INTERPRETER) src/data/import_from_illumina.py --report JCM2357_UGY_FinalReport1.txt --snpfile OvineHDSNPList.txt --dataset CREOLE_INIA_UY.zip --breed_code CRL
 	$(PYTHON_INTERPRETER) src/data/import_from_illumina.py --report JCM2357_UGY_FinalReport2.txt --snpfile OvineHDSNPList.txt --dataset CREOLE_INIA_UY.zip --breed_code CRL
+	# load breeds into database relying on dataset
+	## try to fix french stuff
+	$(PYTHON_INTERPRETER) src/data/import_breeds.py --species Sheep --dataset="High density genotypes of French Sheep populations.zip" \
+		--datafile Populations_infos_fix.xlsx --code_column Code --breed_column "Population Name"
+	## add a french alias for merino d'arles
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name "Mérinos d'Arles" --code ARL --alias TEX
+
 	## merge SNPs into 1 file
 	$(PYTHON_INTERPRETER) src/data/merge_datasets.py --species sheep --assembly OARV3
 
