@@ -9,6 +9,14 @@ TODO
 * Track ``chip_name`` with samples
 * make rule to clean-up ``interim`` data
 * skip already processed file from import
+* Deal with binary plink files
+* Deal with breeds in ``.xlsx`` files
+
+0.2.1.dev0
+----------
+
+Features
+^^^^^^^^
 
 0.2.0 (2021-04-15)
 ------------------
