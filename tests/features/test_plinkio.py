@@ -14,7 +14,7 @@ import tempfile
 from copy import deepcopy
 
 from src.features.smarterdb import (
-    VariantSheep, Location, Breed, Dataset, SampleSheep)
+    VariantSheep, Location, Breed, BreedAlias, Dataset, SampleSheep)
 from src.features.plinkio import (
     TextPlinkIO, MapRecord, CodingException, IlluminaReportIO)
 
@@ -124,6 +124,9 @@ class TextPlinkIOPed(
         # read first line of ped file
         self.lines = list(self.plinkio.read_pedfile())
 
+        # get a dataset
+        self.dataset = Dataset.objects(file="test.zip").get()
+
     def test_read_pedfile(self):
         test = self.plinkio.read_pedfile()
         self.assertIsInstance(test, types.GeneratorType)
@@ -221,17 +224,16 @@ class TextPlinkIOPed(
         line = self.lines[0]
 
         # get a breed
-        breed = Breed.objects(aliases__in=[line[0]]).get()
+        breed = Breed.objects(
+            aliases__match={'fid': line[0], 'dataset': self.dataset}).get()
 
         # no individulas for such breeds
         self.assertEqual(breed.n_individuals, 0)
         self.assertEqual(SampleSheep.objects.count(), 0)
 
-        # get a dataset
-        dataset = Dataset.objects(file="test.zip").get()
-
         # calling my function and collect sample
-        reference = self.plinkio.get_or_create_sample(line, dataset, breed)
+        reference = self.plinkio.get_or_create_sample(
+            line, self.dataset, breed)
         self.assertIsInstance(reference, SampleSheep)
 
         # assert an element in database
@@ -242,7 +244,7 @@ class TextPlinkIOPed(
         self.assertEqual(breed.n_individuals, 1)
 
         # calling this function twice, returns the same individual
-        test = self.plinkio.get_or_create_sample(line, dataset, breed)
+        test = self.plinkio.get_or_create_sample(line, self.dataset, breed)
         self.assertIsInstance(test, SampleSheep)
 
         # assert an element in database
@@ -261,18 +263,18 @@ class TextPlinkIOPed(
         line = self.lines[0]
 
         # get a breed
-        breed = Breed.objects(aliases__in=[line[0]]).get()
+        breed = Breed.objects(
+            aliases__match={'fid': line[0], 'dataset': self.dataset}).get()
 
         # create a copy of dataset
-        dataset = Dataset.objects(file="test.zip").get()
-        new_dataset = deepcopy(dataset)
+        new_dataset = deepcopy(self.dataset)
 
         new_dataset.file = "test2.zip"
         new_dataset.id = None
         new_dataset.save()
 
         # ok create a samplesheep object with the same original_id
-        first = self.plinkio.get_or_create_sample(line, dataset, breed)
+        first = self.plinkio.get_or_create_sample(line, self.dataset, breed)
         second = self.plinkio.get_or_create_sample(line, new_dataset, breed)
 
         self.assertEqual(SampleSheep.objects.count(), 2)
@@ -285,10 +287,7 @@ class TextPlinkIOPed(
         # get a sample line
         line = self.lines[0]
 
-        # get a dataset
-        dataset = Dataset.objects(file="test.zip").get()
-
-        test = self.plinkio._process_pedline(line, dataset, 'top')
+        test = self.plinkio._process_pedline(line, self.dataset, 'top')
 
         # define reference
         reference = line.copy()
@@ -300,13 +299,10 @@ class TextPlinkIOPed(
         self.assertEqual(reference, test)
 
     def test_update_pedfile(self):
-        # get a dataset
-        dataset = Dataset.objects(file="test.zip").get()
-
         # create a temporary directory using the context manager
         with tempfile.TemporaryDirectory() as tmpdirname:
             outfile = pathlib.Path(tmpdirname) / "plinktest_updated.ped"
-            self.plinkio.update_pedfile(str(outfile), dataset, 'top')
+            self.plinkio.update_pedfile(str(outfile), self.dataset, 'top')
 
             # now open outputfile and test stuff
             test = TextPlinkIO(

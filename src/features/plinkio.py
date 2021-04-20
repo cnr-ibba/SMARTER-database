@@ -89,6 +89,9 @@ class SmarterMixin():
 
         self._species = species
 
+    def get_breed(self, fid, *args, **kwargs):
+        raise NotImplementedError("Ovveride this method in child class")
+
     def update_mapfile(self, outputfile: str):
         # helper function to get default value for cM
         def get_cM(record):
@@ -259,12 +262,8 @@ class SmarterMixin():
 
         logger.debug(f"Processing {line[:10]+ ['...']}")
 
-        # check for breed in database
-        breed = Breed.objects(
-            Q(code=line[0]) | Q(aliases__in=[line[0]])
-        ).get()
-
-        logger.debug(f"Found breed {breed}")
+        # check for breed in database reling on fid.
+        breed = self.get_breed(fid=line[0], dataset=dataset)
 
         # check for sample in database
         sample = self.get_or_create_sample(line, dataset, breed)
@@ -338,6 +337,21 @@ class TextPlinkIO(SmarterMixin):
         if species:
             self.species = species
 
+    def get_breed(self, fid, *args, **kwargs):
+        if len(args) > 0:
+            dataset = args[0]
+
+        if 'dataset' in kwargs:
+            dataset = kwargs['dataset']
+
+        # this is a $elemMatch query
+        breed = Breed.objects(
+            aliases__match={'fid': fid, 'dataset': dataset}).get()
+
+        logger.debug(f"Found breed {breed}")
+
+        return breed
+
     def read_mapfile(self):
         """Read map data and track informations in memory. Useful to process
         data files"""
@@ -374,6 +388,14 @@ class IlluminaReportIO(SmarterMixin):
 
         if species:
             self.species = species
+
+    def get_breed(self, fid, *args, **kwargs):
+        # this is a $elemMatch query
+        breed = Breed.objects(code=fid).get()
+
+        logger.debug(f"Found breed {breed}")
+
+        return breed
 
     def read_snpfile(self):
         """Read snp data and track informations in memory. Useful to process

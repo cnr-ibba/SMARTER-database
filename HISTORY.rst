@@ -10,11 +10,14 @@ TODO
 * make rule to clean-up ``interim`` data
 * skip already processed file from import
 * Deal with binary plink files
-* Breed aliases should be used only on specified ``dataset``
+* Breed name should be indexed as text
 
 0.2.1.dev0
 ----------
 
+* Search breed by *aliases* used in ``dataset``:
+  - match *fid* with breed *aliases* in ``dataset``
+  - store *aliases* by ``dataset``
 * Add breeds from ``.xlsx`` files
 
 Features
