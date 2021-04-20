@@ -13,7 +13,8 @@ from unittest.mock import patch
 
 from src.features.smarterdb import (
     VariantSheep, Location, SampleSheep,
-    SmarterDBException, getSmarterId, Breed, get_or_create_breed)
+    SmarterDBException, getSmarterId, Breed, get_or_create_breed, Dataset,
+    BreedAlias)
 
 from .common import MongoMockMixin, SmarterIDMixin
 
@@ -33,9 +34,24 @@ class BreedTestCase(MongoMockMixin, unittest.TestCase):
         )
         self.breed.save()
 
+        # need a dataset for certain tests
+        self.dataset = Dataset(
+            file="test.zip",
+            country="Italy",
+            species="Sheep",
+            contents=[
+                "plinktest.map",
+                "plinktest.ped",
+                "snplist.txt",
+                "finalreport.txt"
+            ]
+        )
+        self.dataset.save()
+
     def tearDown(self):
         # drop all created breed
         Breed.objects.delete()
+        Dataset.objects.delete()
 
         super().tearDown()
 
@@ -57,29 +73,43 @@ class BreedTestCase(MongoMockMixin, unittest.TestCase):
     def test_update_aliases(self, mocked):
         """Add a new alias update breed"""
 
+        alias = BreedAlias(
+            fid="TEXEL_IT",
+            dataset=self.dataset
+        )
+
         breed, modified = get_or_create_breed(
             species='Sheep',
             name="Texel",
             code="TEX",
-            aliases=["TEXEL_IT"]
+            aliases=[alias]
         )
 
         self.assertTrue(modified)
         self.assertIsInstance(breed, Breed)
         self.assertTrue(mocked.called)
+        self.assertEqual(
+            breed.aliases, [alias])
 
     def test_create_breed(self):
         """Create a new breed object"""
+
+        alias = BreedAlias(
+            fid="CREOLE_IT",
+            dataset=self.dataset
+        )
 
         breed, modified = get_or_create_breed(
             species='Sheep',
             name="Creole",
             code="CRL",
-            aliases=["CRE_IT"]
+            aliases=[alias]
         )
 
         self.assertTrue(modified)
         self.assertIsInstance(breed, Breed)
+        self.assertEqual(
+            breed.aliases, [alias])
         self.assertEqual(Breed.objects.count(), 2)
 
 

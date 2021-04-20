@@ -81,11 +81,17 @@ class Counter(mongoengine.Document):
         return f"{self.id}: {self.sequence_value}"
 
 
+class BreedAlias(mongoengine.EmbeddedDocument):
+        fid = mongoengine.StringField(required=True)
+        dataset = mongoengine.ReferenceField('Dataset', db_field="dataset_id")
+
+
 class Breed(mongoengine.Document):
     species = mongoengine.StringField(required=True)
     name = mongoengine.StringField(required=True)
     code = mongoengine.StringField(required=True)
-    aliases = mongoengine.ListField(mongoengine.StringField())
+    aliases = mongoengine.ListField(
+        mongoengine.EmbeddedDocumentField(BreedAlias))
     n_individuals = mongoengine.IntField()
 
     meta = {

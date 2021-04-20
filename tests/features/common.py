@@ -9,7 +9,7 @@ Created on Fri Apr  9 17:44:00 2021
 from mongoengine import connect, disconnect, connection
 
 from src.features.smarterdb import (
-    DB_ALIAS, Breed, Counter, Dataset, SampleSheep)
+    DB_ALIAS, Breed, BreedAlias, Counter, Dataset, SampleSheep)
 
 
 class MongoMockMixin():
@@ -34,13 +34,32 @@ class SmarterIDMixin():
         # initialize the mongomock instance
         super().setUpClass()
 
+        # need a dataset for certain tests
+        dataset = Dataset(
+            file="test.zip",
+            country="Italy",
+            species="Sheep",
+            contents=[
+                "plinktest.map",
+                "plinktest.ped",
+                "snplist.txt",
+                "finalreport.txt"
+            ]
+        )
+        dataset.save()
+
         # need to define a breed in order to get a smarter id
+        alias = BreedAlias(
+            fid="TEX_IT",
+            dataset=dataset
+        )
+
         breed = Breed(
             species="Sheep",
             name="Texel",
             code="TEX",
             n_individuals=0,
-            aliases=['TEX_IT']
+            aliases=[alias]
         )
         breed.save()
 
@@ -56,20 +75,6 @@ class SmarterIDMixin():
             sequence_value=0
         )
         counter.save()
-
-        # need a dataset for certain tests
-        dataset = Dataset(
-            file="test.zip",
-            country="Italy",
-            species="Sheep",
-            contents=[
-                "plinktest.map",
-                "plinktest.ped",
-                "snplist.txt",
-                "finalreport.txt"
-            ]
-        )
-        dataset.save()
 
     def tearDown(self):
         """Reset all to initial state"""
