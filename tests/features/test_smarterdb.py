@@ -9,15 +9,78 @@ Created on Mon Mar 29 17:32:28 2021
 import json
 import unittest
 import pathlib
+from unittest.mock import patch
 
 from src.features.smarterdb import (
     VariantSheep, Location, SampleSheep,
-    SmarterDBException, getSmarterId)
+    SmarterDBException, getSmarterId, Breed, get_or_create_breed)
 
 from .common import MongoMockMixin, SmarterIDMixin
 
 # set data dir (like os.dirname(__file__)) + "fixtures"
 DATA_DIR = pathlib.Path(__file__).parent / "fixtures"
+
+
+class BreedTestCase(MongoMockMixin, unittest.TestCase):
+    def setUp(self):
+        # createing a sample breed
+        self.breed = Breed(
+            species="Sheep",
+            name="Texel",
+            code="TEX",
+            aliases=[],
+            n_individuals=0
+        )
+        self.breed.save()
+
+    def tearDown(self):
+        # drop all created breed
+        Breed.objects.delete()
+
+        super().tearDown()
+
+    @patch.object(Breed, 'save')
+    def test_get_breed(self, mocked):
+        """Getting an existent breed doesn't modify database"""
+
+        breed, modified = get_or_create_breed(
+            species='Sheep',
+            name="Texel",
+            code="TEX"
+        )
+
+        self.assertFalse(modified)
+        self.assertIsInstance(breed, Breed)
+        self.assertFalse(mocked.called)
+
+    @patch.object(Breed, 'save')
+    def test_update_aliases(self, mocked):
+        """Add a new alias update breed"""
+
+        breed, modified = get_or_create_breed(
+            species='Sheep',
+            name="Texel",
+            code="TEX",
+            aliases=["TEXEL_IT"]
+        )
+
+        self.assertTrue(modified)
+        self.assertIsInstance(breed, Breed)
+        self.assertTrue(mocked.called)
+
+    def test_create_breed(self):
+        """Create a new breed object"""
+
+        breed, modified = get_or_create_breed(
+            species='Sheep',
+            name="Creole",
+            code="CRL",
+            aliases=["CRE_IT"]
+        )
+
+        self.assertTrue(modified)
+        self.assertIsInstance(breed, Breed)
+        self.assertEqual(Breed.objects.count(), 2)
 
 
 class VariantMixin():

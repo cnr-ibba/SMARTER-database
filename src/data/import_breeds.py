@@ -73,7 +73,6 @@ def main(species, dataset, datafile, code_column, breed_column):
             raise SmarterDBException(
                 f"Got an error while inserting '{name}'. '{code}'")
 
-
     logger.info(f"{Path(__file__).name} ended")
 
 

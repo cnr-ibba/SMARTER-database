@@ -138,6 +138,11 @@ def get_or_create_breed(
             n_individuals=0
         )
 
+    else:
+        # should never see this relying on collection unique keys
+        raise SmarterDBException(
+            f"Got {qs.count()} results for '{species}':'{name}':'{code}'")
+
     if modified:
         logger.debug(f"Save '{breed}' to database")
         breed.save()
