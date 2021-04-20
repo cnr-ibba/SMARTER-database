@@ -16,7 +16,8 @@ import pandas as pd
 from mongoengine.errors import NotUniqueError
 
 from src.features.smarterdb import (
-    global_connection, Dataset, get_or_create_breed, SmarterDBException)
+    global_connection, Dataset, get_or_create_breed, SmarterDBException,
+    BreedAlias)
 
 logger = logging.getLogger(__name__)
 
@@ -61,9 +62,13 @@ def main(species, dataset, datafile, code_column, breed_column):
         name = row.get(breed_column)
         logger.debug(f"Got code: '{code}', breed_name: '{name}'")
 
+        # need to define also an alias in order to retrieve such breed when
+        # dealing with original file
+        alias = BreedAlias(fid=code, dataset=dataset)
+
         try:
             breed, modified = get_or_create_breed(
-                species=species, name=name, code=code)
+                species=species, name=name, code=code, aliases=[alias])
 
             if modified:
                 logger.info(f"{breed} added to database")

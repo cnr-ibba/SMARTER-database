@@ -13,7 +13,8 @@ import logging
 
 from pathlib import Path
 
-from src.features.smarterdb import global_connection, get_or_create_breed
+from src.features.smarterdb import (
+    global_connection, get_or_create_breed, BreedAlias, Dataset)
 
 logger = logging.getLogger(__name__)
 
@@ -23,13 +24,20 @@ logger = logging.getLogger(__name__)
 @click.option('--name', type=str, required=True)
 @click.option('--code', type=str, required=True)
 @click.option('--alias', type=str, multiple=True)
-def main(species, name, code, alias):
+@click.option(
+    '--dataset', type=str, required=True,
+    help="The raw dataset file name (zip archive)"
+)
+def main(species, name, code, alias, dataset):
     """Add or update a breed into SMARTER database"""
 
     logger.info(f"{Path(__file__).name} started")
 
+    # get the dataset object
+    dataset = Dataset.objects(file=dataset).get()
+
     # fix input parameters
-    aliases = alias
+    aliases = [BreedAlias(fid=fid, dataset=dataset) for fid in alias]
     species = species.capitalize()
     code = code.upper()
 

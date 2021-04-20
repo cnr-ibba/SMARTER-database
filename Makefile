@@ -26,12 +26,22 @@ requirements: test_environment
 
 ## Initialize database by loading stuff
 initialize: test_environment
+	## upload datasets into database and unpack archives in interim folder
+	$(PYTHON_INTERPRETER) src/data/import_datasets.py --types genotypes background data/raw/genotypes-bg.csv data/processed/genotypes-bg.json
+	$(PYTHON_INTERPRETER) src/data/import_datasets.py --types phenotypes background data/raw/phenotypes-bg.csv data/processed/phenotypes-bg.json
+
 	## upload breeds into database and update aliases
-	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Texel --code TEX --alias TEXEL_UY
-	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Frizarta --code FRZ --alias 0
-	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Merino --code MER --alias MERINO_UY
-	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Corriedale --code CRR --alias CORRIEDALE_UY
-	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Creole --code CRL
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Texel --code TEX --alias TEXEL_UY --dataset TEXEL_INIA_UY.zip
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Frizarta --code FRZ --alias 0 --dataset Frizarta54samples_ped_map_files.zip
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Merino --code MER --alias MERINO_UY --dataset MERINO_INIA_UY.zip
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Corriedale --code CRR --alias CORRIEDALE_UY --dataset CORRIEDALE_INIA_UY.zip
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Creole --code CRL --alias CRL --dataset CREOLE_INIA_UY.zip
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name "Mérinos d'Arles" --code ARL --alias MER --dataset="High density genotypes of French Sheep populations.zip"
+
+	## load breeds into database relying on dataset
+	$(PYTHON_INTERPRETER) src/data/import_breeds.py --species Sheep --dataset="High density genotypes of French Sheep populations.zip" \
+		--datafile Populations_infos_fix.xlsx --code_column Code --breed_column "Population Name"
+
 	## TODO: import manifest and SNPchimp for all assemblies
 	$(PYTHON_INTERPRETER) src/data/import_manifest.py --species sheep --manifest data/external/SHE/ILLUMINA/ovinesnp50-genome-assembly-oar-v3-1.csv.gz \
 		--chip_name IlluminaOvineSNP50 --version Oar_v3.1 --sender AGR_BS
@@ -44,9 +54,6 @@ initialize: test_environment
 
 ## Make Dataset
 data: requirements
-	$(PYTHON_INTERPRETER) src/data/import_datasets.py --types genotypes background data/raw/genotypes-bg.csv data/processed/genotypes-bg.json
-	$(PYTHON_INTERPRETER) src/data/import_datasets.py --types phenotypes background data/raw/phenotypes-bg.csv data/processed/phenotypes-bg.json
-	## HINT: when should I load features like SNP positions into database?
 	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --mapfile TEXEL_UY.map --pedfile TEXEL_UY.ped --dataset TEXEL_INIA_UY.zip
 	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --mapfile Frizarta54samples_ped_map_files/Frizarta54samples.map \
 		--pedfile Frizarta54samples_ped_map_files/Frizarta54samples.ped --dataset Frizarta54samples_ped_map_files.zip --coding forward
@@ -56,12 +63,6 @@ data: requirements
 		--dataset CORRIEDALE_INIA_UY.zip
 	$(PYTHON_INTERPRETER) src/data/import_from_illumina.py --report JCM2357_UGY_FinalReport1.txt --snpfile OvineHDSNPList.txt --dataset CREOLE_INIA_UY.zip --breed_code CRL
 	$(PYTHON_INTERPRETER) src/data/import_from_illumina.py --report JCM2357_UGY_FinalReport2.txt --snpfile OvineHDSNPList.txt --dataset CREOLE_INIA_UY.zip --breed_code CRL
-	# load breeds into database relying on dataset
-	## try to fix french stuff
-	$(PYTHON_INTERPRETER) src/data/import_breeds.py --species Sheep --dataset="High density genotypes of French Sheep populations.zip" \
-		--datafile Populations_infos_fix.xlsx --code_column Code --breed_column "Population Name"
-	## add a french alias for merino d'arles
-	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name "Mérinos d'Arles" --code ARL --alias TEX
 
 	## merge SNPs into 1 file
 	$(PYTHON_INTERPRETER) src/data/merge_datasets.py --species sheep --assembly OARV3

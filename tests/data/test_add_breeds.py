@@ -15,7 +15,7 @@ from openpyxl import Workbook
 from click.testing import CliRunner
 from unittest.mock import patch, PropertyMock
 
-from src.features.smarterdb import Breed, Dataset
+from src.features.smarterdb import Breed, BreedAlias, Dataset
 from src.data.add_breed import main as add_breed
 from src.data.import_breeds import main as import_breeds
 
@@ -24,6 +24,29 @@ from ..features.common import MongoMockMixin
 
 class BreedMixin():
     main_function = None
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+
+        # need a dataset for certain tests
+        cls.dataset = Dataset(
+            file="test.zip",
+            country="Italy",
+            species="Sheep",
+            contents=[
+                "plinktest.map",
+                "plinktest.ped",
+                "breed.xlsx"
+            ]
+        )
+        cls.dataset.save()
+
+    @classmethod
+    def tearDownClass(cls):
+        Dataset.objects.delete()
+
+        super().tearDownClass()
 
     def setUp(self):
         super().setUp()
@@ -55,6 +78,8 @@ class AddBreedTest(BreedMixin, MongoMockMixin, unittest.TestCase):
                 "Texel",
                 "--code",
                 "TEX",
+                "--dataset",
+                "test.zip",
                 "--alias",
                 "TEXEL_IT",
                 "--alias",
@@ -68,7 +93,10 @@ class AddBreedTest(BreedMixin, MongoMockMixin, unittest.TestCase):
         self.assertEqual(qs.count(), 1)
 
         breed = qs.get()
-        self.assertEqual(breed.aliases, ["TEXEL_IT", "0"])
+        aliases = [
+            BreedAlias(fid=fid, dataset=self.dataset)
+            for fid in ["TEXEL_IT", "0"]]
+        self.assertEqual(breed.aliases, aliases)
 
 
 class ImportBreedsTest(BreedMixin, MongoMockMixin, unittest.TestCase):
@@ -77,19 +105,6 @@ class ImportBreedsTest(BreedMixin, MongoMockMixin, unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-
-        # need a dataset for certain tests
-        cls.dataset = Dataset(
-            file="test.zip",
-            country="Italy",
-            species="Sheep",
-            contents=[
-                "plinktest.map",
-                "plinktest.ped",
-                "breed.xlsx"
-            ]
-        )
-        cls.dataset.save()
 
         # create a workbook
         cls.workbook = Workbook()
@@ -102,12 +117,6 @@ class ImportBreedsTest(BreedMixin, MongoMockMixin, unittest.TestCase):
         # adding values
         cls.sheet.cell(row=2, column=1, value="TEX")
         cls.sheet.cell(row=2, column=2, value="Texel")
-
-    @classmethod
-    def tearDownClass(cls):
-        Dataset.objects.delete()
-
-        super().tearDownClass()
 
     @patch('src.features.smarterdb.Dataset.working_dir',
            new_callable=PropertyMock)
@@ -142,7 +151,8 @@ class ImportBreedsTest(BreedMixin, MongoMockMixin, unittest.TestCase):
             self.assertEqual(qs.count(), 1)
 
             breed = qs.get()
-            self.assertEqual(breed.aliases, [])
+            alias = BreedAlias(fid="TEX", dataset=self.dataset)
+            self.assertEqual(breed.aliases, [alias])
 
 
 if __name__ == '__main__':
