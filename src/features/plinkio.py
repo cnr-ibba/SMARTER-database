@@ -16,7 +16,7 @@ from dataclasses import dataclass
 
 from tqdm import tqdm
 from mongoengine.errors import DoesNotExist
-from mongoengine.queryset.visitor import Q
+from plinkio import plinkfile
 
 from .snpchimp import clean_chrom
 from .smarterdb import (
@@ -41,12 +41,13 @@ class IlluminaReportException(Exception):
 class MapRecord():
     chrom: str
     name: str
-    cm: str
+    cm: float
     position: int
 
     def __post_init__(self):
         # types are annotations. So, enforce position type:
         self.position = int(self.position)
+        self.cm = float(self.cm)
 
 
 def get_reader(handle: io.TextIOWrapper):
@@ -367,6 +368,114 @@ class TextPlinkIO(SmarterMixin):
             reader = get_reader(handle)
             for line in reader:
                 yield line
+
+
+class BinaryPlinkIO(SmarterMixin):
+    plink_file = None
+    _prefix = None
+
+    def __init__(
+            self,
+            prefix: str = None,
+            species: str = None):
+
+        # need to be set in order to write a genotype
+        self.read_genotype_method = self.read_pedfile
+
+        if prefix:
+            self.prefix = prefix
+
+        if species:
+            self.species = species
+
+    @property
+    def prefix(self):
+        return self._prefix
+
+    @prefix.setter
+    def prefix(self, prefix: str):
+        self._prefix = prefix
+        self.plink_file = plinkfile.open(self._prefix)
+
+    def get_breed(self, fid, *args, **kwargs):
+        if len(args) > 0:
+            dataset = args[0]
+
+        if 'dataset' in kwargs:
+            dataset = kwargs['dataset']
+
+        # this is a $elemMatch query
+        breed = Breed.objects(
+            aliases__match={'fid': fid, 'dataset': dataset}).get()
+
+        logger.debug(f"Found breed {breed}")
+
+        return breed
+
+    def read_mapfile(self):
+        """Read map data and track informations in memory. Useful to process
+        data files"""
+
+        self.mapdata = list()
+
+        for locus in self.plink_file.get_loci():
+            record = MapRecord(
+                chrom=locus.chromosome,
+                name=locus.name,
+                position=locus.bp_position,
+                cm=locus.position
+            )
+            self.mapdata.append(record)
+
+    def read_pedfile(self):
+        """Open pedfile for reading return iterator"""
+
+        sample_list = self.plink_file.get_samples()
+        locus_list = self.plink_file.get_loci()
+        snp_arrays = list(self.plink_file)
+
+        def format_sex(value):
+            if value in [1, 2]:
+                return str(value)
+            else:
+                return "0"
+
+        def convert(genotype, locus):
+            # in binary format, allele2 is REF allele1 ALT
+            if genotype == 0:
+                return locus.allele1, locus.allele1
+            elif genotype == 1:
+                return locus.allele2, locus.allele1
+            elif genotype == 2:
+                return locus.allele2, locus.allele2
+            elif genotype == 3:
+                return "0", "0"
+            else:
+                raise CodingException("Genotype %s Not supported" % genotype)
+
+        # determine genotype length
+        size = 6 + 2*len(self.mapdata)
+
+        for sample_idx, sample in enumerate(sample_list):
+            # this will be the returned row
+            line = ["0"] * size
+
+            # set values. I need to set a breed code in order to get a
+            # proper ped line
+            line[0:6] = [
+                sample.fid,
+                sample.iid,
+                sample.father_iid,
+                sample.mother_iid,
+                format_sex(sample.sex),
+                int(sample.phenotype)
+            ]
+
+            for idx, locus in enumerate(locus_list):
+                genotype = snp_arrays[idx][sample_idx]
+                line[6+idx*2], line[6+idx*2+1] = convert(genotype, locus)
+
+            yield line
 
 
 class IlluminaReportIO(SmarterMixin):

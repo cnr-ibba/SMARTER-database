@@ -14,9 +14,9 @@ import tempfile
 from copy import deepcopy
 
 from src.features.smarterdb import (
-    VariantSheep, Location, Breed, BreedAlias, Dataset, SampleSheep)
+    VariantSheep, Location, Breed, Dataset, SampleSheep)
 from src.features.plinkio import (
-    TextPlinkIO, MapRecord, CodingException, IlluminaReportIO)
+    TextPlinkIO, MapRecord, CodingException, IlluminaReportIO, BinaryPlinkIO)
 
 from .common import MongoMockMixin, SmarterIDMixin
 
@@ -311,6 +311,53 @@ class TextPlinkIOPed(
 
             # assert two records written
             self.assertEqual(len(list(test.read_pedfile())), 2)
+
+
+class BinaryPlinkIOTest(
+        VariantsMixin, SmarterIDMixin, MongoMockMixin, unittest.TestCase):
+    def setUp(self):
+        super().setUp()
+
+        self.plinkio = BinaryPlinkIO(
+            prefix=str(DATA_DIR / "plinktest"),
+            species="Sheep")
+
+        # read info from map
+        self.plinkio.read_mapfile()
+        self.plinkio.fetch_coordinates(version="Oar_v3.1")
+
+        # read first line of ped file
+        self.lines = list(self.plinkio.read_pedfile())
+
+    def test_read_mapfile(self):
+        self.assertIsInstance(self.plinkio.mapdata, list)
+        self.assertEqual(len(self.plinkio.mapdata), 4)
+        for record in self.plinkio.mapdata:
+            self.assertIsInstance(record, MapRecord)
+
+    def test_read_pedfile(self):
+        test = self.plinkio.read_pedfile()
+        self.assertIsInstance(test, types.GeneratorType)
+
+        # consume data and count rows
+        test = list(test)
+        self.assertEqual(len(test), 2)
+
+    def test_process_pedline(self):
+        # define reference
+        reference = [
+            'TEX', 'ITOA-TEX-000000001', '0', '0', '0', -9,
+            'A', 'A', 'A', 'G', 'G', 'G']
+
+        # get a line for testing
+        line = self.lines[0]
+
+        # get a dataset
+        dataset = Dataset.objects(file="test.zip").get()
+
+        test = self.plinkio._process_pedline(line, dataset, 'top')
+
+        self.assertEqual(reference, test)
 
 
 class IlluminaReportIOMap(VariantsMixin, MongoMockMixin, unittest.TestCase):
