@@ -42,6 +42,9 @@ class SmarterIDMixin():
             contents=[
                 "plinktest.map",
                 "plinktest.ped",
+                "plinktest.fam",
+                "plinktest.bim",
+                "plinktest.bed",
                 "snplist.txt",
                 "finalreport.txt"
             ]

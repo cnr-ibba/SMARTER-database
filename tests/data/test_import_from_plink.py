@@ -35,15 +35,25 @@ class TestImportFromPlink(
 
     def setUp(self):
         self.runner = CliRunner()
+
         self.mapfile = DATA_DIR / "plinktest.map"
         self.pedfile = DATA_DIR / "plinktest.ped"
+        self.bedfile = DATA_DIR / "plinktest.bed"
+        self.bimfile = DATA_DIR / "plinktest.bim"
+        self.famfile = DATA_DIR / "plinktest.fam"
 
     def link_files(self, working_dir):
         mapfile = working_dir / "plinktest.map"
         pedfile = working_dir / "plinktest.ped"
+        bedfile = working_dir / "plinktest.bed"
+        bimfile = working_dir / "plinktest.bim"
+        famfile = working_dir / "plinktest.fam"
 
         mapfile.symlink_to(self.mapfile)
         pedfile.symlink_to(self.pedfile)
+        bedfile.symlink_to(self.bedfile)
+        bimfile.symlink_to(self.bimfile)
+        famfile.symlink_to(self.famfile)
 
     def test_help(self):
         result = self.runner.invoke(import_from_plink, ["--help"])
@@ -54,7 +64,7 @@ class TestImportFromPlink(
            new_callable=PropertyMock)
     @patch('src.features.smarterdb.Dataset.working_dir',
            new_callable=PropertyMock)
-    def test_import_from_plink(self, my_working_dir, my_result_dir):
+    def test_import_from_text_plink(self, my_working_dir, my_result_dir):
         # create a temporary directory using the context manager
         with tempfile.TemporaryDirectory() as tmpdirname:
             working_dir = pathlib.Path(tmpdirname)
@@ -72,10 +82,8 @@ class TestImportFromPlink(
                 [
                     "--dataset",
                     "test.zip",
-                    "--mapfile",
-                    "plinktest.map",
-                    "--pedfile",
-                    "plinktest.ped"
+                    "--file",
+                    "plinktest"
                 ]
             )
 
@@ -90,6 +98,78 @@ class TestImportFromPlink(
 
             self.assertEqual(len(sample_list), 2)
             self.assertEqual(len(locus_list), 3)
+
+    @patch('src.features.smarterdb.Dataset.result_dir',
+           new_callable=PropertyMock)
+    @patch('src.features.smarterdb.Dataset.working_dir',
+           new_callable=PropertyMock)
+    def test_import_from_binary_plink(self, my_working_dir, my_result_dir):
+        # create a temporary directory using the context manager
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            working_dir = pathlib.Path(tmpdirname)
+            results_dir = working_dir / "results"
+
+            # assign return value to mocked property
+            my_working_dir.return_value = working_dir
+            my_result_dir.return_value = results_dir
+
+            # copy test data files
+            self.link_files(working_dir)
+
+            result = self.runner.invoke(
+                import_from_plink,
+                [
+                    "--dataset",
+                    "test.zip",
+                    "--bfile",
+                    "plinktest"
+                ]
+            )
+
+            self.assertEqual(0, result.exit_code)
+            self.assertEqual(SampleSheep.objects.count(), 2)
+
+            plink_path = results_dir / "OARV3" / "plinktest_updated"
+            plink_file = plinkfile.open(str(plink_path))
+
+            sample_list = plink_file.get_samples()
+            locus_list = plink_file.get_loci()
+
+            self.assertEqual(len(sample_list), 2)
+            self.assertEqual(len(locus_list), 3)
+
+    @patch('src.features.smarterdb.Dataset.result_dir',
+           new_callable=PropertyMock)
+    @patch('src.features.smarterdb.Dataset.working_dir',
+           new_callable=PropertyMock)
+    def test_mutually_exclusive_options(self, my_working_dir, my_result_dir):
+        """--file and -bfile options are mutually exclusive"""
+
+        # create a temporary directory using the context manager
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            working_dir = pathlib.Path(tmpdirname)
+            results_dir = working_dir / "results"
+
+            # assign return value to mocked property
+            my_working_dir.return_value = working_dir
+            my_result_dir.return_value = results_dir
+
+            # copy test data files
+            self.link_files(working_dir)
+
+            result = self.runner.invoke(
+                import_from_plink,
+                [
+                    "--dataset",
+                    "test.zip",
+                    "--file",
+                    "plinktest",
+                    "--bfile",
+                    "plinktest"
+                ]
+            )
+
+            self.assertEqual(2, result.exit_code)
 
 
 if __name__ == '__main__':

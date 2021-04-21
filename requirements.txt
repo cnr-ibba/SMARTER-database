@@ -17,6 +17,7 @@ bump2version==1.0.1
 cffi==1.14.5
 chardet==4.0.0
 click==7.1.2
+click-option-group==0.5.2
 colorama==0.4.3
 coverage==5.4
 cycler==0.10.0

@@ -19,16 +19,103 @@ import logging
 import subprocess
 
 from pathlib import Path
+from click_option_group import optgroup, RequiredMutuallyExclusiveOptionGroup
 
-from src.features.plinkio import TextPlinkIO
+from src.features.plinkio import TextPlinkIO, BinaryPlinkIO
 from src.features.smarterdb import Dataset, global_connection
 
 logger = logging.getLogger(__name__)
 
 
+def get_output_files(prefix, working_dir):
+    # create output directory
+    output_dir = working_dir / "OARV3"
+    output_dir.mkdir(exist_ok=True)
+
+    # determine map outputfile
+    output_map = f"{prefix}_updated.map"
+    output_map = output_dir / output_map
+
+    # determine ped outputfile
+    output_ped = f"{prefix}_updated.ped"
+    output_ped = output_dir / output_ped
+
+    return output_dir, output_map, output_ped
+
+
+def deal_with_text_plink(file_, dataset):
+    mapfile = file_ + ".map"
+    pedfile = file_ + ".ped"
+
+    # check files are in dataset
+    if mapfile not in dataset.contents or pedfile not in dataset.contents:
+        raise Exception(
+            "Couldn't find files in dataset: check for both "
+            f"'{mapfile}' and '{pedfile}' in '{dataset}'")
+
+    # check for working directory
+    working_dir = dataset.working_dir
+
+    if not working_dir.exists():
+        raise Exception(f"Could find dataset directory {working_dir}")
+
+    # determine full file paths
+    mappath = working_dir / mapfile
+    pedpath = working_dir / pedfile
+
+    # instantiating a TextPlinkIO object
+    plinkio = TextPlinkIO(
+        mapfile=str(mappath),
+        pedfile=str(pedpath),
+        species=dataset.species
+    )
+
+    # determine output files
+    output_dir, output_map, output_ped = get_output_files(file_, working_dir)
+
+    return plinkio, output_dir, output_map, output_ped
+
+
+def deal_with_binary_plink(bfile, dataset):
+    bedfile = bfile + ".bed"
+    bimfile = bfile + ".bim"
+    famfile = bfile + ".fam"
+
+    all_files = set([bedfile, bimfile, famfile])
+
+    if not all_files.issubset(set(dataset.contents)):
+        raise Exception(
+            "Couldn't find files in dataset: check for "
+            f"'{all_files}' in '{dataset}'")
+
+    # check for working directory
+    working_dir = dataset.working_dir
+
+    if not working_dir.exists():
+        raise Exception(f"Could find dataset directory {working_dir}")
+
+    # determine full file paths
+    bfilepath = working_dir / bfile
+
+    # instantiating a BinaryPlinkIO object
+    plinkio = BinaryPlinkIO(
+        prefix=str(bfilepath),
+        species=dataset.species
+    )
+
+    # determine output files
+    output_dir, output_map, output_ped = get_output_files(bfile, working_dir)
+
+    return plinkio, output_dir, output_map, output_ped
+
+
 @click.command()
-@click.option('--mapfile', type=str, required=True)
-@click.option('--pedfile', type=str, required=True)
+@optgroup.group(
+    'Plink input parameters',
+    cls=RequiredMutuallyExclusiveOptionGroup
+)
+@optgroup.option('--file', 'file_', type=str)
+@optgroup.option('--bfile', type=str)
 @click.option(
     '--dataset', type=str, required=True,
     help="The raw dataset file name (zip archive)"
@@ -41,7 +128,7 @@ logger = logging.getLogger(__name__)
     default="top", show_default=True,
     help="Illumina coding format"
 )
-def main(mapfile, pedfile, dataset, coding):
+def main(file_, bfile, dataset, coding):
     """Read sample names from map/ped files and updata smarter database (insert
     a record if necessary and define a smarter id for each sample)
     """
@@ -53,49 +140,23 @@ def main(mapfile, pedfile, dataset, coding):
 
     logger.debug(f"Found {dataset}")
 
-    # check files are in dataset
-    if mapfile not in dataset.contents or pedfile not in dataset.contents:
-        logger.critical(
-            "Couldn't find files in dataset: check for both "
-            f"'{mapfile}' and '{pedfile}' in '{dataset}'")
-        return
+    if file_:
+        plinkio, output_dir, output_map, output_ped = deal_with_text_plink(
+            file_, dataset)
 
-    # check for working directory
-    working_dir = dataset.working_dir
-
-    if not working_dir.exists():
-        logger.critical(f"Could find dataset directory {working_dir}")
-        return
-
-    # determine full file paths
-    mappath = working_dir / mapfile
-    pedpath = working_dir / pedfile
-
-    # instantiating a TextPlinkIO object
-    text_plink = TextPlinkIO(
-        mapfile=str(mappath),
-        pedfile=str(pedpath),
-        species=dataset.species
-    )
+    elif bfile:
+        plinkio, output_dir, output_map, output_ped = deal_with_binary_plink(
+            bfile, dataset)
 
     # read mapdata and read updated coordinates from db
-    text_plink.read_mapfile()
-    text_plink.fetch_coordinates(version="Oar_v3.1")
+    plinkio.read_mapfile()
+    plinkio.fetch_coordinates(version="Oar_v3.1")
 
     logger.info("Writing a new map file with updated coordinates")
+    plinkio.update_mapfile(str(output_map))
 
-    output_dir = working_dir / "OARV3"
-    output_dir.mkdir(exist_ok=True)
-    output_map = Path(mapfile).stem + "_updated" + Path(mapfile).suffix
-    output_map = output_dir / output_map
-
-    text_plink.update_mapfile(str(output_map))
-
-    # creating ped file for writing updated genotypes
-    output_ped = Path(pedfile).stem + "_updated" + Path(pedfile).suffix
-    output_ped = output_dir / output_ped
-
-    text_plink.update_pedfile(output_ped, dataset, coding)
+    logger.info("Writing a new ped file with fixed genotype")
+    plinkio.update_pedfile(output_ped, dataset, coding)
 
     # ok check for results dir
     results_dir = dataset.result_dir

@@ -9,19 +9,19 @@ TODO
 * Track ``chip_name`` with samples
 * make rule to clean-up ``interim`` data
 * skip already processed file from import
-* Deal with binary plink files
 * Breed name should be indexed as text
 
 0.2.1.dev0
 ----------
 
+Features
+^^^^^^^^
+
+* Deal with binary plink files
 * Search breed by *aliases* used in ``dataset``:
   - match *fid* with breed *aliases* in ``dataset``
   - store *aliases* by ``dataset``
 * Add breeds from ``.xlsx`` files
-
-Features
-^^^^^^^^
 
 0.2.0 (2021-04-15)
 ------------------
