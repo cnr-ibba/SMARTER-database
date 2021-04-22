@@ -11,8 +11,8 @@ TODO
 * skip already processed file from import
 * Breed name should be indexed as text
 
-0.2.1.dev0
-----------
+0.2.1 (2021-04-22)
+------------------
 
 Features
 ^^^^^^^^
