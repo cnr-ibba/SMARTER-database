@@ -32,12 +32,14 @@ def get_output_files(prefix, working_dir):
     output_dir = working_dir / "OARV3"
     output_dir.mkdir(exist_ok=True)
 
-    # determine map outputfile
-    output_map = f"{prefix}_updated.map"
+    # determine map outputfile. get the basename of the prefix
+    prefix = Path(prefix)
+
+    output_map = f"{prefix.name}_updated.map"
     output_map = output_dir / output_map
 
     # determine ped outputfile
-    output_ped = f"{prefix}_updated.ped"
+    output_ped = f"{prefix.name}_updated.ped"
     output_ped = output_dir / output_ped
 
     return output_dir, output_map, output_ped

@@ -5,6 +5,7 @@ History
 TODO
 ^^^^
 
+* Deal with multi-countries dataset
 * Move imported binary file in ``interim`` subfolder
 * make rule to clean-up ``interim`` data
 * skip already processed file from import

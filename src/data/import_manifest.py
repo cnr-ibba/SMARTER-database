@@ -40,10 +40,16 @@ def main(species, manifest, chip_name, version, sender):
     # check chip_name
     illumina_chip = IlluminaChip.objects(name=chip_name).get()
 
+    # reset chip data (if any)
+    illumina_chip.n_of_snps = 0
+
     logger.info(f"Reading from {manifest}")
 
     # grep a sample SNP
     for i, snpchip in enumerate(read_snpChip(manifest)):
+        # update chip data indipendentely if it is an update or not
+        illumina_chip.n_of_snps += 1
+
         # create a location object
         location = Location(
             version=version,
@@ -70,7 +76,6 @@ def main(species, manifest, chip_name, version, sender):
 
         elif qs.count() == 0:
             new_variant(variant, location)
-            illumina_chip.n_of_snps += 1
 
         if (i+1) % 5000 == 0:
             logger.info(f"{i+1} variants processed")
