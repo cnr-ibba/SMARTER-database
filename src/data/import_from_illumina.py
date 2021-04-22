@@ -19,7 +19,7 @@ import subprocess
 from pathlib import Path
 
 from src.features.plinkio import IlluminaReportIO
-from src.features.smarterdb import Dataset, global_connection
+from src.features.smarterdb import Dataset, global_connection, IlluminaChip
 
 logger = logging.getLogger(__name__)
 
@@ -43,13 +43,17 @@ logger = logging.getLogger(__name__)
     '--breed_code',
     type=str,
     required=True)
-def main(dataset, snpfile, report, coding, breed_code):
+@click.option('--chip_name', type=str, required=True)
+def main(dataset, snpfile, report, coding, breed_code, chip_name):
     logger.info(f"{Path(__file__).name} started")
 
     # get the dataset object
     dataset = Dataset.objects(file=dataset).get()
 
     logger.debug(f"Found {dataset}")
+
+    # check chip_name
+    illumina_chip = IlluminaChip.objects(name=chip_name).get()
 
     # check files are in dataset
     if snpfile not in dataset.contents or report not in dataset.contents:
@@ -73,7 +77,8 @@ def main(dataset, snpfile, report, coding, breed_code):
     report = IlluminaReportIO(
         snpfile=snpfilepath,
         report=reportpath,
-        species=dataset.species
+        species=dataset.species,
+        chip_name=illumina_chip.name
     )
 
     # set mapdata and read updated coordinates from db

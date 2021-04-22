@@ -55,19 +55,19 @@ initialize: test_environment
 
 ## Make Dataset
 data: requirements
-	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --file TEXEL_UY --dataset TEXEL_INIA_UY.zip
+	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --file TEXEL_UY --dataset TEXEL_INIA_UY.zip --chip_name IlluminaOvineSNP50
 	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --file Frizarta54samples_ped_map_files/Frizarta54samples \
-		--dataset Frizarta54samples_ped_map_files.zip --coding forward
+		--dataset Frizarta54samples_ped_map_files.zip --coding forward --chip_name IlluminaOvineSNP50
 	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --file MERINO_UY_96_21_12_17_OV54k \
-		--dataset MERINO_INIA_UY.zip
+		--dataset MERINO_INIA_UY.zip --chip_name IlluminaOvineSNP50
 	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --file CORRIEDALE_UY_60_INIA_Ovine_14sep2010 \
-		--dataset CORRIEDALE_INIA_UY.zip
+		--dataset CORRIEDALE_INIA_UY.zip --chip_name IlluminaOvineSNP50
 	$(PYTHON_INTERPRETER) src/data/import_from_illumina.py --report JCM2357_UGY_FinalReport1.txt --snpfile OvineHDSNPList.txt \
-		--dataset CREOLE_INIA_UY.zip --breed_code CRL
+		--dataset CREOLE_INIA_UY.zip --breed_code CRL --chip_name IlluminaOvineHDSNP
 	$(PYTHON_INTERPRETER) src/data/import_from_illumina.py --report JCM2357_UGY_FinalReport2.txt --snpfile OvineHDSNPList.txt \
-		--dataset CREOLE_INIA_UY.zip --breed_code CRL
+		--dataset CREOLE_INIA_UY.zip --breed_code CRL --chip_name IlluminaOvineHDSNP
 	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --bfile frenchsheep_HD \
-		--dataset "High density genotypes of French Sheep populations.zip"
+		--dataset "High density genotypes of French Sheep populations.zip" --chip_name IlluminaOvineHDSNP
 
 	## merge SNPs into 1 file
 	$(PYTHON_INTERPRETER) src/data/merge_datasets.py --species sheep --assembly OARV3

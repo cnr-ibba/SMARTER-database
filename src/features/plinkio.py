@@ -68,6 +68,7 @@ class SmarterMixin():
     filtered = set()
     VariantSpecies = None
     SampleSpecies = None
+    chip_name = None
 
     # this need to be set to the proper read genotype method
     read_genotype_method = None
@@ -142,7 +143,8 @@ class SmarterMixin():
                 species=dataset.species,
                 breed=breed.name,
                 breed_code=breed.code,
-                dataset=dataset
+                dataset=dataset,
+                chip_name=self.chip_name
             )
             sample.save()
 
@@ -322,7 +324,8 @@ class TextPlinkIO(SmarterMixin):
             prefix: str = None,
             mapfile: str = None,
             pedfile: str = None,
-            species: str = None):
+            species: str = None,
+            chip_name: str = None):
 
         # need to be set in order to write a genotype
         self.read_genotype_method = self.read_pedfile
@@ -337,6 +340,9 @@ class TextPlinkIO(SmarterMixin):
 
         if species:
             self.species = species
+
+        if chip_name:
+            self.chip_name = chip_name
 
     def get_breed(self, fid, *args, **kwargs):
         if len(args) > 0:
@@ -377,7 +383,8 @@ class BinaryPlinkIO(SmarterMixin):
     def __init__(
             self,
             prefix: str = None,
-            species: str = None):
+            species: str = None,
+            chip_name: str = None):
 
         # need to be set in order to write a genotype
         self.read_genotype_method = self.read_pedfile
@@ -387,6 +394,9 @@ class BinaryPlinkIO(SmarterMixin):
 
         if species:
             self.species = species
+
+        if chip_name:
+            self.chip_name = chip_name
 
     @property
     def prefix(self):
@@ -486,7 +496,8 @@ class IlluminaReportIO(SmarterMixin):
             self,
             snpfile: str = None,
             report: str = None,
-            species: str = None):
+            species: str = None,
+            chip_name: str = None):
 
         # need to be set in order to write a genotype
         self.read_genotype_method = self.read_reportfile
@@ -497,6 +508,9 @@ class IlluminaReportIO(SmarterMixin):
 
         if species:
             self.species = species
+
+        if chip_name:
+            self.chip_name = chip_name
 
     def get_breed(self, fid, *args, **kwargs):
         # this is a $elemMatch query

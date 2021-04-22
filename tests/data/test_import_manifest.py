@@ -12,28 +12,14 @@ import pathlib
 from click.testing import CliRunner
 
 from src.data.import_manifest import main as import_manifest
-from src.features.smarterdb import IlluminaChip, VariantSheep
+from src.features.smarterdb import VariantSheep
 
-from ..common import MongoMockMixin, VariantsMixin
+from ..common import MongoMockMixin, VariantsMixin, IlluminaChipMixin
 
 DATA_DIR = pathlib.Path(__file__).parent / "data"
 
 
-class IlluminaChipMixin():
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
-
-        cls.chip_name = "IlluminaOvineSNP50"
-        cls.chip = IlluminaChip(name=cls.chip_name, species="Sheep")
-        cls.chip.save()
-
-    @classmethod
-    def tearDownClass(cls):
-        IlluminaChip.objects.delete()
-
-        super().tearDownClass()
-
+class ManifestMixin():
     def import_data(self):
         manifest_file = DATA_DIR / "test_manifest.csv"
 
@@ -56,7 +42,9 @@ class IlluminaChipMixin():
         self.assertEqual(0, result.exit_code, msg=result.exception)
 
 
-class ImportSNPChipsTest(IlluminaChipMixin, MongoMockMixin, unittest.TestCase):
+class ImportSNPChipsTest(
+        ManifestMixin, IlluminaChipMixin, MongoMockMixin, unittest.TestCase):
+
     main_function = import_manifest
 
     def setUp(self):
@@ -86,7 +74,9 @@ class ImportSNPChipsTest(IlluminaChipMixin, MongoMockMixin, unittest.TestCase):
 
 
 class UpdateSNPChipsTest(
-        IlluminaChipMixin, VariantsMixin, MongoMockMixin, unittest.TestCase):
+        ManifestMixin, IlluminaChipMixin, VariantsMixin, MongoMockMixin,
+        unittest.TestCase):
+
     main_function = import_manifest
 
     def setUp(self):

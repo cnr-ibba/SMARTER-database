@@ -303,6 +303,9 @@ class SampleSheep(mongoengine.Document):
     # required to search a sample relying only on original ID
     dataset = mongoengine.ReferenceField(Dataset, db_field="dataset_id")
 
+    # track the original chip_name with sample
+    chip_name = mongoengine.StringField()
+
     meta = {
         'db_alias': DB_ALIAS,
         'collection': 'sampleSheep'

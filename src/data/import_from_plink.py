@@ -22,7 +22,7 @@ from pathlib import Path
 from click_option_group import optgroup, RequiredMutuallyExclusiveOptionGroup
 
 from src.features.plinkio import TextPlinkIO, BinaryPlinkIO
-from src.features.smarterdb import Dataset, global_connection
+from src.features.smarterdb import Dataset, global_connection, IlluminaChip
 
 logger = logging.getLogger(__name__)
 
@@ -128,7 +128,8 @@ def deal_with_binary_plink(bfile, dataset):
     default="top", show_default=True,
     help="Illumina coding format"
 )
-def main(file_, bfile, dataset, coding):
+@click.option('--chip_name', type=str, required=True)
+def main(file_, bfile, dataset, coding, chip_name):
     """Read sample names from map/ped files and updata smarter database (insert
     a record if necessary and define a smarter id for each sample)
     """
@@ -147,6 +148,12 @@ def main(file_, bfile, dataset, coding):
     elif bfile:
         plinkio, output_dir, output_map, output_ped = deal_with_binary_plink(
             bfile, dataset)
+
+    # check chip_name
+    illumina_chip = IlluminaChip.objects(name=chip_name).get()
+
+    # set chip name for this sample
+    plinkio.chip_name = illumina_chip.name
 
     # read mapdata and read updated coordinates from db
     plinkio.read_mapfile()

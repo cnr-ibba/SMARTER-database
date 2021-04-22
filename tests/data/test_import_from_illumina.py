@@ -17,13 +17,15 @@ from plinkio import plinkfile
 from src.data.import_from_illumina import main as import_from_illumina
 from src.features.smarterdb import SampleSheep
 
-from ..common import MongoMockMixin, SmarterIDMixin, VariantsMixin
+from ..common import (
+    MongoMockMixin, SmarterIDMixin, VariantsMixin, IlluminaChipMixin)
 
 DATA_DIR = pathlib.Path(__file__).parents[1] / "features/data"
 
 
 class TestImportFromIllumina(
-        VariantsMixin, SmarterIDMixin, MongoMockMixin, unittest.TestCase):
+        VariantsMixin, SmarterIDMixin, IlluminaChipMixin, MongoMockMixin,
+        unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
@@ -76,12 +78,18 @@ class TestImportFromIllumina(
                     "--report",
                     "finalreport.txt",
                     "--breed_code",
-                    "TEX"
+                    "TEX",
+                    "--chip_name",
+                    self.chip_name
                 ]
             )
 
             self.assertEqual(0, result.exit_code)
             self.assertEqual(SampleSheep.objects.count(), 2)
+
+            # check imported chip_name attribute
+            for sample in SampleSheep.objects:
+                self.assertEqual(sample.chip_name, self.chip_name)
 
             plink_path = results_dir / "OARV3" / "finalreport_updated"
             plink_file = plinkfile.open(str(plink_path))

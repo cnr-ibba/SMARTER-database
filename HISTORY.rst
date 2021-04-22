@@ -6,7 +6,6 @@ TODO
 ^^^^
 
 * Move imported binary file in ``interim`` subfolder
-* Track ``chip_name`` with samples
 * make rule to clean-up ``interim`` data
 * skip already processed file from import
 * Breed name should be indexed as text
@@ -17,6 +16,7 @@ TODO
 Features
 ^^^^^^^^
 
+* Track ``chip_name`` with samples
 * Deal with binary plink files
 * Search breed by *aliases* used in ``dataset``:
   - match *fid* with breed *aliases* in ``dataset``
