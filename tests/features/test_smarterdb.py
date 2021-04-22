@@ -16,10 +16,10 @@ from src.features.smarterdb import (
     SmarterDBException, getSmarterId, Breed, get_or_create_breed, Dataset,
     BreedAlias)
 
-from .common import MongoMockMixin, SmarterIDMixin
+from ..common import MongoMockMixin, SmarterIDMixin
 
 # set data dir (like os.dirname(__file__)) + "fixtures"
-DATA_DIR = pathlib.Path(__file__).parent / "fixtures"
+DATA_DIR = pathlib.Path(__file__).parents[1] / "fixtures"
 
 
 class BreedTestCase(MongoMockMixin, unittest.TestCase):

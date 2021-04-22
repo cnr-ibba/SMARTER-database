@@ -17,8 +17,7 @@ from plinkio import plinkfile
 from src.data.import_from_plink import main as import_from_plink
 from src.features.smarterdb import SampleSheep
 
-from ..features.common import MongoMockMixin, SmarterIDMixin
-from ..features.test_plinkio import VariantsMixin
+from ..common import MongoMockMixin, SmarterIDMixin, VariantsMixin
 
 DATA_DIR = pathlib.Path(__file__).parents[1] / "features/data"
 

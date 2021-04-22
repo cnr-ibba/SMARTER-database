@@ -14,7 +14,7 @@ from click.testing import CliRunner
 from src.data.import_snpchips import main as import_snpchips
 from src.features.smarterdb import IlluminaChip
 
-from ..features.common import MongoMockMixin
+from ..common import MongoMockMixin
 
 DATA_DIR = pathlib.Path(__file__).parent / "data"
 

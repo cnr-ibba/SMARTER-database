@@ -18,7 +18,7 @@ from src.features.smarterdb import Breed, BreedAlias, Dataset
 from src.data.add_breed import main as add_breed
 from src.data.import_breeds import main as import_breeds
 
-from ..features.common import MongoMockMixin
+from ..common import MongoMockMixin
 
 
 class BreedMixin():

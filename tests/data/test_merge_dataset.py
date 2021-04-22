@@ -18,8 +18,7 @@ from src import __version__
 from src.features.smarterdb import SampleSheep
 from src.data.merge_datasets import main as merge_datasets
 
-from ..features.common import MongoMockMixin, SmarterIDMixin
-from ..features.test_plinkio import VariantsMixin
+from ..common import MongoMockMixin, SmarterIDMixin, VariantsMixin
 
 DATA_DIR = pathlib.Path(__file__).parent / "data"
 

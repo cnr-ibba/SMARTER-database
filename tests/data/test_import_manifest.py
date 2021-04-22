@@ -14,8 +14,7 @@ from click.testing import CliRunner
 from src.data.import_manifest import main as import_manifest
 from src.features.smarterdb import IlluminaChip, VariantSheep
 
-from ..features.common import MongoMockMixin
-from ..features.test_plinkio import VariantsMixin
+from ..common import MongoMockMixin, VariantsMixin
 
 DATA_DIR = pathlib.Path(__file__).parent / "data"
 

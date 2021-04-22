@@ -6,7 +6,6 @@ Created on Fri Apr  9 17:42:03 2021
 @author: Paolo Cozzi <paolo.cozzi@ibba.cnr.it>
 """
 
-import json
 import types
 import unittest
 import pathlib
@@ -18,35 +17,10 @@ from src.features.smarterdb import (
 from src.features.plinkio import (
     TextPlinkIO, MapRecord, CodingException, IlluminaReportIO, BinaryPlinkIO)
 
-from .common import MongoMockMixin, SmarterIDMixin
+from ..common import MongoMockMixin, SmarterIDMixin, VariantsMixin
 
-# set data dir (like os.dirname(__file__)) + "fixtures"
-FIXTURES_DIR = pathlib.Path(__file__).parent / "fixtures"
+# set data dir
 DATA_DIR = pathlib.Path(__file__).parent / "data"
-
-
-class VariantsMixin():
-    @classmethod
-    def setUpClass(cls):
-        # initialize the mongomock instance
-        super().setUpClass()
-
-        # load database variants into mock database
-        with open(FIXTURES_DIR / "variants.json") as handle:
-            cls.data = json.load(handle)
-
-        # I can't track data with from_json like mongoengine does. I need
-        # to instantiate objects from dict (without unsupported keys)
-        for item in cls.data:
-            del(item['_id'])
-            variant = VariantSheep(**item)
-            variant.save()
-
-    @classmethod
-    def tearDownClass(cls):
-        VariantSheep.objects.delete()
-
-        super().tearDownClass()
 
 
 class TextPlinkIOMap(VariantsMixin, MongoMockMixin, unittest.TestCase):

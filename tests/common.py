@@ -6,10 +6,15 @@ Created on Fri Apr  9 17:44:00 2021
 @author: Paolo Cozzi <paolo.cozzi@ibba.cnr.it>
 """
 
+import json
+import pathlib
+
 from mongoengine import connect, disconnect, connection
 
 from src.features.smarterdb import (
-    DB_ALIAS, Breed, BreedAlias, Counter, Dataset, SampleSheep)
+    DB_ALIAS, Breed, BreedAlias, Counter, Dataset, SampleSheep, VariantSheep)
+
+FIXTURES_DIR = pathlib.Path(__file__).parent / "fixtures"
 
 
 class MongoMockMixin():
@@ -99,5 +104,29 @@ class SmarterIDMixin():
         Breed.objects().delete()
         Counter.objects().delete()
         Dataset.objects().delete()
+
+        super().tearDownClass()
+
+
+class VariantsMixin():
+    @classmethod
+    def setUpClass(cls):
+        # initialize the mongomock instance
+        super().setUpClass()
+
+        # load database variants into mock database
+        with open(FIXTURES_DIR / "variants.json") as handle:
+            cls.data = json.load(handle)
+
+        # I can't track data with from_json like mongoengine does. I need
+        # to instantiate objects from dict (without unsupported keys)
+        for item in cls.data:
+            del(item['_id'])
+            variant = VariantSheep(**item)
+            variant.save()
+
+    @classmethod
+    def tearDownClass(cls):
+        VariantSheep.objects.delete()
 
         super().tearDownClass()
