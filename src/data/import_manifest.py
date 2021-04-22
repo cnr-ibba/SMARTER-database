@@ -15,7 +15,8 @@ from mongoengine.errors import NotUniqueError
 from mongoengine.queryset import QuerySet
 
 from src.features.illumina import read_snpChip
-from src.features.smarterdb import VariantSheep, Location, global_connection
+from src.features.smarterdb import (
+    VariantSheep, Location, global_connection, IlluminaChip)
 
 logger = logging.getLogger(__name__)
 
@@ -35,6 +36,9 @@ def main(species, manifest, chip_name, version, sender):
 
     else:
         raise NotImplementedError(f"'{species}' import not yet implemented")
+
+    # check chip_name
+    illumina_chip = IlluminaChip.objects(name=chip_name).get()
 
     logger.info(f"Reading from {manifest}")
 
@@ -66,9 +70,13 @@ def main(species, manifest, chip_name, version, sender):
 
         elif qs.count() == 0:
             new_variant(variant, location)
+            illumina_chip.n_of_snps += 1
 
         if (i+1) % 5000 == 0:
             logger.info(f"{i+1} variants processed")
+
+    # update chip info
+    illumina_chip.save()
 
     logger.info(f"{i+1} variants processed")
 
@@ -116,6 +124,7 @@ def check_location(location, variant):
     if variant.locations[index] == location:
         logger.debug("Locations match")
 
+    # HINT: should I update location?
     else:
         logger.warning(
             f"Locations differ: {location} <> {variant.locations[index]}")
