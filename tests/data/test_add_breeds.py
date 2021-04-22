@@ -10,7 +10,6 @@ import unittest
 import pathlib
 import tempfile
 
-import pandas as pd
 from openpyxl import Workbook
 from click.testing import CliRunner
 from unittest.mock import patch, PropertyMock

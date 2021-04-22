@@ -81,6 +81,20 @@ class Counter(mongoengine.Document):
         return f"{self.id}: {self.sequence_value}"
 
 
+class IlluminaChip(mongoengine.Document):
+    name = mongoengine.StringField(required=True, unique=True)
+    species = mongoengine.StringField(required=True)
+    n_of_snps = mongoengine.IntField(default=0)
+
+    meta = {
+        'db_alias': DB_ALIAS,
+        'collection': 'illuminaChips'
+    }
+
+    def __str__(self):
+        return f"'{self.name}' ({self.species})"
+
+
 class BreedAlias(mongoengine.EmbeddedDocument):
     fid = mongoengine.StringField(required=True)
     dataset = mongoengine.ReferenceField('Dataset', db_field="dataset_id")
