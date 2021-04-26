@@ -113,11 +113,13 @@ class ImportBreedsTest(BreedMixin, MongoMockMixin, unittest.TestCase):
         cls.sheet.cell(row=1, column=1, value="Code")
         cls.sheet.cell(row=1, column=2, value="Name")
         cls.sheet.cell(row=1, column=3, value="Fid")
+        cls.sheet.cell(row=1, column=4, value="Country")
 
         # adding values
         cls.sheet.cell(row=2, column=1, value="TEX")
         cls.sheet.cell(row=2, column=2, value="Texel")
         cls.sheet.cell(row=2, column=3, value="XET")
+        cls.sheet.cell(row=2, column=4, value="Italy")
 
     @patch('src.features.smarterdb.Dataset.working_dir',
            new_callable=PropertyMock)
@@ -152,7 +154,7 @@ class ImportBreedsTest(BreedMixin, MongoMockMixin, unittest.TestCase):
             self.assertEqual(qs.count(), 1)
 
             breed = qs.get()
-            alias = BreedAlias(fid="TEX", dataset=self.dataset)
+            alias = BreedAlias(fid="TEX", dataset=self.dataset, country=None)
             self.assertEqual(breed.aliases, [alias])
 
     @patch('src.features.smarterdb.Dataset.working_dir',
@@ -191,7 +193,46 @@ class ImportBreedsTest(BreedMixin, MongoMockMixin, unittest.TestCase):
             self.assertEqual(qs.count(), 1)
 
             breed = qs.get()
-            alias = BreedAlias(fid="XET", dataset=self.dataset)
+            alias = BreedAlias(fid="XET", dataset=self.dataset, country=None)
+            self.assertEqual(breed.aliases, [alias])
+
+    @patch('src.features.smarterdb.Dataset.working_dir',
+           new_callable=PropertyMock)
+    def test_import_breeds_force_country(self, my_working_dir):
+        # create a temporary directory using the context manager
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            working_dir = pathlib.Path(tmpdirname)
+            my_working_dir.return_value = working_dir
+
+            # save worksheet in temporary folder
+            self.workbook.save(f"{working_dir}/breed.xlsx")
+
+            result = self.runner.invoke(
+                self.main_function,
+                [
+                    "--species",
+                    "sheep",
+                    "--dataset",
+                    "test.zip",
+                    "--datafile",
+                    "breed.xlsx",
+                    "--code_column",
+                    "Code",
+                    "--breed_column",
+                    "Name",
+                    "--country_column",
+                    "Country",
+                ]
+            )
+
+            self.assertEqual(0, result.exit_code)
+
+            qs = Breed.objects()
+            self.assertEqual(qs.count(), 1)
+
+            breed = qs.get()
+            alias = BreedAlias(
+                fid="TEX", dataset=self.dataset, country="Italy")
             self.assertEqual(breed.aliases, [alias])
 
 

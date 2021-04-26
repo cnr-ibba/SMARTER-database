@@ -98,6 +98,7 @@ class IlluminaChip(mongoengine.Document):
 class BreedAlias(mongoengine.EmbeddedDocument):
     fid = mongoengine.StringField(required=True)
     dataset = mongoengine.ReferenceField('Dataset', db_field="dataset_id")
+    country = mongoengine.StringField()
 
     def __str__(self):
         return f"{self.fid}: {self.dataset}"

@@ -32,7 +32,9 @@ logger = logging.getLogger(__name__)
 @click.option('--code_column', type=str, default="code")
 @click.option('--breed_column', type=str, default="breed")
 @click.option('--fid_column', type=str)
-def main(species, dataset, datafile, code_column, breed_column, fid_column):
+@click.option('--country_column', type=str)
+def main(species, dataset, datafile, code_column, breed_column, fid_column,
+         country_column):
     logger.info(f"{Path(__file__).name} started")
 
     # get the dataset object
@@ -73,9 +75,15 @@ def main(species, dataset, datafile, code_column, breed_column, fid_column):
             f"fid: '{fid}'"
         )
 
+        # deal with multi countries dataset
+        country = None
+
+        if country_column:
+            country = row.get(country_column)
+
         # need to define also an alias in order to retrieve such breed when
         # dealing with original file
-        alias = BreedAlias(fid=fid, dataset=dataset)
+        alias = BreedAlias(fid=fid, dataset=dataset, country=country)
 
         try:
             breed, modified = get_or_create_breed(
