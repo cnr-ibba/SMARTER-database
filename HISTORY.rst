@@ -5,11 +5,18 @@ History
 TODO
 ^^^^
 
-* Deal with multi-countries dataset
 * Move imported binary file in ``interim`` subfolder
 * make rule to clean-up ``interim`` data
 * skip already processed file from import
 * Breed name should be indexed as text
+* Breed name should be a unique key within species
+* Deal with ``mother_id`` and ``father_id`` (search for ``smarter_id`` in database)
+
+0.2.2.dev0
+----------
+
+* Deal with multi-countries dataset
+  - track country in aliases while importing breeds from dataset
 
 0.2.1 (2021-04-22)
 ------------------

@@ -296,7 +296,14 @@ class SmarterMixin():
         logger.debug(f"Processing {line[:10]+ ['...']}")
 
         # check for breed in database reling on fid.
-        breed = self.get_breed(fid=line[0], dataset=dataset)
+        try:
+            breed = self.get_breed(fid=line[0], dataset=dataset)
+
+        except DoesNotExist as e:
+            logger.error(e)
+            raise SmarterDBException(
+                f"Couldn't find fid '{line[0]}': {line[:10]+ ['...']}"
+            )
 
         # check for sample in database
         sample = self.get_or_create_sample(line, dataset, breed)
