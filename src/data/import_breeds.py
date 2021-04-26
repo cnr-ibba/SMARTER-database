@@ -31,7 +31,8 @@ logger = logging.getLogger(__name__)
 @click.option('--datafile', type=str, required=True)
 @click.option('--code_column', type=str, default="code")
 @click.option('--breed_column', type=str, default="breed")
-def main(species, dataset, datafile, code_column, breed_column):
+@click.option('--fid_column', type=str)
+def main(species, dataset, datafile, code_column, breed_column, fid_column):
     logger.info(f"{Path(__file__).name} started")
 
     # get the dataset object
@@ -60,11 +61,21 @@ def main(species, dataset, datafile, code_column, breed_column):
     for index, row in data.iterrows():
         code = row.get(code_column)
         name = row.get(breed_column)
-        logger.debug(f"Got code: '{code}', breed_name: '{name}'")
+
+        # by default, fid is equal to code
+        if not fid_column:
+            fid_column = code_column
+
+        fid = row.get(fid_column)
+
+        logger.debug(
+            f"Got code: '{code}', breed_name: '{name}', "
+            f"fid: '{fid}'"
+        )
 
         # need to define also an alias in order to retrieve such breed when
         # dealing with original file
-        alias = BreedAlias(fid=code, dataset=dataset)
+        alias = BreedAlias(fid=fid, dataset=dataset)
 
         try:
             breed, modified = get_or_create_breed(

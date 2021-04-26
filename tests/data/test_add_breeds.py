@@ -112,10 +112,12 @@ class ImportBreedsTest(BreedMixin, MongoMockMixin, unittest.TestCase):
         # adding header
         cls.sheet.cell(row=1, column=1, value="Code")
         cls.sheet.cell(row=1, column=2, value="Name")
+        cls.sheet.cell(row=1, column=3, value="Fid")
 
         # adding values
         cls.sheet.cell(row=2, column=1, value="TEX")
         cls.sheet.cell(row=2, column=2, value="Texel")
+        cls.sheet.cell(row=2, column=3, value="XET")
 
     @patch('src.features.smarterdb.Dataset.working_dir',
            new_callable=PropertyMock)
@@ -151,6 +153,45 @@ class ImportBreedsTest(BreedMixin, MongoMockMixin, unittest.TestCase):
 
             breed = qs.get()
             alias = BreedAlias(fid="TEX", dataset=self.dataset)
+            self.assertEqual(breed.aliases, [alias])
+
+    @patch('src.features.smarterdb.Dataset.working_dir',
+           new_callable=PropertyMock)
+    def test_import_breeds_force_fid(self, my_working_dir):
+        # create a temporary directory using the context manager
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            working_dir = pathlib.Path(tmpdirname)
+            my_working_dir.return_value = working_dir
+
+            # save worksheet in temporary folder
+            self.workbook.save(f"{working_dir}/breed.xlsx")
+
+            result = self.runner.invoke(
+                self.main_function,
+                [
+                    "--species",
+                    "sheep",
+                    "--dataset",
+                    "test.zip",
+                    "--datafile",
+                    "breed.xlsx",
+                    "--code_column",
+                    "Code",
+                    "--breed_column",
+                    "Name",
+                    "--fid_column",
+                    "Fid"
+
+                ]
+            )
+
+            self.assertEqual(0, result.exit_code)
+
+            qs = Breed.objects()
+            self.assertEqual(qs.count(), 1)
+
+            breed = qs.get()
+            alias = BreedAlias(fid="XET", dataset=self.dataset)
             self.assertEqual(breed.aliases, [alias])
 
 

@@ -54,6 +54,8 @@ data: requirements
 	## load breeds into database relying on dataset
 	$(PYTHON_INTERPRETER) src/data/import_breeds.py --species Sheep --dataset="High density genotypes of French Sheep populations.zip" \
 		--datafile Populations_infos_fix.xlsx --code_column Code --breed_column "Population Name"
+	$(PYTHON_INTERPRETER) src/data/import_breeds.py --species Sheep --dataset=ovine_SNP50HapMap_data.zip \
+		--datafile ovine_SNP50HapMap_data/kijas2012_dataset_fix.xlsx --code_column code --breed_column Breed --fid_column Breed
 
 	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --file TEXEL_UY --dataset TEXEL_INIA_UY.zip --chip_name IlluminaOvineSNP50
 	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --file Frizarta54samples_ped_map_files/Frizarta54samples \
