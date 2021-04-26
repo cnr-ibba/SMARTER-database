@@ -92,7 +92,34 @@ class SmarterMixin():
         self._species = species
 
     def get_breed(self, fid, *args, **kwargs):
-        raise NotImplementedError("Ovveride this method in child class")
+        if len(args) > 0:
+            dataset = args[0]
+
+        if 'dataset' in kwargs:
+            dataset = kwargs['dataset']
+
+        # this is a $elemMatch query
+        breed = Breed.objects(
+            aliases__match={'fid': fid, 'dataset': dataset}).get()
+
+        logger.debug(f"Found breed {breed}")
+
+        return breed
+
+    def get_country(self, dataset: Dataset, breed: Breed):
+        # this will be the default value
+        country = dataset.country
+
+        # search for country in my aliases
+        for alias in breed.aliases:
+            if alias.dataset != dataset:
+                continue
+
+            if alias.country:
+                # override country if defined
+                country = alias.country
+
+        return country
 
     def update_mapfile(self, outputfile: str):
         # helper function to get default value for cM
@@ -135,11 +162,14 @@ class SmarterMixin():
             # TODO: update records if necessary
 
         elif qs.count() == 0:
+            # do I have a multi country dataset?
+            country = self.get_country(dataset, breed)
+
             # insert sample into database
             logger.info(f"Registering sample '{line[1]}' in database")
             sample = self.SampleSpecies(
                 original_id=line[1],
-                country=dataset.country,
+                country=country,
                 species=dataset.species,
                 breed=breed.name,
                 breed_code=breed.code,
@@ -344,21 +374,6 @@ class TextPlinkIO(SmarterMixin):
         if chip_name:
             self.chip_name = chip_name
 
-    def get_breed(self, fid, *args, **kwargs):
-        if len(args) > 0:
-            dataset = args[0]
-
-        if 'dataset' in kwargs:
-            dataset = kwargs['dataset']
-
-        # this is a $elemMatch query
-        breed = Breed.objects(
-            aliases__match={'fid': fid, 'dataset': dataset}).get()
-
-        logger.debug(f"Found breed {breed}")
-
-        return breed
-
     def read_mapfile(self):
         """Read map data and track informations in memory. Useful to process
         data files"""
@@ -406,21 +421,6 @@ class BinaryPlinkIO(SmarterMixin):
     def prefix(self, prefix: str):
         self._prefix = prefix
         self.plink_file = plinkfile.open(self._prefix)
-
-    def get_breed(self, fid, *args, **kwargs):
-        if len(args) > 0:
-            dataset = args[0]
-
-        if 'dataset' in kwargs:
-            dataset = kwargs['dataset']
-
-        # this is a $elemMatch query
-        breed = Breed.objects(
-            aliases__match={'fid': fid, 'dataset': dataset}).get()
-
-        logger.debug(f"Found breed {breed}")
-
-        return breed
 
     def read_mapfile(self):
         """Read map data and track informations in memory. Useful to process

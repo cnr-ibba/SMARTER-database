@@ -60,7 +60,8 @@ class SmarterIDMixin():
         # need to define a breed in order to get a smarter id
         alias = BreedAlias(
             fid="TEX_IT",
-            dataset=dataset
+            dataset=dataset,
+            country="Italy"
         )
 
         breed = Breed(

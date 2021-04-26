@@ -71,6 +71,9 @@ data: requirements
 		--dataset CREOLE_INIA_UY.zip --breed_code CRL --chip_name IlluminaOvineHDSNP
 	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --bfile frenchsheep_HD \
 		--dataset "High density genotypes of French Sheep populations.zip" --chip_name IlluminaOvineHDSNP
+	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --file ovine_SNP50HapMap_data/SNP50_Breedv1/SNP50_Breedv1 \
+		--dataset ovine_SNP50HapMap_data.zip --chip_name IlluminaOvineSNP50
+
 
 	## merge SNPs into 1 file
 	$(PYTHON_INTERPRETER) src/data/merge_datasets.py --species sheep --assembly OARV3
