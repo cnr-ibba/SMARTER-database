@@ -20,7 +20,7 @@ from plinkio import plinkfile
 
 from .snpchimp import clean_chrom
 from .smarterdb import (
-    VariantSheep, SampleSheep, Breed, Dataset, SmarterDBException)
+    VariantSheep, SampleSheep, Breed, Dataset, SmarterDBException, SEX)
 from .utils import TqdmToLogger
 from .illumina import read_snpList, read_illuminaRow
 
@@ -150,10 +150,41 @@ class SmarterMixin():
                     location.position
                 ])
 
+    def _deal_with_relationship(self, line: list, dataset: Dataset):
+        # deal with special items
+        sex = None
+        father_id = None
+        mother_id = None
+
+        # test with sex column
+        if int(line[4]) in [1, 2]:
+            sex = SEX(int(line[4]))
+
+        # test with father id
+        if str(line[2]) != '0':
+            qs = self.SampleSpecies.objects(
+                original_id=line[2], dataset=dataset)
+
+            if qs.count() == 1:
+                father_id = qs.get()
+
+        # test with mother id
+        if str(line[3]) != '0':
+            qs = self.SampleSpecies.objects(
+                original_id=line[3], dataset=dataset)
+
+            if qs.count() == 1:
+                mother_id = qs.get()
+
+        return sex, father_id, mother_id
+
     def get_or_create_sample(self, line: list, dataset: Dataset, breed: Breed):
         # search for sample in database
         qs = self.SampleSpecies.objects(
             original_id=line[1], dataset=dataset)
+
+        sex, father_id, mother_id = self._deal_with_relationship(
+            line, dataset)
 
         if qs.count() == 1:
             logger.debug(f"Sample '{line[1]}' found in database")
@@ -174,7 +205,10 @@ class SmarterMixin():
                 breed=breed.name,
                 breed_code=breed.code,
                 dataset=dataset,
-                chip_name=self.chip_name
+                chip_name=self.chip_name,
+                sex=sex,
+                father_id=father_id,
+                mother_id=mother_id
             )
             sample.save()
 
@@ -314,6 +348,13 @@ class SmarterMixin():
         # updating ped line with smarter ids
         new_line[0] = breed.code
         new_line[1] = sample.smarter_id
+
+        # add father or mather to ped line
+        if sample.father_id:
+            new_line[2] = sample.father_id.smarter_id
+
+        if sample.mother_id:
+            new_line[3] = sample.mother_id.smarter_id
 
         # check and fix genotypes if necessary
         new_line = self._process_genotypes(new_line, coding)

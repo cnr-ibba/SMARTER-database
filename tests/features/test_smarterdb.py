@@ -458,8 +458,15 @@ class SampleSheepTestCase(SmarterIDMixin, MongoMockMixin, unittest.TestCase):
             smarter_id=self.smarter_id
         )
 
+        # need country, breed and species in order to get a smarter_id
+        self.sample.country = "Italy"
+        self.sample.breed = "Texel"
+        self.sample.species = "Sheep"
+
     def tearDown(self):
         SampleSheep.objects().delete()
+
+        super().tearDown()
 
     def test__str(self):
         self.assertEqual(
@@ -468,11 +475,6 @@ class SampleSheepTestCase(SmarterIDMixin, MongoMockMixin, unittest.TestCase):
         )
 
     def test_save(self):
-        # need country, breed and species in order to get a smarter_id
-        self.sample.country = "Italy"
-        self.sample.breed = "Texel"
-        self.sample.species = "Sheep"
-
         # save sample in db
         self.sample.save()
 

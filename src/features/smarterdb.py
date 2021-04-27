@@ -12,6 +12,7 @@ import pathlib
 import pycountry
 import mongoengine
 
+from enum import Enum
 from pymongo import database, ReturnDocument
 from dotenv import find_dotenv, load_dotenv
 
@@ -294,6 +295,21 @@ def getSmarterId(
     return smarter_id
 
 
+class SEX(bytes, Enum):
+    UNKNOWN = (0, "Unknown")
+    MALE = (1, "Male")
+    FEMALE = (2, "Female")
+
+    def __new__(cls, value, label):
+        obj = bytes.__new__(cls, [value])
+        obj._value_ = value
+        obj.label = label
+        return obj
+
+    def __str__(self):
+        return self.label
+
+
 class SampleSheep(mongoengine.Document):
     original_id = mongoengine.StringField(required=True)
     smarter_id = mongoengine.StringField(required=True, unique=True)
@@ -312,6 +328,22 @@ class SampleSheep(mongoengine.Document):
 
     # track the original chip_name with sample
     chip_name = mongoengine.StringField()
+
+    # try to model relationship between samples
+    father_id = mongoengine.LazyReferenceField(
+        'SampleSheep',
+        passthrough=True,
+        reverse_delete_rule=mongoengine.NULLIFY
+    )
+
+    mother_id = mongoengine.LazyReferenceField(
+        'SampleSheep',
+        passthrough=True,
+        reverse_delete_rule=mongoengine.NULLIFY
+    )
+
+    # define enum types for sex
+    sex = mongoengine.EnumField(SEX)
 
     meta = {
         'db_alias': DB_ALIAS,

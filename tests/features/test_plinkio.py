@@ -13,7 +13,7 @@ import tempfile
 from copy import deepcopy
 
 from src.features.smarterdb import (
-    VariantSheep, Location, Breed, Dataset, SampleSheep)
+    VariantSheep, Location, Breed, Dataset, SampleSheep, SEX)
 from src.features.plinkio import (
     TextPlinkIO, MapRecord, CodingException, IlluminaReportIO, BinaryPlinkIO)
 
@@ -276,6 +276,59 @@ class TextPlinkIOPed(
         del(reference[-2:])
 
         self.assertEqual(reference, test)
+
+    def test_process_pedline_relationship(self):
+        """Test a pedline with father or mother ids"""
+
+        # get a sample line
+        line = self.lines[0]
+
+        # make a copy and change some values
+        father = deepcopy(line)
+        mother = deepcopy(line)
+        child = deepcopy(line)
+
+        # let's start with father. Change id and sex column
+        father[1], father[4] = "1", "1"
+
+        # now the mother (same columns)
+        mother[1], mother[4] = "2", "2"
+
+        # the last is child. set id and and other records (unknown sex)
+        child[1], child[2], child[3] = "3", "1", "2"
+
+        # process data and insert records
+        for i, item in enumerate([father, mother, child]):
+            test = self.plinkio._process_pedline(item, self.dataset, 'top')
+
+            # define smarter_id
+            smarter_id = f"ITOA-TEX-00000000{i+1}"
+
+            # test ped line items
+            self.assertEqual(test[0], "TEX")
+            self.assertEqual(test[1], smarter_id)
+            self.assertEqual(test[4], item[4])
+
+            # assert database objects
+            sample = SampleSheep.objects(smarter_id=smarter_id).get()
+
+            # special child case
+            if item == child:
+                sample_father = SampleSheep.objects(
+                    original_id=item[2],
+                    dataset=self.dataset).get()
+                sample_mother = SampleSheep.objects(
+                    original_id=item[3],
+                    dataset=self.dataset).get()
+
+                self.assertIsNone(sample.sex)
+                self.assertEqual(sample.father_id, sample_father)
+                self.assertEqual(sample.mother_id, sample_mother)
+                self.assertEqual(test[2], sample_father.smarter_id)
+                self.assertEqual(test[3], sample_mother.smarter_id)
+
+            else:
+                self.assertEqual(sample.sex, SEX(int(item[4])))
 
     def test_update_pedfile(self):
         # create a temporary directory using the context manager
