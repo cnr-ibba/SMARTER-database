@@ -7,7 +7,7 @@ Code
 
 * a function to convert plink/text to plink/binary with plink
   - how to deal with extra-chroms?
-* extract dataset file from an archive
+* extract dataset file from an archive (on-the-fly)
 * manage python packages with [poetry](https://python-poetry.org/)
 * upgrade `mongoengine` to solve warnings while generating documentation with `sphinx`
   (the `one-to-many-with-listfields` reference was fixed after version `0.23.0`)
@@ -17,7 +17,6 @@ Code
 Database
 --------
 
-* Track genotype chip in samples
 * Should I check genotype coding **before** importing dataset?
 * create samples collection (one for goat, one for sheep)
 * create a variation collection (one for goat, one for sheep)
@@ -32,5 +31,3 @@ Database
   - https://docs.mongodb.com/manual/tutorial/deploy-replica-set-for-testing/
 * create a read only user `smarterro` (for web stuff?)
 * configure `mongodb-express` credentials
-* Move breed aliases in dataset. Aliases are list of embedded document with `FID`,
-  *breed name* and *country* (for multi countries dataset)

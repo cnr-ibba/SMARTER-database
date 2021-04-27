@@ -254,6 +254,11 @@ class TextPlinkIOPed(
         self.assertEqual(SampleSheep.objects.count(), 2)
         self.assertEqual(first.original_id, second.original_id)
 
+        # need to delete second sample in order to remove the new dataset
+        # (mongoengine.DENY behaviour for deleting samples)
+        second.delete()
+        first.delete()
+
         # reset database to original state
         new_dataset.delete()
 

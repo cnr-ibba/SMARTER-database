@@ -97,7 +97,9 @@ class IlluminaChip(mongoengine.Document):
 
 class BreedAlias(mongoengine.EmbeddedDocument):
     fid = mongoengine.StringField(required=True)
-    dataset = mongoengine.ReferenceField('Dataset', db_field="dataset_id")
+    dataset = mongoengine.ReferenceField(
+        'Dataset',
+        db_field="dataset_id")
     country = mongoengine.StringField()
 
     def __str__(self):
@@ -302,7 +304,11 @@ class SampleSheep(mongoengine.Document):
     breed_code = mongoengine.StringField(max_length=3, min_length=3)
 
     # required to search a sample relying only on original ID
-    dataset = mongoengine.ReferenceField(Dataset, db_field="dataset_id")
+    dataset = mongoengine.ReferenceField(
+        Dataset,
+        db_field="dataset_id",
+        reverse_delete_rule=mongoengine.DENY
+    )
 
     # track the original chip_name with sample
     chip_name = mongoengine.StringField()
