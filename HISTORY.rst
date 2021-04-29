@@ -6,13 +6,13 @@ TODO
 ^^^^
 
 * Add features to samples (relying on metadata file)
-* make rule to clean-up ``interim`` data
 * Breed name should be indexed as text
 * Breed name should be a unique key within species
 
 0.2.2.dev0
 ----------
 
+* make rule to clean-up ``interim`` data
 * skip already processed file from import
 * Deal with ``mother_id`` and ``father_id`` (search for ``smarter_id`` in database)
 * Deal with multi-countries dataset

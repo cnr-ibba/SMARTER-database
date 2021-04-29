@@ -1,4 +1,4 @@
-.PHONY: clean data lint requirements sync_data_to_s3 sync_data_from_s3
+.PHONY: clean clean_interim data lint requirements
 
 #################################################################################
 # GLOBALS                                                                       #
@@ -74,7 +74,6 @@ data: requirements
 	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --file ovine_SNP50HapMap_data/SNP50_Breedv1/SNP50_Breedv1 \
 		--dataset ovine_SNP50HapMap_data.zip --chip_name IlluminaOvineSNP50
 
-
 	## merge SNPs into 1 file
 	$(PYTHON_INTERPRETER) src/data/merge_datasets.py --species sheep --assembly OARV3
 
@@ -82,6 +81,11 @@ data: requirements
 clean:
 	find . -type f -name "*.py[co]" -delete
 	find . -type d -name "__pycache__" -delete
+
+## Delete data interim contents
+clean_interim:
+	find ./data/interim/ -not -path "./data/interim/.gitkeep" -type f -delete
+	find ./data/interim/ -not -path "./data/interim/" -type d -delete
 
 ## Lint using flake8
 lint:
