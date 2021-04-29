@@ -7,8 +7,8 @@ TODO
 
 * Add features to samples (relying on metadata file)
 
-0.2.2.dev0
-----------
+0.2.2 (2021-04-29)
+------------------
 
 * Breed name should be a unique key within species
 * make rule to clean-up ``interim`` data
