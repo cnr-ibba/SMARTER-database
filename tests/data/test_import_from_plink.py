@@ -184,6 +184,58 @@ class TestImportFromPlink(
 
             self.assertEqual(2, result.exit_code)
 
+    @patch('src.features.plinkio.SmarterMixin.fetch_coordinates')
+    @patch('src.features.smarterdb.Dataset.result_dir',
+           new_callable=PropertyMock)
+    @patch('src.features.smarterdb.Dataset.working_dir',
+           new_callable=PropertyMock)
+    def test_import_skip(self, my_working_dir, my_result_dir, my_fetch):
+        """test no import if output files exist"""
+
+        # create a temporary directory using the context manager
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            working_dir = pathlib.Path(tmpdirname)
+            results_dir = working_dir / "results"
+
+            # assign return value to mocked property
+            my_working_dir.return_value = working_dir
+            my_result_dir.return_value = results_dir
+
+            # copy test data files
+            self.link_files(working_dir)
+
+            # link espected output files in results dir
+            plink_path = results_dir / "OARV3"
+            plink_path.mkdir(parents=True, exist_ok=True)
+            plink_prefix = plink_path / "plinktest_updated"
+
+            bedfile = plink_prefix.with_suffix(".bed")
+            bimfile = plink_prefix.with_suffix(".bim")
+            famfile = plink_prefix.with_suffix(".fam")
+
+            bedfile.symlink_to(self.bedfile)
+            bimfile.symlink_to(self.bimfile)
+            famfile.symlink_to(self.famfile)
+
+            result = self.runner.invoke(
+                import_from_plink,
+                [
+                    "--dataset",
+                    "test.zip",
+                    "--bfile",
+                    "plinktest",
+                    "--chip_name",
+                    self.chip_name
+                ]
+            )
+
+            # no sample inserted (step is skipped)
+            self.assertEqual(0, result.exit_code)
+            self.assertEqual(SampleSheep.objects.count(), 0)
+
+            # no coordinate fetch (file not processed)
+            self.assertFalse(my_fetch.called)
+
 
 if __name__ == '__main__':
     unittest.main()

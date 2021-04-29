@@ -18,10 +18,26 @@ import subprocess
 
 from pathlib import Path
 
-from src.features.plinkio import IlluminaReportIO
+from src.features.plinkio import IlluminaReportIO, plink_binary_exists
 from src.features.smarterdb import Dataset, global_connection, IlluminaChip
 
 logger = logging.getLogger(__name__)
+
+
+def get_output_files(reportpath: str, working_dir: Path):
+    # create output directory
+    output_dir = working_dir / "OARV3"
+    output_dir.mkdir(exist_ok=True)
+
+    # determine map outputfile. get the basename of the prefix
+    output_map = Path(reportpath).stem + "_updated.map"
+    output_map = output_dir / output_map
+
+    # creating ped file for writing updated genotypes
+    output_ped = Path(reportpath).stem + "_updated.ped"
+    output_ped = output_dir / output_ped
+
+    return output_dir, output_map, output_ped
 
 
 @click.command()
@@ -81,29 +97,36 @@ def main(dataset, snpfile, report, coding, breed_code, chip_name):
         chip_name=illumina_chip.name
     )
 
-    # set mapdata and read updated coordinates from db
-    report.read_snpfile()
-    report.fetch_coordinates(version="Oar_v3.1")
-
-    logger.info("Writing a new map file with updated coordinates")
-
-    output_dir = working_dir / "OARV3"
-    output_dir.mkdir(exist_ok=True)
-    output_map = Path(reportpath).stem + "_updated.map"
-    output_map = output_dir / output_map
-
-    report.update_mapfile(str(output_map))
-
-    # creating ped file for writing updated genotypes
-    output_ped = Path(reportpath).stem + "_updated.ped"
-    output_ped = output_dir / output_ped
-
-    report.update_pedfile(output_ped, dataset, coding, fid=breed_code)
+    # test if I have already run this analysis
 
     # ok check for results dir
     results_dir = dataset.result_dir
     results_dir = results_dir / "OARV3"
     results_dir.mkdir(parents=True, exist_ok=True)
+
+    output_dir, output_map, output_ped = get_output_files(
+        reportpath, working_dir)
+
+    # define final filename
+    final_prefix = results_dir / output_ped.stem
+
+    # test for processed files existance
+    if plink_binary_exists(final_prefix):
+        logger.warning(f"Skipping {dataset} processing: {final_prefix} exists")
+        logger.info(f"{Path(__file__).name} ended")
+        return
+
+    # if I arrive here, I can create output files
+
+    # set mapdata and read updated coordinates from db
+    report.read_snpfile()
+    report.fetch_coordinates(version="Oar_v3.1")
+
+    logger.info("Writing a new map file with updated coordinates")
+    report.update_mapfile(str(output_map))
+
+    # creating ped file for writing updated genotypes
+    report.update_pedfile(output_ped, dataset, coding, fid=breed_code)
 
     # ok time to convert data in plink binary format
     cmd = [
@@ -113,7 +136,7 @@ def main(dataset, snpfile, report, coding, breed_code, chip_name):
         f"{output_dir / output_ped.stem}",
         "--make-bed",
         "--out",
-        f"{results_dir / output_ped.stem}"
+        f"{final_prefix}"
     ]
 
     # debug

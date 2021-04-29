@@ -21,13 +21,14 @@ import subprocess
 from pathlib import Path
 from click_option_group import optgroup, RequiredMutuallyExclusiveOptionGroup
 
-from src.features.plinkio import TextPlinkIO, BinaryPlinkIO
+from src.features.plinkio import (
+    TextPlinkIO, BinaryPlinkIO, plink_binary_exists)
 from src.features.smarterdb import Dataset, global_connection, IlluminaChip
 
 logger = logging.getLogger(__name__)
 
 
-def get_output_files(prefix, working_dir):
+def get_output_files(prefix: str, working_dir: Path):
     # create output directory
     output_dir = working_dir / "OARV3"
     output_dir.mkdir(exist_ok=True)
@@ -45,7 +46,7 @@ def get_output_files(prefix, working_dir):
     return output_dir, output_map, output_ped
 
 
-def deal_with_text_plink(file_, dataset):
+def deal_with_text_plink(file_: str, dataset: Dataset):
     mapfile = file_ + ".map"
     pedfile = file_ + ".ped"
 
@@ -78,7 +79,7 @@ def deal_with_text_plink(file_, dataset):
     return plinkio, output_dir, output_map, output_ped
 
 
-def deal_with_binary_plink(bfile, dataset):
+def deal_with_binary_plink(bfile: str, dataset: Dataset):
     bedfile = bfile + ".bed"
     bimfile = bfile + ".bim"
     famfile = bfile + ".fam"
@@ -157,6 +158,24 @@ def main(file_, bfile, dataset, coding, chip_name):
     # set chip name for this sample
     plinkio.chip_name = illumina_chip.name
 
+    # test if I have already run this analysis
+
+    # ok check for results dir
+    results_dir = dataset.result_dir
+    results_dir = results_dir / "OARV3"
+    results_dir.mkdir(parents=True, exist_ok=True)
+
+    # define final filename
+    final_prefix = results_dir / output_ped.stem
+
+    # test for processed files existance
+    if plink_binary_exists(final_prefix):
+        logger.warning(f"Skipping {dataset} processing: {final_prefix} exists")
+        logger.info(f"{Path(__file__).name} ended")
+        return
+
+    # if I arrive here, I can create output files
+
     # read mapdata and read updated coordinates from db
     plinkio.read_mapfile()
     plinkio.fetch_coordinates(version="Oar_v3.1")
@@ -167,11 +186,6 @@ def main(file_, bfile, dataset, coding, chip_name):
     logger.info("Writing a new ped file with fixed genotype")
     plinkio.update_pedfile(output_ped, dataset, coding)
 
-    # ok check for results dir
-    results_dir = dataset.result_dir
-    results_dir = results_dir / "OARV3"
-    results_dir.mkdir(parents=True, exist_ok=True)
-
     # ok time to convert data in plink binary format
     cmd = [
         "plink",
@@ -180,7 +194,7 @@ def main(file_, bfile, dataset, coding, chip_name):
         f"{output_dir / output_ped.stem}",
         "--make-bed",
         "--out",
-        f"{results_dir / output_ped.stem}"
+        f"{final_prefix}"
     ]
 
     # debug

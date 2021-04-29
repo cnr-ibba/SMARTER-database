@@ -12,6 +12,7 @@ import io
 import csv
 import logging
 
+from pathlib import Path
 from dataclasses import dataclass
 
 from tqdm import tqdm
@@ -632,3 +633,16 @@ class IlluminaReportIO(SmarterMixin):
 
         # after completing rows, I need to return last one
         yield line
+
+
+def plink_binary_exists(prefix: Path):
+    "Test if plink binary files exists"
+
+    for ext in [".bed", ".bim", ".fam"]:
+        test = prefix.with_suffix(ext)
+
+        if not test.exists():
+            return False
+
+    # if I arrive here, all plink binary output files exists
+    return True
