@@ -376,6 +376,22 @@ class TextPlinkIOPed(
         self.assertEqual(sample_father.smarter_id, test[2])
         self.assertEqual(sample_mother.smarter_id, test[3])
 
+    def test_unmanaged_relationship(self):
+        "test unsetting ped columns if relationship can be derived from data"
+
+        # define fake relationships
+        child = self.get_relationships()[-1]
+
+        # insert child without parents
+        test = self.plinkio._process_pedline(child, self.dataset, 'top')
+
+        # define smarter_id
+        smarter_id = f"ITOA-TEX-000000001"
+
+        self.assertEqual(test[1], smarter_id)
+        self.assertEqual(test[2], "0")
+        self.assertEqual(test[3], "0")
+
     def test_update_pedfile(self):
         # create a temporary directory using the context manager
         with tempfile.TemporaryDirectory() as tmpdirname:

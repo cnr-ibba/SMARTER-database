@@ -7,6 +7,11 @@ TODO
 
 * Add features to samples (relying on metadata file)
 
+0.2.3.dev0
+----------
+
+* Unset ped columns if relationship can be derived from data (ex. *brazilian BSI*)
+
 0.2.2 (2021-04-29)
 ------------------
 

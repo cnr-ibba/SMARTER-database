@@ -355,12 +355,24 @@ class SmarterMixin():
         new_line[0] = breed.code
         new_line[1] = sample.smarter_id
 
-        # add father or mather to ped line
-        if sample.father_id:
-            new_line[2] = sample.father_id.smarter_id
+        # add father or mather to ped line (if I can)
+        if str(line[2]) != '0':
+            if sample.father_id:
+                new_line[2] = sample.father_id.smarter_id
 
-        if sample.mother_id:
-            new_line[3] = sample.mother_id.smarter_id
+            else:
+                logger.warning(
+                    f"Cannot resolve relationship for father {line[2]}")
+                new_line[2] = '0'
+
+        if str(line[3]) != '0':
+            if sample.mother_id:
+                new_line[3] = sample.mother_id.smarter_id
+
+            else:
+                logger.warning(
+                    f"Cannot resolve relationship for mother {line[3]}")
+                new_line[3] = '0'
 
         # check and fix genotypes if necessary
         new_line = self._process_genotypes(new_line, coding)
