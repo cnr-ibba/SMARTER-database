@@ -277,8 +277,8 @@ class TextPlinkIOPed(
 
         self.assertEqual(reference, test)
 
-    def test_process_pedline_relationship(self):
-        """Test a pedline with father or mother ids"""
+    def get_relationships(self):
+        """Helper function to define fake relationships"""
 
         # get a sample line
         line = self.lines[0]
@@ -296,6 +296,13 @@ class TextPlinkIOPed(
 
         # the last is child. set id and and other records (unknown sex)
         child[1], child[2], child[3] = "3", "1", "2"
+
+        return father, mother, child
+
+    def test_process_pedline_relationship(self):
+        """Test a pedline with father or mother ids"""
+
+        father, mother, child = self.get_relationships()
 
         # process data and insert records
         for i, item in enumerate([father, mother, child]):
@@ -329,6 +336,45 @@ class TextPlinkIOPed(
 
             else:
                 self.assertEqual(sample.sex, SEX(int(item[4])))
+
+    def test_update_relationship(self):
+        """Test the possibility to update a sample relationship"""
+
+        # ped lines could be in the wrong order. In such way, a child sample
+        # could be written before its parents, and so ped lines can't be
+        # written correctly
+
+        # define fake relationships
+        father, mother, child = self.get_relationships()
+
+        # process data and insert records
+        for i, item in enumerate([child, father, mother]):
+            self.plinkio._process_pedline(item, self.dataset, 'top')
+
+            # special child case
+            if item == child:
+                # define smarter_id
+                smarter_id = f"ITOA-TEX-00000000{i+1}"
+
+                # assert database objects
+                sample_child = SampleSheep.objects(smarter_id=smarter_id).get()
+
+        # assert child has no relationship
+        self.assertIsNone(sample_child.father_id)
+        self.assertIsNone(sample_child.mother_id)
+        self.assertIsNone(sample_child.sex)
+
+        # ok now try to process child again
+        test = self.plinkio._process_pedline(child, self.dataset, 'top')
+
+        # refresh database object
+        sample_child.reload()
+        sample_father = sample_child.father_id.fetch()
+        sample_mother = sample_child.mother_id.fetch()
+
+        self.assertEqual(sample_child.smarter_id, test[1])
+        self.assertEqual(sample_father.smarter_id, test[2])
+        self.assertEqual(sample_mother.smarter_id, test[3])
 
     def test_update_pedfile(self):
         # create a temporary directory using the context manager

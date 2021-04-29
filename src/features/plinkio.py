@@ -190,7 +190,12 @@ class SmarterMixin():
             logger.debug(f"Sample '{line[1]}' found in database")
             sample = qs.get()
 
-            # TODO: update records if necessary
+            # update records if necessary
+            if sample.father_id != father_id or sample.mother_id != mother_id:
+                logger.warning(f"Update relationships for sample '{line[1]}'")
+                sample.father_id = father_id
+                sample.mother_id = mother_id
+                sample.save()
 
         elif qs.count() == 0:
             # do I have a multi country dataset?
