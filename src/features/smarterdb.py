@@ -118,14 +118,24 @@ class Breed(mongoengine.Document):
     meta = {
         'db_alias': DB_ALIAS,
         'collection': 'breeds',
-        'indexes': [{
-            'fields': [
-                "species",
-                "code"
-            ],
-            'unique': True,
-            'collation': {'locale': 'en', 'strength': 1}
-        }]
+        'indexes': [
+            {
+                'fields': [
+                    "species",
+                    "code"
+                ],
+                'unique': True,
+                'collation': {'locale': 'en', 'strength': 1}
+            },
+            {
+                'fields': [
+                    "species",
+                    "name"
+                ],
+                'unique': True,
+                'collation': {'locale': 'en', 'strength': 1}
+            }
+        ]
     }
 
     def __str__(self):
