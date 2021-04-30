@@ -16,8 +16,9 @@ import pandas as pd
 from mongoengine.errors import NotUniqueError
 
 from src.features.smarterdb import (
-    global_connection, Dataset, get_or_create_breed, SmarterDBException,
+    global_connection, get_or_create_breed, SmarterDBException,
     BreedAlias)
+from src.data.common import fetch_and_check_dataset
 
 logger = logging.getLogger(__name__)
 
@@ -37,25 +38,11 @@ def main(species, dataset, datafile, code_column, breed_column, fid_column,
          country_column):
     logger.info(f"{Path(__file__).name} started")
 
-    # get the dataset object
-    dataset = Dataset.objects(file=dataset).get()
-
-    logger.debug(f"Found {dataset}")
-
-    # check files are in dataset
-    # TODO: define a function to validate parameters
-    if datafile not in dataset.contents:
-        raise Exception(
-            f"Couldn't find '{datafile}' in dataset: '{dataset}'")
-
-    # check for working directory
-    working_dir = dataset.working_dir
-
-    if not working_dir.exists():
-        raise Exception(f"Could find dataset directory '{working_dir}'")
-
-    # determine full file paths
-    datapath = working_dir / datafile
+    # custom method to check a dataset and ensure that needed stuff exists
+    dataset, [datapath] = fetch_and_check_dataset(
+        archive=dataset,
+        contents=[datafile]
+    )
 
     with open(datapath, "rb") as handle:
         data = pd.read_excel(handle)

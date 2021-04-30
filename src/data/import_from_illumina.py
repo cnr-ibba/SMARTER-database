@@ -19,7 +19,8 @@ import subprocess
 from pathlib import Path
 
 from src.features.plinkio import IlluminaReportIO, plink_binary_exists
-from src.features.smarterdb import Dataset, global_connection, IlluminaChip
+from src.features.smarterdb import global_connection, IlluminaChip
+from src.data.common import fetch_and_check_dataset
 
 logger = logging.getLogger(__name__)
 
@@ -63,31 +64,14 @@ def get_output_files(reportpath: str, working_dir: Path):
 def main(dataset, snpfile, report, coding, breed_code, chip_name):
     logger.info(f"{Path(__file__).name} started")
 
-    # get the dataset object
-    dataset = Dataset.objects(file=dataset).get()
-
-    logger.debug(f"Found {dataset}")
+    # custom method to check a dataset and ensure that needed stuff exists
+    dataset, [snpfilepath, reportpath] = fetch_and_check_dataset(
+        archive=dataset,
+        contents=[snpfile, report]
+    )
 
     # check chip_name
     illumina_chip = IlluminaChip.objects(name=chip_name).get()
-
-    # check files are in dataset
-    if snpfile not in dataset.contents or report not in dataset.contents:
-        logger.critical(
-            "Couldn't find files in dataset: check for both "
-            f"'{snpfile}' and '{report}' in '{dataset}'")
-        return
-
-    # check for working directory
-    working_dir = dataset.working_dir
-
-    if not working_dir.exists():
-        logger.critical(f"Could find dataset directory {working_dir}")
-        return
-
-    # determine full file paths
-    snpfilepath = working_dir / snpfile
-    reportpath = working_dir / report
 
     # instantiating a TextPlinkIO object
     report = IlluminaReportIO(
@@ -105,7 +89,7 @@ def main(dataset, snpfile, report, coding, breed_code, chip_name):
     results_dir.mkdir(parents=True, exist_ok=True)
 
     output_dir, output_map, output_ped = get_output_files(
-        reportpath, working_dir)
+        reportpath, dataset.working_dir)
 
     # define final filename
     final_prefix = results_dir / output_ped.stem
