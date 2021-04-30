@@ -387,7 +387,7 @@ class SampleSheep(mongoengine.Document):
         super(SampleSheep, self).save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.smarter_id} ({self.original_id})"
+        return f"{self.smarter_id} ({self.breed})"
 
 
 class Consequence(mongoengine.EmbeddedDocument):

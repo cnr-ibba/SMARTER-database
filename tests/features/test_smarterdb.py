@@ -471,7 +471,7 @@ class SampleSheepTestCase(SmarterIDMixin, MongoMockMixin, unittest.TestCase):
     def test__str(self):
         self.assertEqual(
             str(self.sample),
-            f"{self.smarter_id} ({self.original_id})"
+            f"{self.smarter_id} (Texel)"
         )
 
     def test_save(self):
