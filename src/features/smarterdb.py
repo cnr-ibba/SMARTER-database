@@ -355,6 +355,10 @@ class SampleSheep(mongoengine.Document):
     # define enum types for sex
     sex = mongoengine.EnumField(SEX)
 
+    # GPS location
+    # NOTE: X, Y where X is longitude, Y latitude
+    location = mongoengine.PointField()
+
     meta = {
         'db_alias': DB_ALIAS,
         'collection': 'sampleSheep'
