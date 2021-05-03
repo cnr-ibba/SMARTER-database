@@ -6,8 +6,8 @@ TODO
 ^^^^
 
 
-0.2.3.dev0
-----------
+0.2.3 (2021-05-03)
+------------------
 
 * Unset ped columns if relationship can't be derived from data (ex. *brazilian BSI*)
 * Deal with geographical coordinates
