@@ -320,7 +320,7 @@ class SEX(bytes, Enum):
         return self.label
 
 
-class SampleSheep(mongoengine.Document):
+class SampleSpecies(mongoengine.Document):
     original_id = mongoengine.StringField(required=True)
     smarter_id = mongoengine.StringField(required=True, unique=True)
 
@@ -339,6 +339,47 @@ class SampleSheep(mongoengine.Document):
     # track the original chip_name with sample
     chip_name = mongoengine.StringField()
 
+    # define enum types for sex
+    sex = mongoengine.EnumField(SEX)
+
+    # GPS location
+    # NOTE: X, Y where X is longitude, Y latitude
+    location = mongoengine.PointField()
+
+    # additional (not modelled) metadata
+    metadata = mongoengine.DictField()
+
+    meta = {
+        'abstract': True,
+    }
+
+    def save(self, *args, **kwargs):
+        """Custom save method. Deal with smarter_id before save"""
+
+        if not self.smarter_id:
+            logger.debug(f"Determining smarter id for {self.original_id}")
+
+            # get the pymongo connection object
+            conn = mongoengine.connection.get_db(alias=DB_ALIAS)
+
+            # even is species, country and breed are required fields for
+            # SampleSpecies document, their value will not be evaluated until
+            # super().save() is called. I can't call it before determining
+            # a smarter_id
+            self.smarter_id = getSmarterId(
+                self.species,
+                self.country,
+                self.breed,
+                conn)
+
+        # default save method
+        super(SampleSpecies, self).save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.smarter_id} ({self.breed})"
+
+
+class SampleSheep(SampleSpecies):
     # try to model relationship between samples
     father_id = mongoengine.LazyReferenceField(
         'SampleSheep',
@@ -352,45 +393,30 @@ class SampleSheep(mongoengine.Document):
         reverse_delete_rule=mongoengine.NULLIFY
     )
 
-    # define enum types for sex
-    sex = mongoengine.EnumField(SEX)
-
-    # GPS location
-    # NOTE: X, Y where X is longitude, Y latitude
-    location = mongoengine.PointField()
-
-    # additional (not modelled) metadata
-    metadata = mongoengine.DictField()
-
     meta = {
         'db_alias': DB_ALIAS,
         'collection': 'sampleSheep'
     }
 
-    def save(self, *args, **kwargs):
-        """Custom save method. Deal with smarter_id before save"""
 
-        if not self.smarter_id:
-            logger.debug(f"Determining smarter id for {self.original_id}")
+class SampleGoat(SampleSpecies):
+    # try to model relationship between samples
+    father_id = mongoengine.LazyReferenceField(
+        'SampleGoat',
+        passthrough=True,
+        reverse_delete_rule=mongoengine.NULLIFY
+    )
 
-            # get the pymongo connection object
-            conn = mongoengine.connection.get_db(alias=DB_ALIAS)
+    mother_id = mongoengine.LazyReferenceField(
+        'SampleGoat',
+        passthrough=True,
+        reverse_delete_rule=mongoengine.NULLIFY
+    )
 
-            # even is species, country and breed are required fields for
-            # SampleSheep document, their value will not be evaluated until
-            # super().save() is called. I can't call it before determining
-            # a smarter_id
-            self.smarter_id = getSmarterId(
-                self.species,
-                self.country,
-                self.breed,
-                conn)
-
-        # default save method
-        super(SampleSheep, self).save(*args, **kwargs)
-
-    def __str__(self):
-        return f"{self.smarter_id} ({self.breed})"
+    meta = {
+        'db_alias': DB_ALIAS,
+        'collection': 'sampleGoat'
+    }
 
 
 class Consequence(mongoengine.EmbeddedDocument):
@@ -600,7 +626,7 @@ class Location(mongoengine.EmbeddedDocument):
         return result
 
 
-class VariantSheep(mongoengine.Document):
+class VariantSpecies(mongoengine.Document):
     rs_id = mongoengine.StringField()
     chip_name = mongoengine.ListField(mongoengine.StringField())
     name = mongoengine.StringField(unique=True)
@@ -610,8 +636,7 @@ class VariantSheep(mongoengine.Document):
     sender = mongoengine.StringField()
 
     meta = {
-        'db_alias': DB_ALIAS,
-        'collection': 'variantSheep'
+        'abstract': True,
     }
 
     def __str__(self):
@@ -663,3 +688,17 @@ class VariantSheep(mongoengine.Document):
                 f"'{self.name}' '{version}' '{imported_from}'")
 
         return locations[0]
+
+
+class VariantSheep(VariantSpecies):
+    meta = {
+        'db_alias': DB_ALIAS,
+        'collection': 'variantSheep'
+    }
+
+
+class VariantGoat(VariantSpecies):
+    meta = {
+        'db_alias': DB_ALIAS,
+        'collection': 'variantGoat'
+    }

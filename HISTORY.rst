@@ -5,6 +5,16 @@ History
 TODO
 ^^^^
 
+* Import goat data from manifest and snpchimp
+* Import goat data from plink files
+* Import goat metadata
+
+0.3.0.dev0
+----------
+
+* Add Goat Related tables
+- add ``variantGoat`` collection
+- add ``sampleGoat`` collection
 
 0.2.3 (2021-05-03)
 ------------------
