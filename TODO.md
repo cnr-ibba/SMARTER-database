@@ -18,11 +18,7 @@ Database
 --------
 
 * Should I check genotype coding **before** importing dataset?
-* create samples collection (one for goat, one for sheep)
-* create a variation collection (one for goat, one for sheep)
 * create a variation collection (for goat and sheep)
-  - import ILLUMINA data with coordinates (make an entry for each snp)
-  - import SNPchimp data into database (the proper variation collection)
   - parse dbSNP data and update position
   - parse EVA data and EnsEMBL data and update positions
 * configure mongodb replica set and transactions:

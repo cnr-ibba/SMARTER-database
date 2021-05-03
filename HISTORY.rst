@@ -5,7 +5,7 @@ History
 TODO
 ^^^^
 
-* Import goat data from manifest and snpchimp
+* Import goat breeds
 * Import goat data from plink files
 * Import goat metadata
 
@@ -13,8 +13,9 @@ TODO
 ----------
 
 * Add Goat Related tables
-- add ``variantGoat`` collection
-- add ``sampleGoat`` collection
+  - add ``variantGoat`` collection
+  - add ``sampleGoat`` collection
+* Import goat data from manifest and snpchimp
 
 0.2.3 (2021-05-03)
 ------------------

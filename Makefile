@@ -39,8 +39,10 @@ initialize: test_environment
 	$(PYTHON_INTERPRETER) src/data/import_snpchimp.py --species sheep --snpchimp data/external/SHE/SNPCHIMP/SNPchimp_SHE_SNPHDv1_oar3.1.csv.gz --version Oar_v3.1
 
 	## import data for goat
-	$(PYTHON_INTERPRETER) src/data/import_manifest.py --species goat --manifest data/external/GOA/ILLUMINA/Goat_IGGC_65K_v2_15069617X365016_A2.csv.gz  \
+	$(PYTHON_INTERPRETER) src/data/import_manifest.py --species goat --manifest data/external/GOA/ILLUMINA/Goat_IGGC_65K_v2_15069617X365016_A2.csv.gz \
 		--chip_name IlluminaGoatSNP50 --version ARS1 --sender IGGC
+	$(PYTHON_INTERPRETER) src/data/import_snpchimp.py --species goat --snpchimp data/external/GOA/SNPCHIMP/SNPchimp_GOAT_SNP50_chi1.0.csv.gz --version CHI1.0
+
 	## TODO: donwload data from EVA and EnsEMBL
 
 ## Make Dataset
