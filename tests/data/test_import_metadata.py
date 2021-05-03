@@ -48,6 +48,8 @@ class TestImportMetadata(MongoMockMixin, unittest.TestCase):
         cls.sheet.cell(row=1, column=3, value="Country")
         cls.sheet.cell(row=1, column=4, value="Lat")
         cls.sheet.cell(row=1, column=5, value="Lon")
+        cls.sheet.cell(row=1, column=6, value="Col1")
+        cls.sheet.cell(row=1, column=7, value="Col 2")
 
         # adding values
         cls.sheet.cell(row=2, column=1, value="TEX")
@@ -55,6 +57,8 @@ class TestImportMetadata(MongoMockMixin, unittest.TestCase):
         cls.sheet.cell(row=2, column=3, value="Italy")
         cls.sheet.cell(row=2, column=4, value=45.46427)
         cls.sheet.cell(row=2, column=5, value=9.18951)
+        cls.sheet.cell(row=2, column=6, value="Val1")
+        cls.sheet.cell(row=2, column=7, value="Val2")
 
     @classmethod
     def tearDownClass(cls):
@@ -91,7 +95,7 @@ class TestImportMetadata(MongoMockMixin, unittest.TestCase):
 
     @patch('src.features.smarterdb.Dataset.working_dir',
            new_callable=PropertyMock)
-    def test_import_metadata(self, my_working_dir):
+    def test_import_with_position(self, my_working_dir):
         # create a temporary directory using the context manager
         with tempfile.TemporaryDirectory() as tmpdirname:
             working_dir = pathlib.Path(tmpdirname)
@@ -124,6 +128,44 @@ class TestImportMetadata(MongoMockMixin, unittest.TestCase):
                 {
                     'type': 'Point',
                     'coordinates': [9.18951, 45.46427]
+                }
+            )
+
+    @patch('src.features.smarterdb.Dataset.working_dir',
+           new_callable=PropertyMock)
+    def test_import_with_metadata(self, my_working_dir):
+        # create a temporary directory using the context manager
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            working_dir = pathlib.Path(tmpdirname)
+            my_working_dir.return_value = working_dir
+
+            # save worksheet in temporary folder
+            self.workbook.save(f"{working_dir}/metadata.xlsx")
+
+            result = self.runner.invoke(
+                import_metadata,
+                [
+                    "--dataset",
+                    "test.zip",
+                    "--datafile",
+                    "metadata.xlsx",
+                    "--breed_column",
+                    "Name",
+                    "--metadata_column",
+                    "Col1",
+                    "--metadata_column",
+                    "Col 2"
+                ]
+            )
+
+            self.assertEqual(0, result.exit_code, msg=result.exception)
+
+            self.sample.reload()
+            self.assertEqual(
+                self.sample.metadata,
+                {
+                    'col1': 'Val1',
+                    'col_2': 'Val2'
                 }
             )
 

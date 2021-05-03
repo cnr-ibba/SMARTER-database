@@ -58,6 +58,7 @@ data: requirements
 		--datafile ovine_SNP50HapMap_data/kijas2012_dataset_fix.xlsx --code_column code --breed_column Breed \
 		--fid_column Breed --country_column country
 
+	## import data from plink (or report) files
 	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --file TEXEL_UY --dataset TEXEL_INIA_UY.zip --chip_name IlluminaOvineSNP50
 	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --file Frizarta54samples_ped_map_files/Frizarta54samples \
 		--dataset Frizarta54samples_ped_map_files.zip --coding forward --chip_name IlluminaOvineSNP50
@@ -73,6 +74,16 @@ data: requirements
 		--dataset "High density genotypes of French Sheep populations.zip" --chip_name IlluminaOvineHDSNP
 	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --file ovine_SNP50HapMap_data/SNP50_Breedv1/SNP50_Breedv1 \
 		--dataset ovine_SNP50HapMap_data.zip --chip_name IlluminaOvineSNP50
+
+	## add additional metadata to samples
+	$(PYTHON_INTERPRETER) src/data/import_metadata.py --dataset "High density genotypes of French Sheep populations.zip" \
+		--datafile Populations_infos_fix.xlsx --breed_column "Population Name" \
+		--latitude_column Latitude --longitude_column Longitude --metadata_column Link \
+		--metadata_column POP_GROUP_CODE --metadata_column POP_GROUP_NAME
+	$(PYTHON_INTERPRETER) src/data/import_metadata.py --dataset=ovine_SNP50HapMap_data.zip \
+		--datafile ovine_SNP50HapMap_data/kijas2012_dataset_fix.xlsx --breed_column Breed \
+		--latitude_column latitude --longitude_column longitude --metadata_column "Location/source" \
+		--metadata_column Remark
 
 	## merge SNPs into 1 file
 	$(PYTHON_INTERPRETER) src/data/merge_datasets.py --species sheep --assembly OARV3

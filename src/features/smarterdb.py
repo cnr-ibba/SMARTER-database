@@ -359,6 +359,9 @@ class SampleSheep(mongoengine.Document):
     # NOTE: X, Y where X is longitude, Y latitude
     location = mongoengine.PointField()
 
+    # additional (not modelled) metadata
+    metadata = mongoengine.DictField()
+
     meta = {
         'db_alias': DB_ALIAS,
         'collection': 'sampleSheep'

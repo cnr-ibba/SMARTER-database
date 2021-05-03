@@ -18,6 +18,7 @@ import pandas as pd
 
 from src.features.smarterdb import global_connection, SampleSheep
 from src.data.common import fetch_and_check_dataset
+from src.features.utils import sanitize
 
 logger = logging.getLogger(__name__)
 
@@ -31,8 +32,13 @@ logger = logging.getLogger(__name__)
 @click.option('--breed_column', type=str, default="breed")
 @click.option('--latitude_column', type=str)
 @click.option('--longitude_column', type=str)
-def main(dataset, datafile, breed_column, latitude_column, longitude_column):
+@click.option('--metadata_column', multiple=True, help=(
+    "Metadata column to track. Could be specified multiple times"))
+def main(dataset, datafile, breed_column, latitude_column, longitude_column,
+         metadata_column):
     logger.info(f"{Path(__file__).name} started")
+
+    logger.warning(metadata_column)
 
     # custom method to check a dataset and ensure that needed stuff exists
     dataset, [datapath] = fetch_and_check_dataset(
@@ -54,6 +60,7 @@ def main(dataset, datafile, breed_column, latitude_column, longitude_column):
     for index, row in data.iterrows():
         breed = row.get(breed_column)
         location = None
+        metadata = dict()
 
         if latitude_column and longitude_column:
             latitude = row.get(latitude_column)
@@ -63,6 +70,13 @@ def main(dataset, datafile, breed_column, latitude_column, longitude_column):
 
             logger.info(f"Got location '{location}' for '{breed}'")
 
+        if metadata_column:
+            for column in metadata_column:
+                if pd.notnull(row.get(column)):
+                    metadata[sanitize(column)] = row.get(column)
+
+            logger.info(f"Got metadata: '{metadata}' for '{breed}'")
+
         # ok iterate over all samples of this dataset
         for sample in SampleSpecie.objects.filter(
                 dataset=dataset, breed=breed):
@@ -71,6 +85,10 @@ def main(dataset, datafile, breed_column, latitude_column, longitude_column):
 
             # set location features
             sample.location = location
+
+            # set metadata if necessary
+            if metadata:
+                sample.metadata = metadata
 
             # update sample
             sample.save()
