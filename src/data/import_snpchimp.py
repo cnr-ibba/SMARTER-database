@@ -11,7 +11,9 @@ import logging
 
 from src.features.snpchimp import read_snpChimp
 from src.features.smarterdb import (
-    VariantSheep, Location, global_connection, SmarterDBException, VariantGoat)
+    Location, global_connection, SmarterDBException)
+
+from .common import get_variant_species
 
 logger = logging.getLogger(__name__)
 
@@ -21,17 +23,8 @@ logger = logging.getLogger(__name__)
 @click.option('--snpchimp', type=str, required=True)
 @click.option('--version', type=str, required=True)
 def main(species, snpchimp, version):
-    # fix input parameters
-    species = species.capitalize()
-
-    if species == 'Sheep':
-        VariantSpecie = VariantSheep
-
-    elif species == 'Goat':
-        VariantSpecie = VariantGoat
-
-    else:
-        raise NotImplementedError(f"'{species}' import not yet implemented")
+    # determining the proper VariantSpecies class
+    VariantSpecie = get_variant_species(species)
 
     logger.info(f"Reading from {snpchimp}")
 

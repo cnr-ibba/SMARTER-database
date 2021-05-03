@@ -12,8 +12,8 @@ import tempfile
 
 from unittest.mock import patch, PropertyMock
 
-from src.data.common import fetch_and_check_dataset
-from src.features.smarterdb import Dataset
+from src.data.common import fetch_and_check_dataset, get_variant_species
+from src.features.smarterdb import Dataset, VariantGoat, VariantSheep
 
 from ..common import MongoMockMixin, SmarterIDMixin
 
@@ -110,6 +110,24 @@ class CommonScriptTest(SmarterIDMixin, MongoMockMixin, unittest.TestCase):
             fetch_and_check_dataset,
             self.archive,
             self.contents
+        )
+
+
+class GetVariantSpeciesTest(unittest.TestCase):
+    def test_get_variant_sheep(self):
+        VariantSpecies = get_variant_species(species="Sheep")
+        self.assertEqual(VariantSpecies, VariantSheep)
+
+    def test_get_variant_goat(self):
+        VariantSpecies = get_variant_species(species="Goat")
+        self.assertEqual(VariantSpecies, VariantGoat)
+
+    def test_unmanaged_species(self):
+        self.assertRaisesRegex(
+            NotImplementedError,
+            "not yet implemented",
+            get_variant_species,
+            "unmanaged"
         )
 
 

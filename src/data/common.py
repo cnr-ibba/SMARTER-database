@@ -10,9 +10,10 @@ Common stuff for smarter scripts
 
 import logging
 
+from typing import Union
 from pathlib import Path
 
-from src.features.smarterdb import Dataset
+from src.features.smarterdb import Dataset, VariantGoat, VariantSheep
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -70,3 +71,28 @@ def fetch_and_check_dataset(
             f"Couldn't find '{not_found}'")
 
     return dataset, contents_path
+
+
+def get_variant_species(species: str) -> Union[VariantSheep, VariantGoat]:
+    """Get a species name in input. It return the proper VariantSpecies class
+
+    Args:
+        species (str): the species name
+
+    Returns:
+        Union[VariantSheep, VariantGoat]: a VariantSpecies class
+
+    """
+    # fix input parameters
+    species = species.capitalize()
+
+    if species == 'Sheep':
+        VariantSpecie = VariantSheep
+
+    elif species == 'Goat':
+        VariantSpecie = VariantGoat
+
+    else:
+        raise NotImplementedError(f"'{species}' import not yet implemented")
+
+    return VariantSpecie

@@ -18,6 +18,8 @@ from src.features.illumina import read_snpChip
 from src.features.smarterdb import (
     VariantSheep, Location, global_connection, IlluminaChip, VariantGoat)
 
+from .common import get_variant_species
+
 logger = logging.getLogger(__name__)
 
 
@@ -28,17 +30,8 @@ logger = logging.getLogger(__name__)
 @click.option('--version', type=str, required=True)
 @click.option('--sender', type=str, required=True)
 def main(species, manifest, chip_name, version, sender):
-    # fix input parameters
-    species = species.capitalize()
-
-    if species == 'Sheep':
-        VariantSpecie = VariantSheep
-
-    elif species == 'Goat':
-        VariantSpecie = VariantGoat
-
-    else:
-        raise NotImplementedError(f"'{species}' import not yet implemented")
+    # determining the proper VariantSpecies class
+    VariantSpecie = get_variant_species(species)
 
     # check chip_name
     illumina_chip = IlluminaChip.objects(name=chip_name).get()
