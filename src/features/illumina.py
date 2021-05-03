@@ -70,20 +70,39 @@ def read_snpChip(path: str, size=2048, skip=0, delimiter=None):
             reader = csv.reader(handle, delimiter=delimiter)
 
         else:
-            # TODO: search for [Assay] row
             if skip > 0:
                 logger.info(f"Skipping {skip} lines")
                 tmp = itertools.islice(handle, skip)
                 for line in tmp:
-                    logger.error(f"Skipping: {line}")
+                    logger.warning(f"Skipping: {line}")
+
+            else:
+                # search for [Assay] row
+                line = handle.readline().strip()
+
+                while "[Assay]" not in line:
+                    logger.warning(f"Skipping: {line}")
+                    line = handle.readline().strip()
 
             # try to determine dialect
-            dialect = sniffer.sniff(handle.read(size))
+            try:
+                data = handle.read(size)
+                dialect = sniffer.sniff(data)
+
+            except csv.Error as e:
+                logger.error(e)
+                logger.error(data)
+                raise e
+
             handle.seek(0)
             reader = csv.reader(handle, dialect=dialect)
 
-        # throw away the first 7 lines from reader
-        list(itertools.islice(reader, 7))
+        # skip to the assay part of datafile
+        record = next(reader)
+
+        while record[0] != '[Assay]':
+            logger.debug(f"Skipping: {record}")
+            record = next(reader)
 
         # get header
         header = next(reader)

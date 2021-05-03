@@ -16,7 +16,7 @@ from mongoengine.queryset import QuerySet
 
 from src.features.illumina import read_snpChip
 from src.features.smarterdb import (
-    VariantSheep, Location, global_connection, IlluminaChip)
+    VariantSheep, Location, global_connection, IlluminaChip, VariantGoat)
 
 logger = logging.getLogger(__name__)
 
@@ -34,6 +34,9 @@ def main(species, manifest, chip_name, version, sender):
     if species == 'Sheep':
         VariantSpecie = VariantSheep
 
+    elif species == 'Goat':
+        VariantSpecie = VariantGoat
+
     else:
         raise NotImplementedError(f"'{species}' import not yet implemented")
 
@@ -46,7 +49,7 @@ def main(species, manifest, chip_name, version, sender):
     logger.info(f"Reading from {manifest}")
 
     # grep a sample SNP
-    for i, snpchip in enumerate(read_snpChip(manifest)):
+    for i, snpchip in enumerate(read_snpChip(manifest, delimiter=",")):
         # update chip data indipendentely if it is an update or not
         illumina_chip.n_of_snps += 1
 
@@ -90,7 +93,7 @@ def main(species, manifest, chip_name, version, sender):
 
 def update_variant(
         qs: QuerySet,
-        variant: Union[VariantSheep],  # will model also VariantGoat
+        variant: Union[VariantSheep, VariantGoat],
         location: Location):
     """Update an existing variant (if necessary)"""
 
@@ -136,7 +139,7 @@ def check_location(location, variant):
 
 
 def new_variant(
-        variant: Union[VariantSheep],  # will model also VariantGoat
+        variant: Union[VariantSheep, VariantGoat],
         location: Location):
 
     variant.locations.append(location)

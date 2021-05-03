@@ -26,8 +26,11 @@ requirements: test_environment
 
 ## Initialize database by loading stuff
 initialize: test_environment
-	## TODO: import manifest and SNPchimp for all assemblies
+	# import chip names
 	$(PYTHON_INTERPRETER) src/data/import_snpchips.py --chip_file data/raw/chip_names.json
+
+	## TODO: import manifest and SNPchimp for all assemblies
+	## import data for Sheep
 	$(PYTHON_INTERPRETER) src/data/import_manifest.py --species sheep --manifest data/external/SHE/ILLUMINA/ovinesnp50-genome-assembly-oar-v3-1.csv.gz \
 		--chip_name IlluminaOvineSNP50 --version Oar_v3.1 --sender AGR_BS
 	$(PYTHON_INTERPRETER) src/data/import_snpchimp.py --species sheep --snpchimp data/external/SHE/SNPCHIMP/SNPchimp_SHE_SNP50v1_oar3.1.csv.gz --version Oar_v3.1
@@ -35,6 +38,9 @@ initialize: test_environment
 		--chip_name IlluminaOvineHDSNP --version Oar_v3.1 --sender AGR_BS
 	$(PYTHON_INTERPRETER) src/data/import_snpchimp.py --species sheep --snpchimp data/external/SHE/SNPCHIMP/SNPchimp_SHE_SNPHDv1_oar3.1.csv.gz --version Oar_v3.1
 
+	## import data for goat
+	$(PYTHON_INTERPRETER) src/data/import_manifest.py --species goat --manifest data/external/GOA/ILLUMINA/Goat_IGGC_65K_v2_15069617X365016_A2.csv.gz  \
+		--chip_name IlluminaGoatSNP50 --version ARS1 --sender IGGC
 	## TODO: donwload data from EVA and EnsEMBL
 
 ## Make Dataset
