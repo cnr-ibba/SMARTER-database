@@ -9,7 +9,6 @@ Created on Mon Feb  8 17:15:26 2021
 import re
 import csv
 import logging
-import itertools
 import collections
 
 from src.features.utils import sanitize, text_or_gzip_open
@@ -18,20 +17,62 @@ from src.features.utils import sanitize, text_or_gzip_open
 logger = logging.getLogger(__name__)
 
 
-def read_snpMap(path: str, size=2048, skip=0):
+def skip_lines(handle, skip):
+    logger.info(f"Skipping {skip} lines")
+
+    for i in range(skip):
+        line = handle.readline().strip()
+        position = handle.tell()
+
+        logger.error(f"Skipping: {line}")
+
+    return position
+
+
+def skip_until_section(handle, section) -> int:
+    """Ignore lines until a precise sections"""
+
+    # search for 'section' record
+    while True:
+        line = handle.readline().strip()
+        position = handle.tell()
+
+        if section in line:
+            break
+
+        logger.error(f"Skipping: {line}")
+
+    return position
+
+
+def sniff_file(handle, size, position=0):
     sniffer = csv.Sniffer()
 
-    with open(path) as handle:
-        if skip > 0:
-            logger.info(f"Skipping {skip} lines")
-            tmp = itertools.islice(handle, skip)
-            for line in tmp:
-                logger.debug(f"Skipping: {line}")
+    # try to determine dialect
+    try:
+        data = handle.read(size)
+        dialect = sniffer.sniff(data)
 
-        # try to determine dialect
-        dialect = sniffer.sniff(handle.read(size))
-        handle.seek(0)
-        reader = csv.reader(handle, dialect=dialect)
+    except csv.Error as e:
+        logger.error(e)
+        logger.error(data)
+        raise e
+
+    handle.seek(position)
+    return csv.reader(handle, dialect=dialect)
+
+
+def read_snpMap(path: str, size=2048, skip=0, delimiter=None):
+    with open(path) as handle:
+        if delimiter:
+            reader = csv.reader(handle, delimiter=delimiter)
+
+        else:
+            if skip > 0:
+                skip_lines(handle, skip)
+
+            # try to determine dialect
+            reader = sniff_file(handle, size)
 
         # get header
         header = next(reader)
@@ -62,47 +103,23 @@ def read_snpMap(path: str, size=2048, skip=0):
             yield record
 
 
+# TODO: rename this to read_Manifest?
 def read_snpChip(path: str, size=2048, skip=0, delimiter=None):
-    sniffer = csv.Sniffer()
-
     with text_or_gzip_open(path) as handle:
         if delimiter:
             reader = csv.reader(handle, delimiter=delimiter)
+            skip_until_section(handle, "[Assay]")
 
         else:
             if skip > 0:
-                logger.info(f"Skipping {skip} lines")
-                tmp = itertools.islice(handle, skip)
-                for line in tmp:
-                    logger.warning(f"Skipping: {line}")
+                position = skip_lines(handle, skip)
 
             else:
                 # search for [Assay] row
-                line = handle.readline().strip()
-
-                while "[Assay]" not in line:
-                    logger.warning(f"Skipping: {line}")
-                    line = handle.readline().strip()
+                position = skip_until_section(handle, "[Assay]")
 
             # try to determine dialect
-            try:
-                data = handle.read(size)
-                dialect = sniffer.sniff(data)
-
-            except csv.Error as e:
-                logger.error(e)
-                logger.error(data)
-                raise e
-
-            handle.seek(0)
-            reader = csv.reader(handle, dialect=dialect)
-
-        # skip to the assay part of datafile
-        record = next(reader)
-
-        while record[0] != '[Assay]':
-            logger.debug(f"Skipping: {record}")
-            record = next(reader)
+            reader = sniff_file(handle, size, position)
 
         # get header
         header = next(reader)
@@ -143,24 +160,16 @@ def read_snpChip(path: str, size=2048, skip=0, delimiter=None):
 
 
 def read_snpList(path: str, size=2048, skip=0, delimiter=None):
-    sniffer = csv.Sniffer()
-
     with text_or_gzip_open(path) as handle:
         if delimiter:
             reader = csv.reader(handle, delimiter=delimiter)
 
         else:
-            # TODO: search for [Assay] row
             if skip > 0:
-                logger.info(f"Skipping {skip} lines")
-                tmp = itertools.islice(handle, skip)
-                for line in tmp:
-                    logger.error(f"Skipping: {line}")
+                skip_lines(handle, skip)
 
             # try to determine dialect
-            dialect = sniffer.sniff(handle.read(size))
-            handle.seek(0)
-            reader = csv.reader(handle, dialect=dialect)
+            reader = sniff_file(handle, size)
 
         # get header
         header = next(reader)
@@ -194,25 +203,12 @@ def read_snpList(path: str, size=2048, skip=0, delimiter=None):
 
 
 def read_illuminaRow(path: str, size=2048):
-    sniffer = csv.Sniffer()
-    position = 0
-
     with text_or_gzip_open(path) as handle:
         # search for [DATA] record
-        while True:
-            line = handle.readline()
-            position = handle.tell()
-            line = line.strip()
-
-            if line == '[Data]':
-                break
-
-            logger.warning(f"Skipping: {line}")
+        position = skip_until_section(handle, "[Data]")
 
         # try to determine dialect
-        dialect = sniffer.sniff(handle.read(size))
-        handle.seek(position)
-        reader = csv.reader(handle, dialect=dialect)
+        reader = sniff_file(handle, size, position)
 
         # get header
         header = next(reader)
