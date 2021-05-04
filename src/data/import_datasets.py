@@ -87,6 +87,7 @@ def main(input_filepath, output_filepath, types):
             for member in contents:
                 test = working_dir / member
                 if not test.exists():
+                    logger.info(f"Extract '{member}': in '{working_dir}'")
                     archive.extract(member, working_dir)
 
                 else:
