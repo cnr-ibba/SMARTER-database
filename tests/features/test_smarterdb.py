@@ -14,7 +14,7 @@ from unittest.mock import patch
 from src.features.smarterdb import (
     VariantSheep, Location, SampleSheep,
     SmarterDBException, getSmarterId, Breed, get_or_create_breed, Dataset,
-    BreedAlias)
+    BreedAlias, get_or_create_sample)
 
 from ..common import MongoMockMixin, SmarterIDMixin
 
@@ -450,12 +450,13 @@ class GetSmarterIdTestCase(SmarterIDMixin, MongoMockMixin, unittest.TestCase):
 
 class SampleSheepTestCase(SmarterIDMixin, MongoMockMixin, unittest.TestCase):
     def setUp(self):
-        self.smarter_id = None
+        # this will be the reference smarter_id
+        self.smarter_id = "ITOA-TEX-000000001"
         self.original_id = "TEST"
 
         self.sample = SampleSheep(
             original_id=self.original_id,
-            smarter_id=self.smarter_id
+            smarter_id=None
         )
 
         # need country, breed and species in order to get a smarter_id
@@ -463,12 +464,19 @@ class SampleSheepTestCase(SmarterIDMixin, MongoMockMixin, unittest.TestCase):
         self.sample.breed = "Texel"
         self.sample.species = "Sheep"
 
+        # fetch some values from database
+        self.dataset = Dataset.objects.get(file="test.zip")
+        self.breed = Breed.objects.get(species="Sheep", code="TEX")
+
     def tearDown(self):
         SampleSheep.objects().delete()
 
         super().tearDown()
 
     def test__str(self):
+        # save sample in db
+        self.sample.save()
+
         self.assertEqual(
             str(self.sample),
             f"{self.smarter_id} (Texel)"
@@ -478,10 +486,32 @@ class SampleSheepTestCase(SmarterIDMixin, MongoMockMixin, unittest.TestCase):
         # save sample in db
         self.sample.save()
 
-        # this will be the reference smarter_id
-        reference = "ITOA-TEX-000000001"
+        self.assertEqual(self.sample.smarter_id, self.smarter_id)
 
-        self.assertEqual(self.sample.smarter_id, reference)
+    def test_get_or_create_sample(self):
+        # creating sample first
+        sample = get_or_create_sample(
+            SampleSheep,
+            self.original_id,
+            self.dataset,
+            self.breed,
+            "Italy")
+
+        self.assertIsInstance(sample, SampleSheep)
+        self.assertEqual(sample.smarter_id, self.smarter_id)
+        self.assertEqual(SampleSheep.objects.count(), 1)
+
+        # calling the same function again, retrieve the same object
+        sample = get_or_create_sample(
+            SampleSheep,
+            self.original_id,
+            self.dataset,
+            self.breed,
+            "Italy")
+
+        self.assertIsInstance(sample, SampleSheep)
+        self.assertEqual(sample.smarter_id, self.smarter_id)
+        self.assertEqual(SampleSheep.objects.count(), 1)
 
 
 if __name__ == '__main__':

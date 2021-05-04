@@ -13,6 +13,8 @@ import pycountry
 import mongoengine
 
 from enum import Enum
+from typing import Union
+
 from pymongo import database, ReturnDocument
 from dotenv import find_dotenv, load_dotenv
 
@@ -417,6 +419,65 @@ class SampleGoat(SampleSpecies):
         'db_alias': DB_ALIAS,
         'collection': 'sampleGoat'
     }
+
+
+def get_or_create_sample(
+        SampleSpecies: Union[SampleGoat, SampleSheep],
+        original_id: str,
+        dataset: Dataset,
+        breed: Breed,
+        country: str,
+        chip_name: str = None,
+        sex: SEX = None) -> Union[SampleGoat, SampleSheep]:
+    """Get or create a sample providing attributes (search for original_id in
+    provided dataset
+
+    Args:
+        SampleSpecies: (Union[SampleGoat, SampleSheep]): the class required
+            for insert/update
+        original_id (str): The original_id in the dataset
+        dataset (Dataset): the dataset instance used to register sample
+        breed (Breed): A breed instance
+        country (str): Country as a string
+        chip_name (str): the chip name
+        sex (SEX): A SEX instance
+
+    Returns:
+        Union[SampleGoat, SampleSheep]: a SampleSpecies instance
+    """
+
+    # search for sample in database
+    qs = SampleSpecies.objects(
+        original_id=original_id, dataset=dataset)
+
+    if qs.count() == 1:
+        logger.debug(f"Sample '{original_id}' found in database")
+        sample = qs.get()
+
+    elif qs.count() == 0:
+        # insert sample into database
+        logger.info(f"Registering sample '{original_id}' in database")
+        sample = SampleSpecies(
+            original_id=original_id,
+            country=country,
+            species=dataset.species,
+            breed=breed.name,
+            breed_code=breed.code,
+            dataset=dataset,
+            chip_name=chip_name,
+            sex=sex,
+        )
+        sample.save()
+
+        # incrementing breed n_individuals counter
+        breed.n_individuals += 1
+        breed.save()
+
+    else:
+        raise SmarterDBException(
+            f"Got {qs.count()} results for '{original_id}'")
+
+    return sample
 
 
 class Consequence(mongoengine.EmbeddedDocument):
