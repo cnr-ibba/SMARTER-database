@@ -17,9 +17,11 @@ import logging
 
 from pathlib import Path
 
+import pycountry
+
 from src.data.common import fetch_and_check_dataset, pandas_open
 from src.features.smarterdb import (
-    global_connection, SampleGoat, SampleSheep, Breed)
+    global_connection, SampleGoat, SampleSheep, Breed, get_or_create_sample)
 
 logger = logging.getLogger(__name__)
 
@@ -73,8 +75,20 @@ def main(
     logger.debug(f"Got columns: {data.columns.to_list()}")
 
     for index, row in data.iterrows():
+        logger.debug(f"Got: {row.to_list()}")
         code = row.get(code_column)
         country = row.get(country_column)
+        original_id = row.get(id_column)
+
+        logger.debug(
+            f"Got code: {code}, country: {country}, "
+            f"original_id: {original_id}"
+        )
+
+        # transform country string with pycountry
+        fuzzy = pycountry.countries.search_fuzzy(country)[0]
+
+        logger.info(f"Found {fuzzy} for {country}")
 
         # get breed from database
         breed = Breed.objects(
@@ -83,9 +97,16 @@ def main(
         logger.debug(f"found breed '{breed}'")
 
         # get or create a new Sample Obj
-        logger.debug(row.to_list())
+        sample, created = get_or_create_sample(
+            SampleSpecie,
+            original_id,
+            dst_dataset,
+            breed,
+            fuzzy.name,
+            chip_name)
 
-        break
+        if created:
+            logger.info(f"Sample '{sample}' added to database")
 
     logger.info(f"{Path(__file__).name} ended")
 
