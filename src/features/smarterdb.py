@@ -329,7 +329,7 @@ class SampleSpecies(mongoengine.Document):
     country = mongoengine.StringField(required=True)
     species = mongoengine.StringField(required=True)
     breed = mongoengine.StringField(required=True)
-    breed_code = mongoengine.StringField(max_length=3, min_length=3)
+    breed_code = mongoengine.StringField(min_length=3)
 
     # required to search a sample relying only on original ID
     dataset = mongoengine.ReferenceField(
@@ -349,7 +349,7 @@ class SampleSpecies(mongoengine.Document):
     location = mongoengine.PointField()
 
     # additional (not modelled) metadata
-    metadata = mongoengine.DictField()
+    metadata = mongoengine.DictField(default=None)
 
     meta = {
         'abstract': True,
@@ -446,6 +446,8 @@ def get_or_create_sample(
         Union[SampleGoat, SampleSheep]: a SampleSpecies instance
     """
 
+    created = False
+
     # search for sample in database
     qs = SampleSpecies.objects(
         original_id=original_id, dataset=dataset)
@@ -465,7 +467,7 @@ def get_or_create_sample(
             breed_code=breed.code,
             dataset=dataset,
             chip_name=chip_name,
-            sex=sex,
+            sex=sex
         )
         sample.save()
 
@@ -473,11 +475,13 @@ def get_or_create_sample(
         breed.n_individuals += 1
         breed.save()
 
+        created = True
+
     else:
         raise SmarterDBException(
             f"Got {qs.count()} results for '{original_id}'")
 
-    return sample
+    return sample, created
 
 
 class Consequence(mongoengine.EmbeddedDocument):

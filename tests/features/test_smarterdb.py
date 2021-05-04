@@ -490,7 +490,7 @@ class SampleSheepTestCase(SmarterIDMixin, MongoMockMixin, unittest.TestCase):
 
     def test_get_or_create_sample(self):
         # creating sample first
-        sample = get_or_create_sample(
+        sample, created = get_or_create_sample(
             SampleSheep,
             self.original_id,
             self.dataset,
@@ -500,9 +500,10 @@ class SampleSheepTestCase(SmarterIDMixin, MongoMockMixin, unittest.TestCase):
         self.assertIsInstance(sample, SampleSheep)
         self.assertEqual(sample.smarter_id, self.smarter_id)
         self.assertEqual(SampleSheep.objects.count(), 1)
+        self.assertTrue(created)
 
         # calling the same function again, retrieve the same object
-        sample = get_or_create_sample(
+        sample, created = get_or_create_sample(
             SampleSheep,
             self.original_id,
             self.dataset,
@@ -512,6 +513,7 @@ class SampleSheepTestCase(SmarterIDMixin, MongoMockMixin, unittest.TestCase):
         self.assertIsInstance(sample, SampleSheep)
         self.assertEqual(sample.smarter_id, self.smarter_id)
         self.assertEqual(SampleSheep.objects.count(), 1)
+        self.assertFalse(created)
 
 
 if __name__ == '__main__':
