@@ -148,7 +148,7 @@ class ImportBreedsTest(BreedMixin, MongoMockMixin, unittest.TestCase):
                 ]
             )
 
-            self.assertEqual(0, result.exit_code)
+            self.assertEqual(0, result.exit_code, msg=result.exception)
 
             qs = Breed.objects()
             self.assertEqual(qs.count(), 1)

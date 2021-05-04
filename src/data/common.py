@@ -13,6 +13,8 @@ import logging
 from typing import Union
 from pathlib import Path
 
+import pandas as pd
+
 from src.features.smarterdb import Dataset, VariantGoat, VariantSheep
 
 # Get an instance of a logger
@@ -96,3 +98,32 @@ def get_variant_species(species: str) -> Union[VariantSheep, VariantGoat]:
         raise NotImplementedError(f"'{species}' import not yet implemented")
 
     return VariantSpecie
+
+
+def pandas_open(datapath: Path) -> pd.DataFrame:
+    """Open an excel or csv file with pandas and returns a dataframe
+
+    Args:
+        datapath (Path): the path of the file
+
+    Returns:
+        pd.DataFrame: file content as a pandas dataframe
+    """
+
+    data = None
+
+    if datapath.suffix in ['.xls', '.xlsx']:
+        with open(datapath, "rb") as handle:
+            data = pd.read_excel(handle)
+
+    elif datapath.suffix == '.csv':
+        with open(datapath, "r") as handle:
+            # set separator to None force pandas to use csv.Sniffer
+            data = pd.read_csv(handle, sep=None, engine='python')
+
+    else:
+        raise Exception(
+            f"'{datapath.suffix}' file type not managed"
+        )
+
+    return data

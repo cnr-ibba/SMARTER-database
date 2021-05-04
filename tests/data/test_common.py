@@ -10,21 +10,25 @@ import pathlib
 import unittest
 import tempfile
 
+import pandas as pd
 from unittest.mock import patch, PropertyMock
+from openpyxl import Workbook
 
-from src.data.common import fetch_and_check_dataset, get_variant_species
+from src.data.common import (
+    fetch_and_check_dataset, get_variant_species, pandas_open)
 from src.features.smarterdb import Dataset, VariantGoat, VariantSheep
 
 from ..common import MongoMockMixin, SmarterIDMixin
 
-DATA_DIR = pathlib.Path(__file__).parents[1] / "features/data"
+FEATURE_DATA_DIR = pathlib.Path(__file__).parents[1] / "features/data"
+SCRIPTS_DATA_DIR = pathlib.Path(__file__).parents[1] / "data/data"
 
 
 class CommonScriptTest(SmarterIDMixin, MongoMockMixin, unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.snpfile = DATA_DIR / "snplist.txt"
-        cls.report = DATA_DIR / "finalreport.txt"
+        cls.snpfile = FEATURE_DATA_DIR / "snplist.txt"
+        cls.report = FEATURE_DATA_DIR / "finalreport.txt"
         cls.archive = "test.zip"
         cls.contents = ["snplist.txt", "finalreport.txt"]
 
@@ -129,6 +133,56 @@ class GetVariantSpeciesTest(unittest.TestCase):
             get_variant_species,
             "unmanaged"
         )
+
+
+class PandasOpenTest(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+
+        # create a workbook
+        cls.workbook = Workbook()
+        cls.sheet = cls.workbook.active
+
+        # adding header
+        cls.sheet.cell(row=1, column=1, value="Code")
+        cls.sheet.cell(row=1, column=2, value="Name")
+        cls.sheet.cell(row=1, column=3, value="Fid")
+        cls.sheet.cell(row=1, column=4, value="Country")
+
+        # adding values
+        cls.sheet.cell(row=2, column=1, value="TEX")
+        cls.sheet.cell(row=2, column=2, value="Texel")
+        cls.sheet.cell(row=2, column=3, value="XET")
+        cls.sheet.cell(row=2, column=4, value="Italy")
+
+    def test_open_csv(self):
+        data = pandas_open(SCRIPTS_DATA_DIR / "test_manifest.csv")
+        self.assertIsInstance(data, pd.DataFrame)
+
+    def test_open_xlsx(self):
+        # create a temporary directory using the context manager
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            working_dir = pathlib.Path(tmpdirname)
+            datapath = working_dir / "breed.xlsx"
+
+            # save worksheet in temporary folder
+            self.workbook.save(f"{datapath}")
+
+            data = pandas_open(datapath)
+            self.assertIsInstance(data, pd.DataFrame)
+
+    def test_open_xls(self):
+        # create a temporary directory using the context manager
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            working_dir = pathlib.Path(tmpdirname)
+            datapath = working_dir / "breed.xls"
+
+            # save worksheet in temporary folder
+            self.workbook.save(f"{datapath}")
+
+            data = pandas_open(datapath)
+            self.assertIsInstance(data, pd.DataFrame)
 
 
 if __name__ == '__main__':

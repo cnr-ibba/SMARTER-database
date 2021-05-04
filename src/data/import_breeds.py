@@ -12,13 +12,12 @@ import click
 import logging
 from pathlib import Path
 
-import pandas as pd
 from mongoengine.errors import NotUniqueError
 
 from src.features.smarterdb import (
     global_connection, get_or_create_breed, SmarterDBException,
     BreedAlias)
-from src.data.common import fetch_and_check_dataset
+from src.data.common import fetch_and_check_dataset, pandas_open
 
 logger = logging.getLogger(__name__)
 
@@ -44,8 +43,8 @@ def main(species, dataset, datafile, code_column, breed_column, fid_column,
         contents=[datafile]
     )
 
-    with open(datapath, "rb") as handle:
-        data = pd.read_excel(handle)
+    # read breed into data
+    data = pandas_open(datapath)
 
     for index, row in data.iterrows():
         code = row.get(code_column)

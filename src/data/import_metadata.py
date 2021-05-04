@@ -17,7 +17,7 @@ from pathlib import Path
 import pandas as pd
 
 from src.features.smarterdb import global_connection, SampleSheep
-from src.data.common import fetch_and_check_dataset
+from src.data.common import fetch_and_check_dataset, pandas_open
 from src.features.utils import sanitize
 
 logger = logging.getLogger(__name__)
@@ -54,8 +54,7 @@ def main(dataset, datafile, breed_column, latitude_column, longitude_column,
         raise NotImplementedError(
             f"'{dataset.species}' import not yet implemented")
 
-    with open(datapath, "rb") as handle:
-        data = pd.read_excel(handle)
+    data = pandas_open(datapath)
 
     for index, row in data.iterrows():
         breed = row.get(breed_column)
