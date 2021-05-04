@@ -5,17 +5,18 @@ History
 TODO
 ^^^^
 
-* Import goat breeds
 * Import goat data from plink files
 * Import goat metadata
 
 0.3.0.dev0
 ----------
 
+* configure ``mongodb-express`` credentials
+* Import goat breeds
+* Import goat data from manifest and snpchimp
 * Add Goat Related tables
   - add ``variantGoat`` collection
   - add ``sampleGoat`` collection
-* Import goat data from manifest and snpchimp
 
 0.2.3 (2021-05-03)
 ------------------

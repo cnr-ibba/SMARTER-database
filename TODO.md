@@ -26,4 +26,3 @@ Database
   - https://stackoverflow.com/questions/61846280/how-to-add-configuration-for-mongodb-4-2-transaction-in-spring-boot
   - https://docs.mongodb.com/manual/tutorial/deploy-replica-set-for-testing/
 * create a read only user `smarterro` (for web stuff?)
-* configure `mongodb-express` credentials
