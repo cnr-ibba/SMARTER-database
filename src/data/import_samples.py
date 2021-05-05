@@ -22,7 +22,8 @@ import pycountry
 
 from src.data.common import fetch_and_check_dataset, pandas_open
 from src.features.smarterdb import (
-    global_connection, SampleGoat, SampleSheep, Breed, get_or_create_sample)
+    global_connection, SampleGoat, SampleSheep, Breed, get_or_create_sample,
+    SEX)
 
 logger = logging.getLogger(__name__)
 
@@ -62,10 +63,11 @@ def find_country(country: str):
 @click.option('--country_column', type=str, default="country")
 @click.option('--id_column', type=str, required=True,
               help="The 'original_id' column to place in smarter database")
+@click.option('--sex_column', type=str)
 @click.option('--chip_name', type=str, required=True)
 def main(
         src_dataset, dst_dataset, datafile, code_column, country_column,
-        id_column, chip_name):
+        id_column, sex_column, chip_name):
     logger.info(f"{Path(__file__).name} started")
 
     # custom method to check a dataset and ensure that needed stuff exists
@@ -94,17 +96,26 @@ def main(
     # read datafile
     data = pandas_open(datapath)
 
-    logger.debug(f"Got columns: {data.columns.to_list()}")
+    logger.info(f"Got columns: {data.columns.to_list()}")
 
     for index, row in data.iterrows():
         logger.debug(f"Got: {row.to_list()}")
         code = row.get(code_column)
         country = row.get(country_column)
         original_id = row.get(id_column)
+        sex = None
+
+        if sex_column:
+            sex = str(row.get(sex_column))
+            sex = SEX.from_string(sex)
+
+            # drop sex column if unknown
+            if sex == SEX.UNKNOWN:
+                sex = None
 
         logger.debug(
             f"Got code: {code}, country: {country}, "
-            f"original_id: {original_id}"
+            f"original_id: {original_id}, sex: {sex}"
         )
 
         # process a country by doing a fuzzy search
@@ -125,7 +136,8 @@ def main(
             dst_dataset,
             breed,
             country.name,
-            chip_name)
+            chip_name,
+            sex)
 
         if created:
             logger.info(f"Sample '{sample}' added to database")

@@ -12,8 +12,9 @@ TODO
 ----------
 
 * configure ``mongodb-express`` credentials
-* Import goat breeds
-* Import goat data from manifest and snpchimp
+* import data from *ADAPTmap* project
+  - Import goat breeds
+  - Import goat data from manifest and snpchimp
 * Add Goat Related tables
   - add ``variantGoat`` collection
   - add ``sampleGoat`` collection
