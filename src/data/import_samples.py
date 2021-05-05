@@ -14,6 +14,7 @@ processing genotypes)
 
 import click
 import logging
+import functools
 
 from pathlib import Path
 
@@ -24,6 +25,27 @@ from src.features.smarterdb import (
     global_connection, SampleGoat, SampleSheep, Breed, get_or_create_sample)
 
 logger = logging.getLogger(__name__)
+
+
+@functools.lru_cache
+def find_country(country: str):
+    """Do a fuzzy search with pycountry. Returns a pycountry object
+
+    Args:
+        country (str): the fuzzy country name
+
+    Returns:
+        pycountry.db.Country: the found country name
+    """
+    # mind underscore in country names: pycountry can't deal with them
+    country = country.replace("_", " ")
+
+    # transform country string with pycountry
+    fuzzy = pycountry.countries.search_fuzzy(country)[0]
+
+    logger.info(f"Found {fuzzy} for {country}")
+
+    return fuzzy
 
 
 @click.command()
@@ -85,10 +107,10 @@ def main(
             f"original_id: {original_id}"
         )
 
-        # transform country string with pycountry
-        fuzzy = pycountry.countries.search_fuzzy(country)[0]
-
-        logger.info(f"Found {fuzzy} for {country}")
+        # process a country by doing a fuzzy search
+        # HINT: this function cache results relying arguments using lru_cache
+        # see find country implementation for more informations
+        country = find_country(country)
 
         # get breed from database
         breed = Breed.objects(
@@ -102,7 +124,7 @@ def main(
             original_id,
             dst_dataset,
             breed,
-            fuzzy.name,
+            country.name,
             chip_name)
 
         if created:
@@ -113,7 +135,7 @@ def main(
 
 if __name__ == '__main__':
     log_fmt = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-    logging.basicConfig(level=logging.DEBUG, format=log_fmt)
+    logging.basicConfig(level=logging.INFO, format=log_fmt)
 
     # connect to database
     global_connection()
