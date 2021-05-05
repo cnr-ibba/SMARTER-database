@@ -5,16 +5,19 @@ History
 TODO
 ^^^^
 
-* Import goat data from plink files
 * Import goat metadata
+* Check chromosomes in *Variants locations*: mind to **scaffold**, **null**, and
+  **non-autosomal** chromosomes for *Goat* and *Sheep*
 
 0.3.0.dev0
 ----------
 
-* configure ``mongodb-express`` credentials
+* Forcing ``plink`` **chrom** options when converting in binary formats
 * import data from *ADAPTmap* project
   - Import goat breeds
   - Import goat data from manifest and snpchimp
+  - Import goat data from plink files
+* configure ``mongodb-express`` credentials
 * Add Goat Related tables
   - add ``variantGoat`` collection
   - add ``sampleGoat`` collection

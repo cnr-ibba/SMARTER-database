@@ -20,7 +20,8 @@ from pathlib import Path
 
 from src.features.plinkio import IlluminaReportIO, plink_binary_exists
 from src.features.smarterdb import global_connection, IlluminaChip
-from src.data.common import fetch_and_check_dataset, WORKING_ASSEMBLIES
+from src.data.common import (
+    fetch_and_check_dataset, WORKING_ASSEMBLIES, PLINK_SPECIES_OPT)
 
 logger = logging.getLogger(__name__)
 
@@ -125,9 +126,7 @@ def main(dataset, snpfile, report, coding, breed_code, chip_name, assembly):
     report.update_pedfile(output_ped, dataset, coding, fid=breed_code)
 
     # ok time to convert data in plink binary format
-    cmd = [
-        "plink",
-        f"--{dataset.species.lower()}",
+    cmd = ["plink"] + PLINK_SPECIES_OPT[dataset.species] + [
         "--file",
         f"{output_dir / output_ped.stem}",
         "--make-bed",

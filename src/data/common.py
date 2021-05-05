@@ -30,6 +30,13 @@ WORKING_ASSEMBLIES = {
     'CHI1': AssemblyConf('CHI1.0', 'SNPchiMp v.3')
 }
 
+PLINK_SPECIES_OPT = {
+    # got this one from documentation
+    'Sheep': ['--chr-set', '26', 'no-xy', 'no-mt'],
+    # this let to model 29 chromosome, X, Y, MT and contigs
+    'Goat': ['--chr-set', '29', '--allow-extra-chr']
+}
+
 
 def fetch_and_check_dataset(
         archive: str, contents: list[str]) -> [Dataset, list[Path]]:

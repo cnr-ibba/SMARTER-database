@@ -17,7 +17,7 @@ from pathlib import Path
 from src import __version__
 from src.features.utils import get_interim_dir, get_processed_dir
 from src.features.smarterdb import global_connection, Dataset, SPECIES2CODE
-from src.data.common import WORKING_ASSEMBLIES
+from src.data.common import WORKING_ASSEMBLIES, PLINK_SPECIES_OPT
 
 logger = logging.getLogger(__name__)
 
@@ -69,9 +69,7 @@ def main(species, assembly):
     final_dir.mkdir(parents=True, exist_ok=True)
 
     # ok time to convert data in plink binary format
-    cmd = [
-        "plink",
-        f"--{species.lower()}",
+    cmd = ["plink"] + PLINK_SPECIES_OPT[dataset.species] + [
         "--merge-list",
         f"{merge_file}",
         "--make-bed",

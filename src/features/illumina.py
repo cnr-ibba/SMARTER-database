@@ -24,7 +24,7 @@ def skip_lines(handle, skip):
         line = handle.readline().strip()
         position = handle.tell()
 
-        logger.error(f"Skipping: {line}")
+        logger.warning(f"Skipping: {line}")
 
     return position
 
@@ -40,7 +40,7 @@ def skip_until_section(handle, section) -> int:
         if section in line:
             break
 
-        logger.error(f"Skipping: {line}")
+        logger.warning(f"Skipping: {line}")
 
     return position
 

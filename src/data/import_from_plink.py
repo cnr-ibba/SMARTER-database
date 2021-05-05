@@ -24,7 +24,7 @@ from click_option_group import optgroup, RequiredMutuallyExclusiveOptionGroup
 from src.features.plinkio import (
     TextPlinkIO, BinaryPlinkIO, plink_binary_exists)
 from src.features.smarterdb import Dataset, global_connection, IlluminaChip
-from src.data.common import WORKING_ASSEMBLIES
+from src.data.common import WORKING_ASSEMBLIES, PLINK_SPECIES_OPT
 
 logger = logging.getLogger(__name__)
 
@@ -202,9 +202,7 @@ def main(file_, bfile, dataset, coding, chip_name, assembly):
     plinkio.update_pedfile(output_ped, dataset, coding)
 
     # ok time to convert data in plink binary format
-    cmd = [
-        "plink",
-        f"--{dataset.species.lower()}",
+    cmd = ["plink"] + PLINK_SPECIES_OPT[dataset.species] + [
         "--file",
         f"{output_dir / output_ped.stem}",
         "--make-bed",
