@@ -40,7 +40,8 @@ class TextPlinkIOMap(VariantsMixin, MongoMockMixin, unittest.TestCase):
 
     def test_fetch_coordinates(self):
         self.plinkio.read_mapfile()
-        self.plinkio.fetch_coordinates(version="Oar_v3.1")
+        self.plinkio.fetch_coordinates(
+            version="Oar_v3.1", imported_from="SNPchiMp v.3")
 
         self.assertIsInstance(self.plinkio.locations, list)
         self.assertEqual(len(self.plinkio.locations), 4)
@@ -62,7 +63,8 @@ class TextPlinkIOMap(VariantsMixin, MongoMockMixin, unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmpdirname:
             outfile = pathlib.Path(tmpdirname) / "plinktest_updated.map"
             self.plinkio.read_mapfile()
-            self.plinkio.fetch_coordinates(version="Oar_v3.1")
+            self.plinkio.fetch_coordinates(
+                version="Oar_v3.1", imported_from="SNPchiMp v.3")
             self.plinkio.update_mapfile(str(outfile))
 
             # now open outputfile and test stuff
@@ -76,7 +78,8 @@ class TextPlinkIOMap(VariantsMixin, MongoMockMixin, unittest.TestCase):
 
             for record in test.mapdata:
                 variant = VariantSheep.objects(name=record.name).get()
-                location = variant.get_location(version="Oar_v3.1")
+                location = variant.get_location(
+                    version="Oar_v3.1", imported_from="SNPchiMp v.3")
                 self.assertEqual(location.chrom, record.chrom)
                 self.assertEqual(location.position, record.position)
 
@@ -93,7 +96,8 @@ class TextPlinkIOPed(
 
         # read info from map
         self.plinkio.read_mapfile()
-        self.plinkio.fetch_coordinates(version="Oar_v3.1")
+        self.plinkio.fetch_coordinates(
+            version="Oar_v3.1", imported_from="SNPchiMp v.3")
 
         # read first line of ped file
         self.lines = list(self.plinkio.read_pedfile())
@@ -418,7 +422,8 @@ class BinaryPlinkIOTest(
 
         # read info from map
         self.plinkio.read_mapfile()
-        self.plinkio.fetch_coordinates(version="Oar_v3.1")
+        self.plinkio.fetch_coordinates(
+            version="Oar_v3.1", imported_from="SNPchiMp v.3")
 
         # read first line of ped file
         self.lines = list(self.plinkio.read_pedfile())
@@ -472,7 +477,8 @@ class IlluminaReportIOMap(VariantsMixin, MongoMockMixin, unittest.TestCase):
             self.assertIsInstance(record, tuple)
 
     def test_fetch_coordinates(self):
-        self.plinkio.fetch_coordinates(version="Oar_v3.1")
+        self.plinkio.fetch_coordinates(
+            version="Oar_v3.1", imported_from="SNPchiMp v.3")
 
         self.assertIsInstance(self.plinkio.locations, list)
         self.assertEqual(len(self.plinkio.locations), 2)
@@ -489,7 +495,8 @@ class IlluminaReportIOMap(VariantsMixin, MongoMockMixin, unittest.TestCase):
             # this is the temporary output file
             outfile = pathlib.Path(tmpdirname) / "plinktest_updated.map"
 
-            self.plinkio.fetch_coordinates(version="Oar_v3.1")
+            self.plinkio.fetch_coordinates(
+                version="Oar_v3.1", imported_from="SNPchiMp v.3")
             self.plinkio.update_mapfile(str(outfile))
 
             # now open outputfile and test stuff
@@ -502,7 +509,8 @@ class IlluminaReportIOMap(VariantsMixin, MongoMockMixin, unittest.TestCase):
 
             for record in test.mapdata:
                 variant = VariantSheep.objects(name=record.name).get()
-                location = variant.get_location(version="Oar_v3.1")
+                location = variant.get_location(
+                    version="Oar_v3.1", imported_from="SNPchiMp v.3")
                 self.assertEqual(location.chrom, record.chrom)
                 self.assertEqual(location.position, record.position)
 
@@ -520,7 +528,8 @@ class IlluminaReportIOPed(
 
         # read info from map
         self.plinkio.read_snpfile()
-        self.plinkio.fetch_coordinates(version="Oar_v3.1")
+        self.plinkio.fetch_coordinates(
+            version="Oar_v3.1", imported_from="SNPchiMp v.3")
 
         # read first line of ped file
         self.lines = list(self.plinkio.read_reportfile(fid="TEX"))

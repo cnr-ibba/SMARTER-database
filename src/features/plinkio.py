@@ -228,8 +228,13 @@ class SmarterMixin():
 
         return sample
 
-    def fetch_coordinates(self, version: str):
-        """Search for variants in smarter database"""
+    def fetch_coordinates(self, version: str, imported_from: str):
+        """Search for variants in smarter database
+
+        Args:
+            version (str): the Location.version attribute
+            imported_from (str): the Location.imported_from attribute
+        """
 
         # reset meta informations
         self.locations = list()
@@ -254,8 +259,10 @@ class SmarterMixin():
 
                 continue
 
-            # get location for snpchimp (defalt) in oarv3.1 coordinates
-            location = variant.get_location(version=version)
+            # get location using provided parameters
+            location = variant.get_location(
+                version=version,
+                imported_from=imported_from)
 
             # track data for this location
             self.locations.append(location)
