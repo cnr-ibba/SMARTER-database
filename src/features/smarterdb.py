@@ -321,6 +321,33 @@ class SEX(bytes, Enum):
     def __str__(self):
         return self.label
 
+    @classmethod
+    def from_string(cls, value: str):
+        """Get proper type relying on input string
+
+        Args:
+            value (str): required sex as string
+
+        Returns:
+            SEX: A sex instance (MALE, FEMALE, UNKNOWN)
+        """
+
+        if type(value) != str:
+            raise SmarterDBException("Provided value should be a 'str' type")
+
+        value = value.upper()
+
+        if value in ['M', 'MALE', "1"]:
+            return cls.MALE
+
+        elif value in ['F', 'FEMALE', "2"]:
+            return cls.FEMALE
+
+        else:
+            logger.warning(
+                f"Unmanaged case '{value}': return '{cls.UNKNOWN}'")
+            return cls.UNKNOWN
+
 
 class SampleSpecies(mongoengine.Document):
     original_id = mongoengine.StringField(required=True)

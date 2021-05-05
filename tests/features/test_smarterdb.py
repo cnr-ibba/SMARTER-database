@@ -14,7 +14,7 @@ from unittest.mock import patch
 from src.features.smarterdb import (
     VariantSheep, Location, SampleSheep,
     SmarterDBException, getSmarterId, Breed, get_or_create_breed, Dataset,
-    BreedAlias, get_or_create_sample)
+    BreedAlias, get_or_create_sample, SEX)
 
 from ..common import MongoMockMixin, SmarterIDMixin
 
@@ -514,6 +514,63 @@ class SampleSheepTestCase(SmarterIDMixin, MongoMockMixin, unittest.TestCase):
         self.assertEqual(sample.smarter_id, self.smarter_id)
         self.assertEqual(SampleSheep.objects.count(), 1)
         self.assertFalse(created)
+
+
+class SEXTestCase(unittest.TestCase):
+    def is_male(self, test):
+        self.assertEqual(test, SEX.MALE)
+        self.assertEqual(test._value_, 1)
+        self.assertEqual(str(test), 'Male')
+
+    def is_female(self, test):
+        self.assertEqual(test, SEX.FEMALE)
+        self.assertEqual(test._value_, 2)
+        self.assertEqual(str(test), 'Female')
+
+    def is_unknown(self, test):
+        self.assertEqual(test, SEX.UNKNOWN)
+        self.assertEqual(test._value_, 0)
+        self.assertEqual(str(test), 'Unknown')
+
+    def test_get_by_num(self):
+        test = SEX(1)
+        self.is_male(test)
+
+        test = SEX(2)
+        self.is_female(test)
+
+        test = SEX(0)
+        self.is_unknown(test)
+
+    def test_get_by_str(self):
+        test = SEX.from_string('M')
+        self.is_male(test)
+
+        test = SEX.from_string('male')
+        self.is_male(test)
+
+        test = SEX.from_string('1')
+        self.is_male(test)
+
+        test = SEX.from_string('f')
+        self.is_female(test)
+
+        test = SEX.from_string('Female')
+        self.is_female(test)
+
+        test = SEX.from_string('2')
+        self.is_female(test)
+
+        test = SEX.from_string('unmanaged')
+        self.is_unknown(test)
+
+    def test_get_by_str_raise(self):
+        self.assertRaisesRegex(
+            SmarterDBException,
+            "Provided value should be a 'str' type",
+            SEX.from_string,
+            1
+        )
 
 
 if __name__ == '__main__':
