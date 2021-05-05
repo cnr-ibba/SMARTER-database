@@ -17,8 +17,7 @@ from mongoengine.queryset import QuerySet
 from src.features.illumina import read_snpChip
 from src.features.smarterdb import (
     VariantSheep, Location, global_connection, IlluminaChip, VariantGoat)
-
-from .common import get_variant_species
+from src.data.common import get_variant_species
 
 logger = logging.getLogger(__name__)
 

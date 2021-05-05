@@ -12,8 +12,7 @@ import logging
 from src.features.snpchimp import read_snpChimp
 from src.features.smarterdb import (
     Location, global_connection, SmarterDBException)
-
-from .common import get_variant_species
+from src.data.common import get_variant_species
 
 logger = logging.getLogger(__name__)
 
