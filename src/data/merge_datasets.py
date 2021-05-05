@@ -17,6 +17,7 @@ from pathlib import Path
 from src import __version__
 from src.features.utils import get_interim_dir, get_processed_dir
 from src.features.smarterdb import global_connection, Dataset, SPECIES2CODE
+from src.data.common import WORKING_ASSEMBLIES
 
 logger = logging.getLogger(__name__)
 
@@ -26,6 +27,10 @@ logger = logging.getLogger(__name__)
 @click.option('--assembly', type=str, required=True)
 def main(species, assembly):
     logger.info(f"{Path(__file__).name} started")
+
+    # find assembly configuration
+    if assembly not in WORKING_ASSEMBLIES:
+        raise Exception(f"assembly {assembly} not managed by smarter")
 
     # open a file to track files to merge
     smarter_tag = "SMARTER-{specie}-{assembly}-top-{version}".format(
@@ -60,7 +65,7 @@ def main(species, assembly):
                     handle.write(f"{prefix}\n")
 
     # ok check for results dir
-    final_dir = get_processed_dir() / "OARV3"
+    final_dir = get_processed_dir() / assembly
     final_dir.mkdir(parents=True, exist_ok=True)
 
     # ok time to convert data in plink binary format

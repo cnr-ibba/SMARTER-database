@@ -12,6 +12,7 @@ import logging
 
 from typing import Union
 from pathlib import Path
+from collections import namedtuple
 
 import pandas as pd
 
@@ -19,6 +20,15 @@ from src.features.smarterdb import Dataset, VariantGoat, VariantSheep
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
+
+# defining here supported assemblies and version info
+AssemblyConf = namedtuple('AssemblyConf', ['version', 'imported_from'])
+
+WORKING_ASSEMBLIES = {
+    'OAR3': AssemblyConf('Oar_v3.1', 'SNPchiMp v.3'),
+    'ARS1': AssemblyConf('ARS1', 'manifest'),
+    'CHI1': AssemblyConf('CHI1.0', 'SNPchiMp v.3')
+}
 
 
 def fetch_and_check_dataset(

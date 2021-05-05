@@ -20,14 +20,14 @@ from pathlib import Path
 
 from src.features.plinkio import IlluminaReportIO, plink_binary_exists
 from src.features.smarterdb import global_connection, IlluminaChip
-from src.data.common import fetch_and_check_dataset
+from src.data.common import fetch_and_check_dataset, WORKING_ASSEMBLIES
 
 logger = logging.getLogger(__name__)
 
 
-def get_output_files(reportpath: str, working_dir: Path):
+def get_output_files(reportpath: str, working_dir: Path, assembly: str):
     # create output directory
-    output_dir = working_dir / "OARV3"
+    output_dir = working_dir / assembly
     output_dir.mkdir(exist_ok=True)
 
     # determine map outputfile. get the basename of the prefix
@@ -61,8 +61,15 @@ def get_output_files(reportpath: str, working_dir: Path):
     type=str,
     required=True)
 @click.option('--chip_name', type=str, required=True)
-def main(dataset, snpfile, report, coding, breed_code, chip_name):
+@click.option('--assembly', type=str, required=True)
+def main(dataset, snpfile, report, coding, breed_code, chip_name, assembly):
     logger.info(f"{Path(__file__).name} started")
+
+    # find assembly configuration
+    if assembly not in WORKING_ASSEMBLIES:
+        raise Exception(f"assembly {assembly} not managed by smarter")
+
+    assembly_conf = WORKING_ASSEMBLIES[assembly]
 
     # custom method to check a dataset and ensure that needed stuff exists
     dataset, [snpfilepath, reportpath] = fetch_and_check_dataset(
@@ -85,11 +92,11 @@ def main(dataset, snpfile, report, coding, breed_code, chip_name):
 
     # ok check for results dir
     results_dir = dataset.result_dir
-    results_dir = results_dir / "OARV3"
+    results_dir = results_dir / assembly
     results_dir.mkdir(parents=True, exist_ok=True)
 
     output_dir, output_map, output_ped = get_output_files(
-        reportpath, dataset.working_dir)
+        reportpath, dataset.working_dir, assembly)
 
     # define final filename
     final_prefix = results_dir / output_ped.stem
@@ -104,7 +111,12 @@ def main(dataset, snpfile, report, coding, breed_code, chip_name):
 
     # set mapdata and read updated coordinates from db
     report.read_snpfile()
-    report.fetch_coordinates(version="Oar_v3.1")
+
+    # fetch coordinates relying assembly configuration
+    report.fetch_coordinates(
+        version=assembly_conf.version,
+        imported_from=assembly_conf.imported_from
+    )
 
     logger.info("Writing a new map file with updated coordinates")
     report.update_mapfile(str(output_map))

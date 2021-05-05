@@ -24,13 +24,14 @@ from click_option_group import optgroup, RequiredMutuallyExclusiveOptionGroup
 from src.features.plinkio import (
     TextPlinkIO, BinaryPlinkIO, plink_binary_exists)
 from src.features.smarterdb import Dataset, global_connection, IlluminaChip
+from src.data.common import WORKING_ASSEMBLIES
 
 logger = logging.getLogger(__name__)
 
 
-def get_output_files(prefix: str, working_dir: Path):
+def get_output_files(prefix: str, working_dir: Path, assembly: str):
     # create output directory
-    output_dir = working_dir / "OARV3"
+    output_dir = working_dir / assembly
     output_dir.mkdir(exist_ok=True)
 
     # determine map outputfile. get the basename of the prefix
@@ -46,7 +47,7 @@ def get_output_files(prefix: str, working_dir: Path):
     return output_dir, output_map, output_ped
 
 
-def deal_with_text_plink(file_: str, dataset: Dataset):
+def deal_with_text_plink(file_: str, dataset: Dataset, assembly: str):
     mapfile = file_ + ".map"
     pedfile = file_ + ".ped"
 
@@ -74,12 +75,13 @@ def deal_with_text_plink(file_: str, dataset: Dataset):
     )
 
     # determine output files
-    output_dir, output_map, output_ped = get_output_files(file_, working_dir)
+    output_dir, output_map, output_ped = get_output_files(
+        file_, working_dir, assembly)
 
     return plinkio, output_dir, output_map, output_ped
 
 
-def deal_with_binary_plink(bfile: str, dataset: Dataset):
+def deal_with_binary_plink(bfile: str, dataset: Dataset, assembly: str):
     bedfile = bfile + ".bed"
     bimfile = bfile + ".bim"
     famfile = bfile + ".fam"
@@ -107,7 +109,8 @@ def deal_with_binary_plink(bfile: str, dataset: Dataset):
     )
 
     # determine output files
-    output_dir, output_map, output_ped = get_output_files(bfile, working_dir)
+    output_dir, output_map, output_ped = get_output_files(
+        bfile, working_dir, assembly)
 
     return plinkio, output_dir, output_map, output_ped
 
@@ -132,12 +135,19 @@ def deal_with_binary_plink(bfile: str, dataset: Dataset):
     help="Illumina coding format"
 )
 @click.option('--chip_name', type=str, required=True)
-def main(file_, bfile, dataset, coding, chip_name):
+@click.option('--assembly', type=str, required=True)
+def main(file_, bfile, dataset, coding, chip_name, assembly):
     """Read sample names from map/ped files and updata smarter database (insert
     a record if necessary and define a smarter id for each sample)
     """
 
     logger.info(f"{Path(__file__).name} started")
+
+    # find assembly configuration
+    if assembly not in WORKING_ASSEMBLIES:
+        raise Exception(f"assembly {assembly} not managed by smarter")
+
+    assembly_conf = WORKING_ASSEMBLIES[assembly]
 
     # get the dataset object
     dataset = Dataset.objects(file=dataset).get()
@@ -146,11 +156,11 @@ def main(file_, bfile, dataset, coding, chip_name):
 
     if file_:
         plinkio, output_dir, output_map, output_ped = deal_with_text_plink(
-            file_, dataset)
+            file_, dataset, assembly)
 
     elif bfile:
         plinkio, output_dir, output_map, output_ped = deal_with_binary_plink(
-            bfile, dataset)
+            bfile, dataset, assembly)
 
     # check chip_name
     illumina_chip = IlluminaChip.objects(name=chip_name).get()
@@ -162,7 +172,7 @@ def main(file_, bfile, dataset, coding, chip_name):
 
     # ok check for results dir
     results_dir = dataset.result_dir
-    results_dir = results_dir / "OARV3"
+    results_dir = results_dir / assembly
     results_dir.mkdir(parents=True, exist_ok=True)
 
     # define final filename
@@ -178,7 +188,12 @@ def main(file_, bfile, dataset, coding, chip_name):
 
     # read mapdata and read updated coordinates from db
     plinkio.read_mapfile()
-    plinkio.fetch_coordinates(version="Oar_v3.1")
+
+    # fetch coordinates relying assembly configuration
+    plinkio.fetch_coordinates(
+        version=assembly_conf.version,
+        imported_from=assembly_conf.imported_from
+    )
 
     logger.info("Writing a new map file with updated coordinates")
     plinkio.update_mapfile(str(output_map))

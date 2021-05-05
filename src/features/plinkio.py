@@ -21,7 +21,8 @@ from plinkio import plinkfile
 
 from .snpchimp import clean_chrom
 from .smarterdb import (
-    VariantSheep, SampleSheep, Breed, Dataset, SmarterDBException, SEX)
+    VariantSheep, SampleSheep, Breed, Dataset, SmarterDBException, SEX,
+    VariantGoat, SampleGoat)
 from .utils import TqdmToLogger
 from .illumina import read_snpList, read_illuminaRow
 
@@ -84,6 +85,10 @@ class SmarterMixin():
         if species == 'Sheep':
             self.VariantSpecies = VariantSheep
             self.SampleSpecies = SampleSheep
+
+        elif species == 'Goat':
+            self.VariantSpecies = VariantGoat
+            self.SampleSpecies = SampleGoat
 
         else:
             raise NotImplementedError(

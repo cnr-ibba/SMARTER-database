@@ -80,18 +80,20 @@ class TestImportFromIllumina(
                     "--breed_code",
                     "TEX",
                     "--chip_name",
-                    self.chip_name
+                    self.chip_name,
+                    "--assembly",
+                    "OAR3"
                 ]
             )
 
-            self.assertEqual(0, result.exit_code)
+            self.assertEqual(0, result.exit_code, msg=result.exception)
             self.assertEqual(SampleSheep.objects.count(), 2)
 
             # check imported chip_name attribute
             for sample in SampleSheep.objects:
                 self.assertEqual(sample.chip_name, self.chip_name)
 
-            plink_path = results_dir / "OARV3" / "finalreport_updated"
+            plink_path = results_dir / "OAR3" / "finalreport_updated"
             plink_file = plinkfile.open(str(plink_path))
 
             sample_list = plink_file.get_samples()
@@ -119,7 +121,7 @@ class TestImportFromIllumina(
             self.link_files(working_dir)
 
             # link espected output files in results dir
-            plink_path = results_dir / "OARV3"
+            plink_path = results_dir / "OAR3"
             plink_path.mkdir(parents=True, exist_ok=True)
             plink_prefix = plink_path / "finalreport_updated"
 
@@ -143,12 +145,14 @@ class TestImportFromIllumina(
                     "--breed_code",
                     "TEX",
                     "--chip_name",
-                    self.chip_name
+                    self.chip_name,
+                    "--assembly",
+                    "OAR3"
                 ]
             )
 
             # no sample inserted (step is skipped)
-            self.assertEqual(0, result.exit_code)
+            self.assertEqual(0, result.exit_code, msg=result.exception)
             self.assertEqual(SampleSheep.objects.count(), 0)
 
             # no coordinate fetch (file not processed)

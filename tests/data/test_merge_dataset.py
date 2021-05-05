@@ -45,7 +45,7 @@ class TestMergeDataset(
     @patch('src.data.merge_datasets.get_interim_dir')
     @patch('src.features.smarterdb.Dataset.result_dir',
            new_callable=PropertyMock)
-    def test_import_from_illumina(
+    def test_merge(
             self, my_result_dir, my_interim_dir, my_processed_dir):
         # create a temporary directory using the context manager
         with tempfile.TemporaryDirectory() as tmpdirname:
@@ -63,14 +63,14 @@ class TestMergeDataset(
                     "--species",
                     "sheep",
                     "--assembly",
-                    "OARV3"
+                    "OAR3"
                 ]
             )
 
-            self.assertEqual(0, result.exit_code)
+            self.assertEqual(0, result.exit_code, msg=result.exception)
 
-            smarter_tag = f"SMARTER-OA-OARV3-top-{__version__}"
-            plink_path = working_dir / "OARV3" / smarter_tag
+            smarter_tag = f"SMARTER-OA-OAR3-top-{__version__}"
+            plink_path = working_dir / "OAR3" / smarter_tag
             plink_file = plinkfile.open(str(plink_path))
 
             sample_list = plink_file.get_samples()
