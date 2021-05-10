@@ -145,11 +145,12 @@ def get_sample_species(species: str) -> Union[SampleSheep, SampleGoat]:
     return SampleSpecie
 
 
-def pandas_open(datapath: Path) -> pd.DataFrame:
+def pandas_open(datapath: Path, **kwargs) -> pd.DataFrame:
     """Open an excel or csv file with pandas and returns a dataframe
 
     Args:
         datapath (Path): the path of the file
+        kwargs (dict): additional pandas options
 
     Returns:
         pd.DataFrame: file content as a pandas dataframe
@@ -159,12 +160,12 @@ def pandas_open(datapath: Path) -> pd.DataFrame:
 
     if datapath.suffix in ['.xls', '.xlsx']:
         with open(datapath, "rb") as handle:
-            data = pd.read_excel(handle)
+            data = pd.read_excel(handle, **kwargs)
 
     elif datapath.suffix == '.csv':
         with open(datapath, "r") as handle:
             # set separator to None force pandas to use csv.Sniffer
-            data = pd.read_csv(handle, sep=None, engine='python')
+            data = pd.read_csv(handle, sep=None, engine='python', **kwargs)
 
     else:
         raise Exception(

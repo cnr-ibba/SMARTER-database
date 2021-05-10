@@ -43,7 +43,8 @@ def add_metadata_by_breed(
             latitude = row.get(columns["latitude_column"])
             longitude = row.get(columns["longitude_column"])
 
-            location = (longitude, latitude)
+            if pd.notna(latitude) and pd.notna(longitude):
+                location = (longitude, latitude)
 
             logger.info(f"Got location '{location}' for '{breed}'")
 
@@ -89,7 +90,8 @@ def add_metadata_by_sample(
             latitude = row.get(columns["latitude_column"])
             longitude = row.get(columns["longitude_column"])
 
-            location = (longitude, latitude)
+            if pd.notna(latitude) and pd.notna(longitude):
+                location = (longitude, latitude)
 
             logger.info(f"Got location '{location}' for '{original_id}'")
 
@@ -137,8 +139,9 @@ def add_metadata_by_sample(
 @click.option('--longitude_column', type=str)
 @click.option('--metadata_column', multiple=True, help=(
     "Metadata column to track. Could be specified multiple times"))
+@click.option('--na_values', type=str, help="pandas NA values")
 def main(src_dataset, dst_dataset, datafile, breed_column, id_column,
-         latitude_column, longitude_column, metadata_column):
+         latitude_column, longitude_column, metadata_column, na_values):
     logger.info(f"{Path(__file__).name} started")
 
     if metadata_column:
@@ -157,7 +160,7 @@ def main(src_dataset, dst_dataset, datafile, breed_column, id_column,
     )
 
     # open data with pandas
-    data = pandas_open(datapath)
+    data = pandas_open(datapath, na_values=na_values)
 
     # collect columns in a dictionary
     columns = {

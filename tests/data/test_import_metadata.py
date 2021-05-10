@@ -304,5 +304,58 @@ class TestImportMetadataBySamples(MetaDataMixin, unittest.TestCase):
             )
 
 
+class TestImportMetadataBySamplesNA(MetaDataMixin, unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+
+        # setting NA values for lat and long
+        cls.sheet.cell(row=1, column=4, value="Lat")
+        cls.sheet.cell(row=1, column=5, value="Lon")
+
+        cls.sheet.cell(row=2, column=4, value="NA")
+        cls.sheet.cell(row=2, column=5, value="NA")
+
+    @patch('src.features.smarterdb.Dataset.working_dir',
+           new_callable=PropertyMock)
+    def test_import_with_position_na(self, my_working_dir):
+        """Passing NA values for coordinates doesn't raise issues"""
+
+        # create a temporary directory using the context manager
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            working_dir = pathlib.Path(tmpdirname)
+            my_working_dir.return_value = working_dir
+
+            # save worksheet in temporary folder
+            self.workbook.save(f"{working_dir}/metadata.xlsx")
+
+            # got first sample from database
+            self.assertEqual(SampleSheep.objects.count(), 1)
+
+            result = self.runner.invoke(
+                import_metadata,
+                [
+                    "--src_dataset",
+                    "test2.zip",
+                    "--dst_dataset",
+                    "test.zip",
+                    "--datafile",
+                    "metadata.xlsx",
+                    "--id_column",
+                    "Id",
+                    "--latitude_column",
+                    "Lat",
+                    "--longitude_column",
+                    "Lon",
+                    "--na_values",
+                    "NA"
+                ]
+            )
+
+            self.assertEqual(0, result.exit_code, msg=result.exception)
+
+            self.sample.reload()
+            self.assertIsNone(self.sample.location)
+
 if __name__ == '__main__':
     unittest.main()

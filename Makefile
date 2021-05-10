@@ -71,7 +71,7 @@ data: requirements
 
 	## create samples from custom files
 	$(PYTHON_INTERPRETER) src/data/import_samples.py --src_dataset ADAPTmap_phenotype_20161201.zip --dst_dataset ADAPTmap_genotypeTOP_20161201.zip \
-		--datafile ADAPTmap_phenotype_20161201/ADAPTmap_InfoSample_20161201_fix.csv --code_column Breed_code --id_column ADAPTmap_code \
+		--datafile ADAPTmap_phenotype_20161201/ADAPTmap_InfoSample_20161201_fix.xlxs --code_column Breed_code --id_column ADAPTmap_code \
 		--chip_name IlluminaGoatSNP50 --country_column Sampling_Country --sex_column SEX
 
 	## import data from plink (or report) files for SHEEP
@@ -109,7 +109,7 @@ data: requirements
 		--metadata_column Remark
 	$(PYTHON_INTERPRETER) src/data/import_metadata.py --src_dataset ADAPTmap_phenotype_20161201.zip \
 		--dst_dataset ADAPTmap_genotypeTOP_20161201.zip \
-		--datafile ADAPTmap_phenotype_20161201/ADAPTmap_InfoSample_20161201_fix.csv --id_column ADAPTmap_code \
+		--datafile ADAPTmap_phenotype_20161201/ADAPTmap_InfoSample_20161201_fix.xlxs --id_column ADAPTmap_code \
 		--latitude_column GPS_Latitude --longitude_column GPS_Longitude --metadata_column Sampling_info
 
 	## merge SNPs into 1 file
