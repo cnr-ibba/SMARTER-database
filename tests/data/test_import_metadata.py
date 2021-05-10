@@ -20,8 +20,7 @@ from src.features.smarterdb import Dataset, SampleSheep
 from ..common import MongoMockMixin, SmarterIDMixin, IlluminaChipMixin
 
 
-class TestImportMetadata(
-        SmarterIDMixin, IlluminaChipMixin, MongoMockMixin, unittest.TestCase):
+class MetaDataMixin(SmarterIDMixin, IlluminaChipMixin, MongoMockMixin):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
@@ -90,11 +89,132 @@ class TestImportMetadata(
 
         super().tearDown()
 
+
+class TestImportMetadataCLI(MetaDataMixin, unittest.TestCase):
     def test_help(self):
         result = self.runner.invoke(import_metadata, ["--help"])
         self.assertEqual(0, result.exit_code)
         self.assertIn('Usage: main', result.output)
 
+    @patch('src.features.smarterdb.Dataset.working_dir',
+           new_callable=PropertyMock)
+    def test_mutually_exclusive_options(self, my_working_dir):
+        # create a temporary directory using the context manager
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            working_dir = pathlib.Path(tmpdirname)
+            my_working_dir.return_value = working_dir
+
+            # save worksheet in temporary folder
+            self.workbook.save(f"{working_dir}/metadata.xlsx")
+
+            result = self.runner.invoke(
+                import_metadata,
+                [
+                    "--src_dataset",
+                    "test2.zip",
+                    "--dst_dataset",
+                    "test.zip",
+                    "--datafile",
+                    "metadata.xlsx",
+                    "--breed_column",
+                    "Name",
+                    "--sample_column",
+                    "Id"
+                ]
+            )
+
+            self.assertEqual(2, result.exit_code)
+
+
+class TestImportMetadataByBreeds(MetaDataMixin, unittest.TestCase):
+    @patch('src.features.smarterdb.Dataset.working_dir',
+           new_callable=PropertyMock)
+    def test_import_with_position(self, my_working_dir):
+        # create a temporary directory using the context manager
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            working_dir = pathlib.Path(tmpdirname)
+            my_working_dir.return_value = working_dir
+
+            # save worksheet in temporary folder
+            self.workbook.save(f"{working_dir}/metadata.xlsx")
+
+            # got first sample from database
+            self.assertEqual(SampleSheep.objects.count(), 1)
+
+            result = self.runner.invoke(
+                import_metadata,
+                [
+                    "--src_dataset",
+                    "test2.zip",
+                    "--dst_dataset",
+                    "test.zip",
+                    "--datafile",
+                    "metadata.xlsx",
+                    "--breed_column",
+                    "Name",
+                    "--latitude_column",
+                    "Lat",
+                    "--longitude_column",
+                    "Lon"
+                ]
+            )
+
+            self.assertEqual(0, result.exit_code, msg=result.exception)
+
+            self.sample.reload()
+            self.assertEqual(
+                self.sample.location,
+                {
+                    'type': 'Point',
+                    'coordinates': [9.18951, 45.46427]
+                }
+            )
+
+    @patch('src.features.smarterdb.Dataset.working_dir',
+           new_callable=PropertyMock)
+    def test_import_with_metadata(self, my_working_dir):
+        # create a temporary directory using the context manager
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            working_dir = pathlib.Path(tmpdirname)
+            my_working_dir.return_value = working_dir
+
+            # save worksheet in temporary folder
+            self.workbook.save(f"{working_dir}/metadata.xlsx")
+
+            # got first sample from database
+            self.assertEqual(SampleSheep.objects.count(), 1)
+
+            result = self.runner.invoke(
+                import_metadata,
+                [
+                    "--src_dataset",
+                    "test2.zip",
+                    "--dst_dataset",
+                    "test.zip",
+                    "--datafile",
+                    "metadata.xlsx",
+                    "--breed_column",
+                    "Name",
+                    "--metadata_column",
+                    "Col1",
+                    "--metadata_column",
+                    "Col 2"
+                ]
+            )
+
+            self.assertEqual(0, result.exit_code, msg=result.exception)
+
+            self.sample.reload()
+            self.assertEqual(
+                self.sample.metadata,
+                {
+                    'col1': 'Val1',
+                    'col_2': 'Val2'
+                }
+            )
+
+
+class TestImportMetadataBySamples(MetaDataMixin, unittest.TestCase):
     @patch('src.features.smarterdb.Dataset.working_dir',
            new_callable=PropertyMock)
     def test_import_with_position(self, my_working_dir):

@@ -13,10 +13,11 @@ each sample
 import click
 import logging
 
+from click_option_group import optgroup, RequiredMutuallyExclusiveOptionGroup
 from pathlib import Path
 import pandas as pd
 
-from src.features.smarterdb import global_connection
+from src.features.smarterdb import global_connection, Dataset
 from src.data.common import (
     fetch_and_check_dataset, pandas_open, get_sample_species)
 from src.features.utils import sanitize
@@ -24,60 +25,30 @@ from src.features.utils import sanitize
 logger = logging.getLogger(__name__)
 
 
-@click.command()
-@click.option(
-    '--src_dataset', type=str, required=True,
-    help="The raw dataset file name (zip archive) in which search datafile"
-)
-@click.option(
-    '--dst_dataset', type=str, required=True,
-    help="The raw dataset file name (zip archive) in which add metadata"
-)
-@click.option('--datafile', type=str, required=True)
-@click.option('--breed_column', type=str, default="breed")
-@click.option('--latitude_column', type=str)
-@click.option('--longitude_column', type=str)
-@click.option('--metadata_column', multiple=True, help=(
-    "Metadata column to track. Could be specified multiple times"))
-def main(src_dataset, dst_dataset, datafile, breed_column, latitude_column,
-         longitude_column, metadata_column):
-    logger.info(f"{Path(__file__).name} started")
-
-    if metadata_column:
-        logger.warning(f"Got {metadata_column} as additional metadata")
-
-    # custom method to check a dataset and ensure that needed stuff exists
-    src_dataset, [datapath] = fetch_and_check_dataset(
-        archive=src_dataset,
-        contents=[datafile]
-    )
-
-    # this will be the dataset used to define samples
-    dst_dataset, _ = fetch_and_check_dataset(
-        archive=dst_dataset,
-        contents=[]
-    )
+def add_metadata_by_breed(
+        data: pd.DataFrame,
+        dst_dataset: Dataset,
+        columns: dict):
+    """Add metadata relying on breed name (column)"""
 
     # mind dataset species
     SampleSpecie = get_sample_species(dst_dataset.species)
 
-    data = pandas_open(datapath)
-
     for index, row in data.iterrows():
-        breed = row.get(breed_column)
+        breed = row.get(columns["breed_column"])
         location = None
         metadata = dict()
 
-        if latitude_column and longitude_column:
-            latitude = row.get(latitude_column)
-            longitude = row.get(longitude_column)
+        if columns["latitude_column"] and columns["longitude_column"]:
+            latitude = row.get(columns["latitude_column"])
+            longitude = row.get(columns["longitude_column"])
 
             location = (longitude, latitude)
 
             logger.info(f"Got location '{location}' for '{breed}'")
 
-        if metadata_column:
-            for column in metadata_column:
+        if columns["metadata_column"]:
+            for column in columns["metadata_column"]:
                 if pd.notnull(row.get(column)):
                     metadata[sanitize(column)] = row.get(column)
 
@@ -98,6 +69,64 @@ def main(src_dataset, dst_dataset, datafile, breed_column, latitude_column,
 
             # update sample
             sample.save()
+
+
+@click.command()
+@click.option(
+    '--src_dataset', type=str, required=True,
+    help="The raw dataset file name (zip archive) in which search datafile"
+)
+@click.option(
+    '--dst_dataset', type=str, required=True,
+    help="The raw dataset file name (zip archive) in which add metadata"
+)
+@click.option('--datafile', type=str, required=True)
+@optgroup.group(
+    'Add metadata relying on breeds or samples columns',
+    cls=RequiredMutuallyExclusiveOptionGroup
+)
+@optgroup.option('--breed_column', type=str)
+@optgroup.option('--sample_column', type=str)
+@click.option('--latitude_column', type=str)
+@click.option('--longitude_column', type=str)
+@click.option('--metadata_column', multiple=True, help=(
+    "Metadata column to track. Could be specified multiple times"))
+def main(src_dataset, dst_dataset, datafile, breed_column, sample_column,
+         latitude_column, longitude_column, metadata_column):
+    logger.info(f"{Path(__file__).name} started")
+
+    if metadata_column:
+        logger.warning(f"Got {metadata_column} as additional metadata")
+
+    # custom method to check a dataset and ensure that needed stuff exists
+    src_dataset, [datapath] = fetch_and_check_dataset(
+        archive=src_dataset,
+        contents=[datafile]
+    )
+
+    # this will be the dataset used to define samples
+    dst_dataset, _ = fetch_and_check_dataset(
+        archive=dst_dataset,
+        contents=[]
+    )
+
+    # open data with pandas
+    data = pandas_open(datapath)
+
+    # collect columns in a dictionary
+    columns = {
+        'breed_column': breed_column,
+        'sample_column': sample_column,
+        'latitude_column': latitude_column,
+        'longitude_column': longitude_column,
+        'metadata_column': metadata_column,
+    }
+
+    if breed_column:
+        add_metadata_by_breed(data, dst_dataset, columns)
+
+    elif sample_column:
+        pass
 
     logger.info(f"{Path(__file__).name} ended")
 

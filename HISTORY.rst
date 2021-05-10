@@ -19,8 +19,8 @@ TODO
 * Forcing ``plink`` **chrom** options when converting in binary formats
 * import data from *ADAPTmap* project
   - Import goat breeds (from a *source* dataset to a *destination* dataset)
-  - Import goat data from manifest and snpchimp
   - Import goat data from plink files
+* Import goat data from manifest and snpchimp
 * configure ``mongodb-express`` credentials
 * Add Goat Related tables
   - add ``variantGoat`` collection
