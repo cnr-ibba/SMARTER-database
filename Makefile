@@ -107,6 +107,10 @@ data: requirements
 		--datafile ovine_SNP50HapMap_data/kijas2012_dataset_fix.xlsx --breed_column Breed \
 		--latitude_column latitude --longitude_column longitude --metadata_column "Location/source" \
 		--metadata_column Remark
+	$(PYTHON_INTERPRETER) src/data/import_metadata.py --src_dataset ADAPTmap_phenotype_20161201.zip \
+		--dst_dataset ADAPTmap_genotypeTOP_20161201.zip \
+		--datafile ADAPTmap_phenotype_20161201/ADAPTmap_InfoSample_20161201_fix.csv --id_column ADAPTmap_code \
+		--latitude_column GPS_Latitude --longitude_column GPS_Longitude --metadata_column Sampling_info
 
 	## merge SNPs into 1 file
 	$(PYTHON_INTERPRETER) src/data/merge_datasets.py --species sheep --assembly OAR3

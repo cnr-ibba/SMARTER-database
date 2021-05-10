@@ -51,6 +51,7 @@ class MetaDataMixin(SmarterIDMixin, IlluminaChipMixin, MongoMockMixin):
         cls.sheet.cell(row=1, column=5, value="Lon")
         cls.sheet.cell(row=1, column=6, value="Col1")
         cls.sheet.cell(row=1, column=7, value="Col 2")
+        cls.sheet.cell(row=1, column=8, value="Id")
 
         # adding values
         cls.sheet.cell(row=2, column=1, value="TEX")
@@ -60,6 +61,7 @@ class MetaDataMixin(SmarterIDMixin, IlluminaChipMixin, MongoMockMixin):
         cls.sheet.cell(row=2, column=5, value=9.18951)
         cls.sheet.cell(row=2, column=6, value="Val1")
         cls.sheet.cell(row=2, column=7, value="Val2")
+        cls.sheet.cell(row=2, column=8, value="test-1")
 
     @classmethod
     def tearDownClass(cls):
@@ -118,7 +120,7 @@ class TestImportMetadataCLI(MetaDataMixin, unittest.TestCase):
                     "metadata.xlsx",
                     "--breed_column",
                     "Name",
-                    "--sample_column",
+                    "--id_column",
                     "Id"
                 ]
             )
@@ -238,8 +240,8 @@ class TestImportMetadataBySamples(MetaDataMixin, unittest.TestCase):
                     "test.zip",
                     "--datafile",
                     "metadata.xlsx",
-                    "--breed_column",
-                    "Name",
+                    "--id_column",
+                    "Id",
                     "--latitude_column",
                     "Lat",
                     "--longitude_column",
@@ -281,8 +283,8 @@ class TestImportMetadataBySamples(MetaDataMixin, unittest.TestCase):
                     "test.zip",
                     "--datafile",
                     "metadata.xlsx",
-                    "--breed_column",
-                    "Name",
+                    "--id_column",
+                    "Id",
                     "--metadata_column",
                     "Col1",
                     "--metadata_column",
