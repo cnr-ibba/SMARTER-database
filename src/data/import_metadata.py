@@ -25,6 +25,34 @@ from src.features.utils import sanitize
 logger = logging.getLogger(__name__)
 
 
+def get_locations(row: pd.Series, columns: dict, label: str):
+    location = None
+
+    if columns["latitude_column"] and columns["longitude_column"]:
+        latitude = row.get(columns["latitude_column"])
+        longitude = row.get(columns["longitude_column"])
+
+        if pd.notna(latitude) and pd.notna(longitude):
+            location = (longitude, latitude)
+
+        logger.debug(f"Got location '{location}' for '{label}'")
+
+    return location
+
+
+def get_metadata(row: pd.Series, columns: dict, label: str):
+    metadata = dict()
+
+    if columns["metadata_column"]:
+        for column in columns["metadata_column"]:
+            if pd.notnull(row.get(column)):
+                metadata[sanitize(column)] = row.get(column)
+
+        logger.debug(f"Got metadata: '{metadata}' for '{label}'")
+
+    return metadata
+
+
 def add_metadata_by_breed(
         data: pd.DataFrame,
         dst_dataset: Dataset,
@@ -36,24 +64,10 @@ def add_metadata_by_breed(
 
     for index, row in data.iterrows():
         breed = row.get(columns["breed_column"])
-        location = None
-        metadata = dict()
 
-        if columns["latitude_column"] and columns["longitude_column"]:
-            latitude = row.get(columns["latitude_column"])
-            longitude = row.get(columns["longitude_column"])
-
-            if pd.notna(latitude) and pd.notna(longitude):
-                location = (longitude, latitude)
-
-            logger.info(f"Got location '{location}' for '{breed}'")
-
-        if columns["metadata_column"]:
-            for column in columns["metadata_column"]:
-                if pd.notnull(row.get(column)):
-                    metadata[sanitize(column)] = row.get(column)
-
-            logger.info(f"Got metadata: '{metadata}' for '{breed}'")
+        # get additional columns for breed
+        location = get_locations(row, columns, breed)
+        metadata = get_metadata(row, columns, breed)
 
         # ok iterate over all samples of this dataset
         for sample in SampleSpecie.objects.filter(
@@ -83,24 +97,10 @@ def add_metadata_by_sample(
 
     for index, row in data.iterrows():
         original_id = row.get(columns["id_column"])
-        location = None
-        metadata = dict()
 
-        if columns["latitude_column"] and columns["longitude_column"]:
-            latitude = row.get(columns["latitude_column"])
-            longitude = row.get(columns["longitude_column"])
-
-            if pd.notna(latitude) and pd.notna(longitude):
-                location = (longitude, latitude)
-
-            logger.info(f"Got location '{location}' for '{original_id}'")
-
-        if columns["metadata_column"]:
-            for column in columns["metadata_column"]:
-                if pd.notnull(row.get(column)):
-                    metadata[sanitize(column)] = row.get(column)
-
-            logger.info(f"Got metadata: '{metadata}' for '{original_id}'")
+        # get additional columns for original_id
+        location = get_locations(row, columns, original_id)
+        metadata = get_metadata(row, columns, original_id)
 
         # ok iterate over all samples of this dataset
         for sample in SampleSpecie.objects.filter(
@@ -182,7 +182,7 @@ def main(src_dataset, dst_dataset, datafile, breed_column, id_column,
 
 if __name__ == '__main__':
     log_fmt = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-    logging.basicConfig(level=logging.DEBUG, format=log_fmt)
+    logging.basicConfig(level=logging.INFO, format=log_fmt)
 
     # connect to database
     global_connection()
