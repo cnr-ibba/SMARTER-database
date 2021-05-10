@@ -16,7 +16,8 @@ from collections import namedtuple
 
 import pandas as pd
 
-from src.features.smarterdb import Dataset, VariantGoat, VariantSheep
+from src.features.smarterdb import (
+    Dataset, VariantGoat, VariantSheep, SampleSheep, SampleGoat)
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -100,8 +101,8 @@ def get_variant_species(species: str) -> Union[VariantSheep, VariantGoat]:
 
     Returns:
         Union[VariantSheep, VariantGoat]: a VariantSpecies class
-
     """
+
     # fix input parameters
     species = species.capitalize()
 
@@ -115,6 +116,33 @@ def get_variant_species(species: str) -> Union[VariantSheep, VariantGoat]:
         raise NotImplementedError(f"'{species}' import not yet implemented")
 
     return VariantSpecie
+
+
+def get_sample_species(species: str) -> Union[SampleSheep, SampleGoat]:
+    """Get a species name in input. It return the proper SampleSpecies class
+
+    Args:
+        species (str): the species name
+
+    Returns:
+        Union[SampleSheep, SampleGoat]: a SampleSpecies class
+    """
+
+    # fix input parameters
+    species = species.capitalize()
+
+    # mind dataset species
+    if species == 'Sheep':
+        SampleSpecie = SampleSheep
+
+    elif species == 'Goat':
+        SampleSpecie = SampleGoat
+
+    else:
+        raise NotImplementedError(
+            f"'{species}' import not yet implemented")
+
+    return SampleSpecie
 
 
 def pandas_open(datapath: Path) -> pd.DataFrame:

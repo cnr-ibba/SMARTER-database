@@ -16,8 +16,9 @@ import logging
 from pathlib import Path
 import pandas as pd
 
-from src.features.smarterdb import global_connection, SampleSheep
-from src.data.common import fetch_and_check_dataset, pandas_open
+from src.features.smarterdb import global_connection
+from src.data.common import (
+    fetch_and_check_dataset, pandas_open, get_sample_species)
 from src.features.utils import sanitize
 
 logger = logging.getLogger(__name__)
@@ -46,13 +47,14 @@ def main(src_dataset, datafile, breed_column, latitude_column,
         contents=[datafile]
     )
 
-    # mind dataset species
-    if src_dataset.species == 'Sheep':
-        SampleSpecie = SampleSheep
+    # this will be the dataset used to define samples
+    dst_dataset, _ = fetch_and_check_dataset(
+        archive=dst_dataset,
+        contents=[]
+    )
 
-    else:
-        raise NotImplementedError(
-            f"'{src_dataset.species}' import not yet implemented")
+    # mind dataset species
+    SampleSpecie = get_sample_species(dst_dataset.species)
 
     data = pandas_open(datapath)
 

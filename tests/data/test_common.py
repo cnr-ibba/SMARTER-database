@@ -15,8 +15,10 @@ from unittest.mock import patch, PropertyMock
 from openpyxl import Workbook
 
 from src.data.common import (
-    fetch_and_check_dataset, get_variant_species, pandas_open)
-from src.features.smarterdb import Dataset, VariantGoat, VariantSheep
+    fetch_and_check_dataset, get_variant_species, get_sample_species,
+    pandas_open)
+from src.features.smarterdb import (
+    Dataset, VariantGoat, VariantSheep, SampleSheep, SampleGoat)
 
 from ..common import MongoMockMixin, SmarterIDMixin
 
@@ -131,6 +133,24 @@ class GetVariantSpeciesTest(unittest.TestCase):
             NotImplementedError,
             "not yet implemented",
             get_variant_species,
+            "unmanaged"
+        )
+
+
+class GetSampleSpeciesTest(unittest.TestCase):
+    def test_get_sample_sheep(self):
+        SampleSpecies = get_sample_species(species="Sheep")
+        self.assertEqual(SampleSpecies, SampleSheep)
+
+    def test_get_sample_goat(self):
+        SampleSpecies = get_sample_species(species="Goat")
+        self.assertEqual(SampleSpecies, SampleGoat)
+
+    def test_unmanaged_species(self):
+        self.assertRaisesRegex(
+            NotImplementedError,
+            "not yet implemented",
+            get_sample_species,
             "unmanaged"
         )
 

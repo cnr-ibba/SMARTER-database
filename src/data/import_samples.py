@@ -20,10 +20,10 @@ from pathlib import Path
 
 import pycountry
 
-from src.data.common import fetch_and_check_dataset, pandas_open
+from src.data.common import (
+    fetch_and_check_dataset, pandas_open, get_sample_species)
 from src.features.smarterdb import (
-    global_connection, SampleGoat, SampleSheep, Breed, get_or_create_sample,
-    SEX)
+    global_connection, Breed, get_or_create_sample, SEX)
 
 logger = logging.getLogger(__name__)
 
@@ -83,15 +83,7 @@ def main(
     )
 
     # mind dataset species
-    if dst_dataset.species == 'Sheep':
-        SampleSpecie = SampleSheep
-
-    elif dst_dataset.species == 'Goat':
-        SampleSpecie = SampleGoat
-
-    else:
-        raise NotImplementedError(
-            f"'{dst_dataset.species}' import not yet implemented")
+    SampleSpecie = get_sample_species(dst_dataset.species)
 
     # read datafile
     data = pandas_open(datapath)
