@@ -344,7 +344,7 @@ class SEX(bytes, Enum):
             return cls.FEMALE
 
         else:
-            logger.warning(
+            logger.debug(
                 f"Unmanaged sex '{value}': return '{cls.UNKNOWN}'")
             return cls.UNKNOWN
 
