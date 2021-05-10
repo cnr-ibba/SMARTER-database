@@ -5,7 +5,7 @@ History
 TODO
 ^^^^
 
-* Import goat metadata (from a *source* dataset to a *destination* dataset)
+* Import goat metadata (from *ADAPTmap* project)
 * Define phenotype attribute as a ``mongoengine.DynamicDocument`` field
 * Import phenotypes (from a *source* dataset to a *destination* dataset)
 * Import metadata or phenotype *by breeds* or *by samples*
@@ -15,6 +15,7 @@ TODO
 0.3.0.dev0
 ----------
 
+* Import metadata (from a *source* dataset to a *destination* dataset)
 * Forcing ``plink`` **chrom** options when converting in binary formats
 * import data from *ADAPTmap* project
   - Import goat breeds (from a *source* dataset to a *destination* dataset)

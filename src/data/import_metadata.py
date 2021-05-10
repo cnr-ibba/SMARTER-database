@@ -29,17 +29,22 @@ logger = logging.getLogger(__name__)
     '--src_dataset', type=str, required=True,
     help="The raw dataset file name (zip archive) in which search datafile"
 )
+@click.option(
+    '--dst_dataset', type=str, required=True,
+    help="The raw dataset file name (zip archive) in which add metadata"
+)
 @click.option('--datafile', type=str, required=True)
 @click.option('--breed_column', type=str, default="breed")
 @click.option('--latitude_column', type=str)
 @click.option('--longitude_column', type=str)
 @click.option('--metadata_column', multiple=True, help=(
     "Metadata column to track. Could be specified multiple times"))
-def main(src_dataset, datafile, breed_column, latitude_column,
+def main(src_dataset, dst_dataset, datafile, breed_column, latitude_column,
          longitude_column, metadata_column):
     logger.info(f"{Path(__file__).name} started")
 
-    logger.warning(metadata_column)
+    if metadata_column:
+        logger.warning(f"Got {metadata_column} as additional metadata")
 
     # custom method to check a dataset and ensure that needed stuff exists
     src_dataset, [datapath] = fetch_and_check_dataset(
@@ -80,7 +85,7 @@ def main(src_dataset, datafile, breed_column, latitude_column,
 
         # ok iterate over all samples of this dataset
         for sample in SampleSpecie.objects.filter(
-                dataset=src_dataset, breed=breed):
+                dataset=dst_dataset, breed=breed):
 
             logger.info(f"Updating '{sample}'")
 

@@ -98,10 +98,12 @@ data: requirements
 
 	## add additional metadata to samples
 	$(PYTHON_INTERPRETER) src/data/import_metadata.py --src_dataset "High density genotypes of French Sheep populations.zip" \
+		--dst_dataset "High density genotypes of French Sheep populations.zip" \
 		--datafile Populations_infos_fix.xlsx --breed_column "Population Name" \
 		--latitude_column Latitude --longitude_column Longitude --metadata_column Link \
 		--metadata_column POP_GROUP_CODE --metadata_column POP_GROUP_NAME
 	$(PYTHON_INTERPRETER) src/data/import_metadata.py --src_dataset=ovine_SNP50HapMap_data.zip \
+		--dst_dataset=ovine_SNP50HapMap_data.zip \
 		--datafile ovine_SNP50HapMap_data/kijas2012_dataset_fix.xlsx --breed_column Breed \
 		--latitude_column latitude --longitude_column longitude --metadata_column "Location/source" \
 		--metadata_column Remark

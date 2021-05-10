@@ -17,22 +17,24 @@ from unittest.mock import patch, PropertyMock
 from src.data.import_metadata import main as import_metadata
 from src.features.smarterdb import Dataset, SampleSheep
 
-from ..common import MongoMockMixin
+from ..common import MongoMockMixin, SmarterIDMixin, IlluminaChipMixin
 
 
-class TestImportMetadata(MongoMockMixin, unittest.TestCase):
+class TestImportMetadata(
+        SmarterIDMixin, IlluminaChipMixin, MongoMockMixin, unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
 
-        # need a dataset for certain tests
+        # getting destination dataset
+        cls.dst_dataset = Dataset.objects.get(file="test.zip")
+
+        # create a src dataset
         cls.src_dataset = Dataset(
-            file="test.zip",
+            file="test2.zip",
             country="Italy",
             species="Sheep",
             contents=[
-                "plinktest.map",
-                "plinktest.ped",
                 "metadata.xlsx"
             ]
         )
@@ -78,8 +80,8 @@ class TestImportMetadata(MongoMockMixin, unittest.TestCase):
             species="Sheep",
             breed="Texel",
             breed_code="TEX",
-            dataset=self.src_dataset,
-            chip_name="IlluminaOvineSNP50",
+            dataset=self.dst_dataset,
+            chip_name=self.chip_name,
         )
         self.sample.save()
 
@@ -104,10 +106,15 @@ class TestImportMetadata(MongoMockMixin, unittest.TestCase):
             # save worksheet in temporary folder
             self.workbook.save(f"{working_dir}/metadata.xlsx")
 
+            # got first sample from database
+            self.assertEqual(SampleSheep.objects.count(), 1)
+
             result = self.runner.invoke(
                 import_metadata,
                 [
                     "--src_dataset",
+                    "test2.zip",
+                    "--dst_dataset",
                     "test.zip",
                     "--datafile",
                     "metadata.xlsx",
@@ -142,10 +149,15 @@ class TestImportMetadata(MongoMockMixin, unittest.TestCase):
             # save worksheet in temporary folder
             self.workbook.save(f"{working_dir}/metadata.xlsx")
 
+            # got first sample from database
+            self.assertEqual(SampleSheep.objects.count(), 1)
+
             result = self.runner.invoke(
                 import_metadata,
                 [
                     "--src_dataset",
+                    "test2.zip",
+                    "--dst_dataset",
                     "test.zip",
                     "--datafile",
                     "metadata.xlsx",
