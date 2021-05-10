@@ -25,8 +25,8 @@ logger = logging.getLogger(__name__)
 
 @click.command()
 @click.option(
-    '--dataset', type=str, required=True,
-    help="The raw dataset file name (zip archive)"
+    '--src_dataset', type=str, required=True,
+    help="The raw dataset file name (zip archive) in which search datafile"
 )
 @click.option('--datafile', type=str, required=True)
 @click.option('--breed_column', type=str, default="breed")
@@ -34,25 +34,25 @@ logger = logging.getLogger(__name__)
 @click.option('--longitude_column', type=str)
 @click.option('--metadata_column', multiple=True, help=(
     "Metadata column to track. Could be specified multiple times"))
-def main(dataset, datafile, breed_column, latitude_column, longitude_column,
-         metadata_column):
+def main(src_dataset, datafile, breed_column, latitude_column,
+         longitude_column, metadata_column):
     logger.info(f"{Path(__file__).name} started")
 
     logger.warning(metadata_column)
 
     # custom method to check a dataset and ensure that needed stuff exists
-    dataset, [datapath] = fetch_and_check_dataset(
-        archive=dataset,
+    src_dataset, [datapath] = fetch_and_check_dataset(
+        archive=src_dataset,
         contents=[datafile]
     )
 
     # mind dataset species
-    if dataset.species == 'Sheep':
+    if src_dataset.species == 'Sheep':
         SampleSpecie = SampleSheep
 
     else:
         raise NotImplementedError(
-            f"'{dataset.species}' import not yet implemented")
+            f"'{src_dataset.species}' import not yet implemented")
 
     data = pandas_open(datapath)
 
@@ -78,7 +78,7 @@ def main(dataset, datafile, breed_column, latitude_column, longitude_column,
 
         # ok iterate over all samples of this dataset
         for sample in SampleSpecie.objects.filter(
-                dataset=dataset, breed=breed):
+                dataset=src_dataset, breed=breed):
 
             logger.info(f"Updating '{sample}'")
 

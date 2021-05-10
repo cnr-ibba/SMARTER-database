@@ -26,7 +26,7 @@ class TestImportMetadata(MongoMockMixin, unittest.TestCase):
         super().setUpClass()
 
         # need a dataset for certain tests
-        cls.dataset = Dataset(
+        cls.src_dataset = Dataset(
             file="test.zip",
             country="Italy",
             species="Sheep",
@@ -36,7 +36,7 @@ class TestImportMetadata(MongoMockMixin, unittest.TestCase):
                 "metadata.xlsx"
             ]
         )
-        cls.dataset.save()
+        cls.src_dataset.save()
 
         # create a workbook
         cls.workbook = Workbook()
@@ -78,7 +78,7 @@ class TestImportMetadata(MongoMockMixin, unittest.TestCase):
             species="Sheep",
             breed="Texel",
             breed_code="TEX",
-            dataset=self.dataset,
+            dataset=self.src_dataset,
             chip_name="IlluminaOvineSNP50",
         )
         self.sample.save()
@@ -107,7 +107,7 @@ class TestImportMetadata(MongoMockMixin, unittest.TestCase):
             result = self.runner.invoke(
                 import_metadata,
                 [
-                    "--dataset",
+                    "--src_dataset",
                     "test.zip",
                     "--datafile",
                     "metadata.xlsx",
@@ -145,7 +145,7 @@ class TestImportMetadata(MongoMockMixin, unittest.TestCase):
             result = self.runner.invoke(
                 import_metadata,
                 [
-                    "--dataset",
+                    "--src_dataset",
                     "test.zip",
                     "--datafile",
                     "metadata.xlsx",
