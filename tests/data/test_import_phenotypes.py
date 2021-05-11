@@ -280,7 +280,6 @@ class TestImportPhenotypeByBreeds(PhenotypeMixin, unittest.TestCase):
                 ]
             )
 
-            print(result.output)
             self.assertEqual(0, result.exit_code, msg=result.exception)
             self.sample.reload()
             self.assertIsInstance(self.sample.phenotype, Phenotype)
@@ -335,5 +334,17 @@ class TestImportPhenotypeBySamples(PhenotypeMixin, unittest.TestCase):
                 ]
             )
 
-            # this trow an error for the moment
-            self.assertEqual(1, result.exit_code, msg=result.exception)
+            self.assertEqual(0, result.exit_code, msg=result.exception)
+            self.sample.reload()
+            self.assertIsInstance(self.sample.phenotype, Phenotype)
+
+            reference = Phenotype(
+                purpose="Milk",
+                chest_girth=77.5,
+                height=60.5,
+                length=69.5,
+                widthofpinbones=16,
+                famacha="D"
+            )
+
+            self.assertEqual(reference, self.sample.phenotype)

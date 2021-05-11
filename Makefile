@@ -126,6 +126,11 @@ data: requirements
 		--dst_dataset ADAPTmap_genotypeTOP_20161201.zip \
 		--datafile ADAPTmap_phenotype_20161201/adaptmap_phenotypes_by_breed.xlsx --breed_column "Breed name" \
 		--sheet_name "Köppen" --additional_column "Köppen group"
+	$(PYTHON_INTERPRETER) src/data/import_phenotypes.py --src_dataset ADAPTmap_phenotype_20161201.zip \
+		--dst_dataset ADAPTmap_genotypeTOP_20161201.zip \
+		--datafile ADAPTmap_phenotype_20161201/ADAPTmap_InfoSample_20161201_fix.xlsx --id_column ADAPTmap_code \
+		--chest_girth_column ChestGirth --height_column Height --length_column Length \
+		--additional_column FAMACHA --additional_column WidthOfPinBones
 
 	## merge SNPs into 1 file
 	$(PYTHON_INTERPRETER) src/data/merge_datasets.py --species sheep --assembly OAR3

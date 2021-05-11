@@ -64,6 +64,10 @@ def get_additional_column(row: pd.Series, columns: dict, label: str):
 def create_or_update_phenotype(
         sample, named_columns: dict, additional_column: dict):
 
+    if not additional_column and not named_columns:
+        logger.debug(f"Skipping {sample}: nothing to update")
+        return
+
     if not sample.phenotype:
         logger.debug(f"Create a new phenotype for {sample}")
         sample.phenotype = Phenotype()
@@ -76,7 +80,7 @@ def create_or_update_phenotype(
         for key, value in additional_column.items():
             setattr(sample.phenotype, key, value)
 
-    logger.warning(
+    logger.info(
         f"Updating '{sample}' phenotype with '{sample.phenotype}'")
 
     # update sample
@@ -89,13 +93,13 @@ def add_phenotype_by_breed(
         columns: dict):
     """Add metadata relying on breed name (column)"""
 
-    logger.warning(f"Received columns: {columns}")
+    logger.debug(f"Received columns: {columns}")
 
     # mind dataset species
     SampleSpecie = get_sample_species(dst_dataset.species)
 
     for index, row in data.iterrows():
-        logger.warning(f"{index}, {row}")
+        logger.debug(f"{index}, {row}")
         breed = row.get(columns["breed_column"])
 
         # get columns modelled in smarter database
@@ -118,8 +122,27 @@ def add_phenotype_by_sample(
         columns: dict):
     """Add metadata relying on breed name (column)"""
 
-    raise NotImplementedError(
-        "Adding phenotype by sample_id is not yet implemented")
+    logger.debug(f"Received columns: {columns}")
+
+    # mind dataset species
+    SampleSpecie = get_sample_species(dst_dataset.species)
+
+    for index, row in data.iterrows():
+        logger.debug(f"{index}, {row}")
+        original_id = row.get(columns["id_column"])
+
+        # get columns modelled in smarter database
+        named_columns = get_named_columns(row, columns, original_id)
+
+        # get additional columns for breed
+        additional_column = get_additional_column(row, columns, original_id)
+
+        # ok iterate over all samples of this dataset
+        for sample in SampleSpecie.objects.filter(
+                dataset=dst_dataset, original_id=original_id):
+
+            create_or_update_phenotype(
+                sample, named_columns, additional_column)
 
 
 @click.command()
@@ -154,7 +177,7 @@ def main(src_dataset, dst_dataset, datafile, sheet_name, breed_column,
     logger.info(f"{Path(__file__).name} started")
 
     if additional_column:
-        logger.warning(f"Got {additional_column} as additional phenotype")
+        logger.debug(f"Got {additional_column} as additional phenotype")
 
     # custom method to check a dataset and ensure that needed stuff exists
     src_dataset, [datapath] = fetch_and_check_dataset(
@@ -196,7 +219,7 @@ def main(src_dataset, dst_dataset, datafile, sheet_name, breed_column,
 
 if __name__ == '__main__':
     log_fmt = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-    logging.basicConfig(level=logging.DEBUG, format=log_fmt)
+    logging.basicConfig(level=logging.INFO, format=log_fmt)
 
     # connect to database
     global_connection()
