@@ -222,6 +222,77 @@ class TestImportPhenotypeByBreeds(PhenotypeMixin, unittest.TestCase):
 
             self.assertEqual(reference, self.sample.phenotype)
 
+    @patch('src.features.smarterdb.Dataset.working_dir',
+           new_callable=PropertyMock)
+    def test_import_phenotype_multiple_sheet(self, my_working_dir):
+        """Test updating an existing genotype"""
+
+        # create a temporary directory using the context manager
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            working_dir = pathlib.Path(tmpdirname)
+            my_working_dir.return_value = working_dir
+
+            # add a new sheet to template
+            new_sheet = self.workbook.create_sheet(title="colour")
+
+            new_sheet.cell(row=1, column=1, value="Code")
+            new_sheet.cell(row=1, column=2, value="Name")
+            new_sheet.cell(row=1, column=3, value="Country")
+            new_sheet.cell(row=1, column=4, value="Id")
+            new_sheet.cell(row=1, column=5, value="Coat color")
+
+            # adding values
+            new_sheet.cell(row=2, column=1, value="TEX")
+            new_sheet.cell(row=2, column=2, value="Texel")
+            new_sheet.cell(row=2, column=3, value="Italy")
+            new_sheet.cell(row=2, column=4, value="test-1")
+            new_sheet.cell(row=2, column=5, value="white")
+
+            # save worksheet in temporary folder
+            self.workbook.save(f"{working_dir}/phenotypes.xlsx")
+
+            # got first sample from database
+            self.assertEqual(SampleSheep.objects.count(), 1)
+
+            # assign a test phenotype with an attribute to be update and
+            # another which won't be updated
+            self.sample.phenotype = Phenotype(
+                purpose="Milk",
+                chest_girth=99.9999
+            )
+            self.sample.save()
+
+            result = self.runner.invoke(
+                import_phenotypes,
+                [
+                    "--src_dataset",
+                    "test2.zip",
+                    "--dst_dataset",
+                    "test.zip",
+                    "--datafile",
+                    "phenotypes.xlsx",
+                    "--sheet_name",
+                    "colour",
+                    "--breed_column",
+                    "Name",
+                    "--additional_column",
+                    "Coat color",
+                ]
+            )
+
+            print(result.output)
+            self.assertEqual(0, result.exit_code, msg=result.exception)
+            self.sample.reload()
+            self.assertIsInstance(self.sample.phenotype, Phenotype)
+
+            reference = Phenotype(
+                purpose="Milk",
+                chest_girth=99.9999,
+                coat_color="white"
+            )
+
+            self.assertEqual(reference, self.sample.phenotype)
+
 
 class TestImportPhenotypeBySamples(PhenotypeMixin, unittest.TestCase):
     @patch('src.features.smarterdb.Dataset.working_dir',

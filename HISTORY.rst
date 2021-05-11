@@ -5,7 +5,6 @@ History
 TODO
 ^^^^
 
-* Deal with multi-sheets ``.xlsx`` documents
 * Check chromosomes in *Variants locations*: mind to **scaffold**, **null**, and
   **non-autosomal** chromosomes for *Goat* and *Sheep*
 
@@ -15,6 +14,7 @@ TODO
 Features
 ^^^^^^^^
 
+* Deal with multi-sheets ``.xlsx`` documents
 * Import phenotypes (from a *source* dataset to a *destination* dataset)
 * Define phenotype attribute as a ``mongoengine.DynamicDocument`` field
 * Import metadata or phenotype *by breeds* or *by samples*

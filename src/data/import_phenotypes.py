@@ -95,6 +95,7 @@ def add_phenotype_by_breed(
     SampleSpecie = get_sample_species(dst_dataset.species)
 
     for index, row in data.iterrows():
+        logger.warning(f"{index}, {row}")
         breed = row.get(columns["breed_column"])
 
         # get columns modelled in smarter database
@@ -131,6 +132,9 @@ def add_phenotype_by_sample(
     help="The raw dataset file name (zip archive) in which add metadata"
 )
 @click.option('--datafile', type=str, required=True)
+@click.option('--sheet_name',
+              default="0",
+              help="pandas 'sheet_name' option")
 @optgroup.group(
     'Add metadata relying on breeds or samples columns',
     cls=RequiredMutuallyExclusiveOptionGroup
@@ -144,9 +148,9 @@ def add_phenotype_by_sample(
 @click.option('--additional_column', multiple=True, help=(
     "Additional column to track. Could be specified multiple times"))
 @click.option('--na_values', type=str, help="pandas NA values")
-def main(src_dataset, dst_dataset, datafile, breed_column, id_column,
-         purpose_column, chest_girth_column, height_column, length_column,
-         additional_column, na_values):
+def main(src_dataset, dst_dataset, datafile, sheet_name, breed_column,
+         id_column, purpose_column, chest_girth_column, height_column,
+         length_column, additional_column, na_values):
     logger.info(f"{Path(__file__).name} started")
 
     if additional_column:
@@ -164,8 +168,11 @@ def main(src_dataset, dst_dataset, datafile, breed_column, id_column,
         contents=[]
     )
 
+    if sheet_name and sheet_name.isnumeric():
+        sheet_name = int(sheet_name)
+
     # open data with pandas
-    data = pandas_open(datapath, na_values=na_values)
+    data = pandas_open(datapath, na_values=na_values, sheet_name=sheet_name)
 
     # collect columns in a dictionary
     columns = {
