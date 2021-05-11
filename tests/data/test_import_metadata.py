@@ -357,5 +357,6 @@ class TestImportMetadataBySamplesNA(MetaDataMixin, unittest.TestCase):
             self.sample.reload()
             self.assertIsNone(self.sample.location)
 
+
 if __name__ == '__main__':
     unittest.main()

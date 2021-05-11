@@ -361,6 +361,9 @@ class Phenotype(mongoengine.DynamicEmbeddedDocument):
     height = mongoengine.FloatField()
     length = mongoengine.FloatField()
 
+    def __str__(self):
+        return f"{self.to_json()}"
+
 
 class SampleSpecies(mongoengine.Document):
     original_id = mongoengine.StringField(required=True)
