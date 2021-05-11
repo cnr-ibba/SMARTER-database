@@ -159,6 +159,69 @@ class TestImportPhenotypeByBreeds(PhenotypeMixin, unittest.TestCase):
 
             self.assertEqual(reference, self.sample.phenotype)
 
+    @patch('src.features.smarterdb.Dataset.working_dir',
+           new_callable=PropertyMock)
+    def test_import_phenotype_update(self, my_working_dir):
+        """Test updating an existing genotype"""
+
+        # create a temporary directory using the context manager
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            working_dir = pathlib.Path(tmpdirname)
+            my_working_dir.return_value = working_dir
+
+            # save worksheet in temporary folder
+            self.workbook.save(f"{working_dir}/phenotypes.xlsx")
+
+            # got first sample from database
+            self.assertEqual(SampleSheep.objects.count(), 1)
+
+            # assign a test phenotype with an attribute to be update and
+            # another which won't be updated
+            self.sample.phenotype = Phenotype(
+                purpose="Milk",
+                chest_girth=99.9999
+            )
+            self.sample.save()
+
+            result = self.runner.invoke(
+                import_phenotypes,
+                [
+                    "--src_dataset",
+                    "test2.zip",
+                    "--dst_dataset",
+                    "test.zip",
+                    "--datafile",
+                    "phenotypes.xlsx",
+                    "--breed_column",
+                    "Name",
+                    "--chest_girth_column",
+                    "ChestGirth",
+                    "--height_column",
+                    "Height",
+                    "--length_column",
+                    "Length",
+                    "--additional_column",
+                    "FAMACHA",
+                    "--additional_column",
+                    "WidthOfPinBones"
+                ]
+            )
+
+            self.assertEqual(0, result.exit_code, msg=result.exception)
+            self.sample.reload()
+            self.assertIsInstance(self.sample.phenotype, Phenotype)
+
+            reference = Phenotype(
+                purpose="Milk",
+                chest_girth=77.5,
+                height=60.5,
+                length=69.5,
+                widthofpinbones=16,
+                famacha="D"
+            )
+
+            self.assertEqual(reference, self.sample.phenotype)
+
 
 class TestImportPhenotypeBySamples(PhenotypeMixin, unittest.TestCase):
     @patch('src.features.smarterdb.Dataset.working_dir',

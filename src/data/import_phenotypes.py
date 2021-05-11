@@ -22,17 +22,29 @@ logger = logging.getLogger(__name__)
 
 
 def get_named_columns(
-        row: pd.Series, key: str, columns: dict, label: str):
-    """Generic function to get info from column for declared attributes"""
+        row: pd.Series, columns: dict, label: str):
+    """Function to get info from column which are declared attributes in
+    smarterdb"""
 
-    result = None
+    # those are columns which are modelled in database
+    attr2keys = {
+        'purpose': 'purpose_column',
+        'chest_girth': 'chest_girth_column',
+        'height': 'height_column',
+        'length': 'length_column',
+    }
 
-    if columns[key]:
-        value = row.get(columns[key])
-        if pd.notnull(value) and pd.notna(value):
-            result = value
+    results = dict()
 
-    return result
+    for key, column_name in attr2keys.items():
+        if columns[column_name]:
+            value = row.get(columns[column_name])
+            if pd.notnull(value) and pd.notna(value):
+                logger.debug(
+                    f"Got '{key}': '{value}' for '{label}'")
+                results[key] = value
+
+    return results
 
 
 def get_additional_column(row: pd.Series, columns: dict, label: str):
@@ -49,6 +61,28 @@ def get_additional_column(row: pd.Series, columns: dict, label: str):
     return additional_column
 
 
+def create_or_update_phenotype(
+        sample, named_columns: dict, additional_column: dict):
+
+    if not sample.phenotype:
+        logger.debug(f"Create a new phenotype for {sample}")
+        sample.phenotype = Phenotype()
+
+    for key, value in named_columns.items():
+        setattr(sample.phenotype, key, value)
+
+    # set all the other not managed phenotypes colums
+    if additional_column:
+        for key, value in additional_column.items():
+            setattr(sample.phenotype, key, value)
+
+    logger.warning(
+        f"Updating '{sample}' phenotype with '{sample.phenotype}'")
+
+    # update sample
+    sample.save()
+
+
 def add_phenotype_by_breed(
         data: pd.DataFrame,
         dst_dataset: Dataset,
@@ -62,11 +96,9 @@ def add_phenotype_by_breed(
 
     for index, row in data.iterrows():
         breed = row.get(columns["breed_column"])
-        purpose = get_named_columns(row, 'purpose_column', columns, breed)
-        chest_girth = get_named_columns(
-            row, 'chest_girth_column', columns, breed)
-        height = get_named_columns(row, 'height_column', columns, breed)
-        length = get_named_columns(row, 'length_column', columns, breed)
+
+        # get columns modelled in smarter database
+        named_columns = get_named_columns(row, columns, breed)
 
         # get additional columns for breed
         additional_column = get_additional_column(row, columns, breed)
@@ -75,24 +107,8 @@ def add_phenotype_by_breed(
         for sample in SampleSpecie.objects.filter(
                 dataset=dst_dataset, breed=breed):
 
-            if not sample.phenotype:
-                sample.phenotype = Phenotype()
-
-            sample.phenotype.purpose = purpose
-            sample.phenotype.chest_girth = chest_girth
-            sample.phenotype.height = height
-            sample.phenotype.length = length
-
-            # set all the other not managed phenotypes colums
-            if additional_column:
-                for key, value in additional_column.items():
-                    setattr(sample.phenotype, key, value)
-
-            logger.warning(
-                f"Updating '{sample}' phenotype with '{sample.phenotype}'")
-
-            # update sample
-            sample.save()
+            create_or_update_phenotype(
+                sample, named_columns, additional_column)
 
 
 def add_phenotype_by_sample(

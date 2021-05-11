@@ -113,6 +113,12 @@ data: requirements
 		--latitude_column GPS_Latitude --longitude_column GPS_Longitude --metadata_column Sampling_info \
 		--metadata_column DOB --metadata_column Sampling_info --metadata_column Notes --na_values NA
 
+	## add phenotypes to samples
+	$(PYTHON_INTERPRETER) src/data/import_phenotypes.py --src_dataset ADAPTmap_phenotype_20161201.zip \
+		--dst_dataset ADAPTmap_genotypeTOP_20161201.zip \
+		--datafile ADAPTmap_phenotype_20161201/adaptmap_phenotypes_by_breed.xlsx --breed_column "Breed name" \
+		--purpose_column Purpose
+
 	## merge SNPs into 1 file
 	$(PYTHON_INTERPRETER) src/data/merge_datasets.py --species sheep --assembly OAR3
 	$(PYTHON_INTERPRETER) src/data/merge_datasets.py --species goat --assembly ARS1
