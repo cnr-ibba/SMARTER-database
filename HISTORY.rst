@@ -7,11 +7,15 @@ TODO
 
 * Define phenotype attribute as a ``mongoengine.DynamicDocument`` field
 * Import phenotypes (from a *source* dataset to a *destination* dataset)
+* Deal with multi-sheets ``.xlsx`` documents
 * Check chromosomes in *Variants locations*: mind to **scaffold**, **null**, and
   **non-autosomal** chromosomes for *Goat* and *Sheep*
 
 0.3.0.dev0
 ----------
+
+Features
+^^^^^^^^
 
 * Import metadata or phenotype *by breeds* or *by samples*
 * Import metadata (from a *source* dataset to a *destination* dataset)
@@ -29,12 +33,18 @@ TODO
 0.2.3 (2021-05-03)
 ------------------
 
+Features
+^^^^^^^^
+
 * Unset ped columns if relationship can't be derived from data (ex. *brazilian BSI*)
 * Deal with geographical coordinates
 * Add features to samples (relying on metadata file)
 
 0.2.2 (2021-04-29)
 ------------------
+
+Features
+^^^^^^^^
 
 * Breed name should be a unique key within species
 * make rule to clean-up ``interim`` data

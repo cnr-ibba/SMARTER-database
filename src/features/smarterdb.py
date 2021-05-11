@@ -349,6 +349,19 @@ class SEX(bytes, Enum):
             return cls.UNKNOWN
 
 
+class Phenotype(mongoengine.DynamicEmbeddedDocument):
+    """A class to deal with Phenotype. A dynamic document and not a generic
+    DictField since that there can be attributes which could be enforced to
+    have certain values. All other attributes could be set without any
+    assumptions
+    """
+
+    purpose = mongoengine.StringField()
+    chest_girth = mongoengine.FloatField()
+    height = mongoengine.FloatField()
+    length = mongoengine.FloatField()
+
+
 class SampleSpecies(mongoengine.Document):
     original_id = mongoengine.StringField(required=True)
     smarter_id = mongoengine.StringField(required=True, unique=True)
@@ -377,6 +390,9 @@ class SampleSpecies(mongoengine.Document):
 
     # additional (not modelled) metadata
     metadata = mongoengine.DictField(default=None)
+
+    # for phenotypes
+    phenotype = mongoengine.EmbeddedDocumentField(Phenotype, default=None)
 
     meta = {
         'abstract': True,
