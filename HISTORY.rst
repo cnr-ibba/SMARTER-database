@@ -8,8 +8,8 @@ TODO
 * Check chromosomes in *Variants locations*: mind to **scaffold**, **null**, and
   **non-autosomal** chromosomes for *Goat* and *Sheep*
 
-0.3.0.dev0
-----------
+0.3.0 (2021-05-19)
+------------------
 
 Features
 ^^^^^^^^
