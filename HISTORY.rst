@@ -7,6 +7,15 @@ TODO
 
 * Check chromosomes in *Variants locations*: mind to **scaffold**, **null**, and
   **non-autosomal** chromosomes for *Goat* and *Sheep*
+* Skip ``null`` fields when importing datasets
+* Import foreground genotypes
+  - import french sheep data
+  - import greece goat data
+  - import grece sheep data (20210407 and 20200731)
+* Enable continuous integration
+  - Travis CI
+  - ReadTheDocs
+  - Coverage
 
 0.3.0 (2021-05-19)
 ------------------
