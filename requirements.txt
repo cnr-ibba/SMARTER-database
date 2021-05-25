@@ -139,7 +139,7 @@ tornado==6.1
 tox==3.23.0
 tqdm==4.57.0
 traitlets==5.0.5
-urllib3==1.26.3
+urllib3==1.26.4
 virtualenv==20.4.2
 wcwidth==0.2.5
 webencodings==0.5.1
