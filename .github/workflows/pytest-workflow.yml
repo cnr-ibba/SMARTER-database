@@ -56,7 +56,9 @@ jobs:
 
       - name: Install dependencies
         shell: bash -l {0}
-        run: make requirements
+        run: |
+          make requirements
+          pip install coveralls
 
       - name: Conda list
         shell: pwsh
@@ -66,9 +68,8 @@ jobs:
         shell: bash -l {0}
         run: coverage run --source src -m py.test
 
-  coveralls_finish:
-    needs: pytest
-    runs-on: ubuntu-latest
-    steps:
-    - name: Coveralls Finished
-      uses: AndreMiras/coveralls-python-action@develop
+      - name: Uploading coverage to coveralls
+        shell: bash -l {0}
+        run: coveralls --service=github
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
