@@ -66,15 +66,9 @@ jobs:
         shell: bash -l {0}
         run: coverage run --source src -m py.test
 
-  coveralls:
-    name: Indicate completion to coveralls.io
+  coveralls_finish:
     needs: pytest
     runs-on: ubuntu-latest
-    container: python:3-slim
     steps:
-    - name: Finished
-      run: |
-        pip3 install --upgrade coveralls
-        coveralls
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Coveralls Finished
+      uses: AndreMiras/coveralls-python-action@develop
