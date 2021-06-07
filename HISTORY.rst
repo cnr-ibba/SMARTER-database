@@ -17,6 +17,11 @@ TODO
   - ReadTheDocs
   - Coverage
 
+0.3.1.dev0
+----------
+
+* Upgrade dependencies
+
 0.3.0 (2021-05-19)
 ------------------
 
