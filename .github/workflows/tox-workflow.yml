@@ -56,9 +56,7 @@ jobs:
 
       - name: Install dependencies
         shell: bash -l {0}
-        run: |
-          make requirements
-          pip install tox-gh-actions
+        run: make requirements
 
       - name: Conda list
         shell: pwsh
