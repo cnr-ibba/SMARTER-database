@@ -62,6 +62,11 @@ jobs:
         shell: pwsh
         run: conda list
 
-      - name: Test with pytest
+      - name: Test with coverage
         shell: bash -l {0}
-        run: pytest
+        run: coverage run --source src -m py.test
+
+      - name: Coveralls
+        uses: coverallsapp/github-action@master
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
