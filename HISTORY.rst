@@ -13,8 +13,14 @@ TODO
   - import greece goat data
   - import grece sheep data (20210407 and 20200731)
 * Enable continuous integration
-  - Travis CI
   - ReadTheDocs
+
+0.3.1.dev0
+----------
+
+* Upgrade dependencies
+* Enable continuous integration
+  - Github Workflow
   - Coverage
 
 0.3.0 (2021-05-19)

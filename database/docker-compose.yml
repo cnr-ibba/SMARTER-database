@@ -5,9 +5,9 @@ version: '3.2'
 services:
 
   mongo:
-    image: mongo:4.4.4
+    image: mongo:4.4
 
-    container_name: smarter-mongo
+    container_name: smarter-database_mongo
 
     ports:
       - 27017:27017
@@ -32,13 +32,13 @@ services:
         target: /docker-entrypoint-initdb.d
 
     networks:
-      - default
+      - smarter-database
 
 
   express:
-    image: mongo-express:0.54.0
+    image: mongo-express:0.54
 
-    container_name: smarter-express
+    container_name: smarter-database_express
 
     ports:
       - 8081:8081
@@ -50,8 +50,8 @@ services:
       ME_CONFIG_BASICAUTH_PASSWORD: ${MONGOEXPRESS_PASS}
 
     networks:
-      - default
+      - smarter-database
 
 
 networks:
-  default:
+  smarter-database:
