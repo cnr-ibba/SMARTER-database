@@ -67,7 +67,7 @@ markupsafe==1.1.1
 matplotlib==3.3.4
 mccabe==0.6.1
 mistune==0.8.4
-mongoengine==0.23.0
+mongoengine==0.23.1
 mongomock==3.22.1
 munch==2.5.0
 nbclassic==0.2.6
