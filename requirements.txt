@@ -86,7 +86,7 @@ parso==0.8.1
 partd==1.1.0
 pexpect==4.8.0
 pickleshare==0.7.5
-pillow==8.1.2
+pillow==8.2.0
 plinkio==0.9.8
 pluggy==0.13.1
 pockets==0.9.1
