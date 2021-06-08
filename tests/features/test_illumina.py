@@ -11,7 +11,7 @@ import unittest
 import types
 
 from src.features.illumina import (
-    read_snpMap, read_snpChip, read_snpList, read_illuminaRow)
+    read_snpMap, read_Manifest, read_snpList, read_illuminaRow)
 
 FEATURE_DATA_DIR = pathlib.Path(__file__).parents[1] / "features/data"
 SCRIPTS_DATA_DIR = pathlib.Path(__file__).parents[1] / "data/data"
@@ -62,7 +62,7 @@ class ReadManifest(IlluminaMixin, unittest.TestCase):
     skip_lines = 7
 
     def read_func(self, *args, **kwargs):
-        return read_snpChip(*args, **kwargs)
+        return read_Manifest(*args, **kwargs)
 
 
 class ReadSnpListTest(IlluminaMixin, unittest.TestCase):

@@ -14,7 +14,7 @@ from typing import Union
 from mongoengine.errors import NotUniqueError
 from mongoengine.queryset import QuerySet
 
-from src.features.illumina import read_snpChip
+from src.features.illumina import read_Manifest
 from src.features.smarterdb import (
     VariantSheep, Location, global_connection, IlluminaChip, VariantGoat)
 from src.data.common import get_variant_species
@@ -41,30 +41,30 @@ def main(species, manifest, chip_name, version, sender):
     logger.info(f"Reading from {manifest}")
 
     # grep a sample SNP
-    for i, snpchip in enumerate(read_snpChip(manifest, delimiter=",")):
+    for i, record in enumerate(read_Manifest(manifest, delimiter=",")):
         # update chip data indipendentely if it is an update or not
         illumina_chip.n_of_snps += 1
 
         # create a location object
         location = Location(
             version=version,
-            chrom=snpchip.chr,
-            position=snpchip.mapinfo,
-            illumina=snpchip.snp,
-            illumina_strand=snpchip.ilmnstrand,
-            strand=snpchip.sourcestrand,
+            chrom=record.chr,
+            position=record.mapinfo,
+            illumina=record.snp,
+            illumina_strand=record.ilmnstrand,
+            strand=record.sourcestrand,
             imported_from="manifest"
         )
 
         variant = VariantSpecie(
             chip_name=[chip_name],
-            name=snpchip.name,
-            sequence=snpchip.sourceseq,
+            name=record.name,
+            sequence=record.sourceseq,
             sender=sender
         )
 
         # search for a snp in database (relying on name)
-        qs = VariantSpecie.objects.filter(name=snpchip.name)
+        qs = VariantSpecie.objects.filter(name=record.name)
 
         if qs.count() == 1:
             update_variant(qs, variant, location)

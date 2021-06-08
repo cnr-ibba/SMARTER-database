@@ -42,7 +42,7 @@ class ManifestMixin():
         self.assertEqual(0, result.exit_code, msg=result.exception)
 
 
-class ImportSNPChipsTest(
+class ImportManifestTest(
         ManifestMixin, IlluminaChipMixin, MongoMockMixin, unittest.TestCase):
 
     main_function = import_manifest
@@ -73,7 +73,7 @@ class ImportSNPChipsTest(
         self.assertEqual(self.chip.n_of_snps, 3)
 
 
-class UpdateSNPChipsTest(
+class UpdateManifestTest(
         ManifestMixin, IlluminaChipMixin, VariantsMixin, MongoMockMixin,
         unittest.TestCase):
 

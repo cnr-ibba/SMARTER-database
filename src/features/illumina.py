@@ -103,8 +103,7 @@ def read_snpMap(path: str, size=2048, skip=0, delimiter=None):
             yield record
 
 
-# TODO: rename this to read_Manifest?
-def read_snpChip(path: str, size=2048, skip=0, delimiter=None):
+def read_Manifest(path: str, size=2048, skip=0, delimiter=None):
     with text_or_gzip_open(path) as handle:
         if delimiter:
             reader = csv.reader(handle, delimiter=delimiter)
