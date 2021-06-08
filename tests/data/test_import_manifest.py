@@ -8,6 +8,7 @@ Created on Thu Apr 22 12:22:12 2021
 
 import unittest
 import pathlib
+import datetime
 
 from click.testing import CliRunner
 
@@ -71,6 +72,17 @@ class ImportManifestTest(
 
         self.chip.reload()
         self.assertEqual(self.chip.n_of_snps, 3)
+
+        # get first inserted object
+        test = VariantSheep.objects.first()
+        location = test.locations[0]
+
+        # test inserted fields for first object
+        self.assertEqual(test.name, "250506CS3900065000002_1238.1")
+        self.assertEqual(location.chrom, "15")
+        self.assertEqual(location.position, 5870057)
+        self.assertEqual(location.illumina_top, "A/G")
+        self.assertEqual(location.date, datetime.datetime(2009, 1, 7))
 
 
 class UpdateManifestTest(

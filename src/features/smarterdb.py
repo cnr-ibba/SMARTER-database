@@ -539,13 +539,15 @@ class Location(mongoengine.EmbeddedDocument):
     version = mongoengine.StringField()
     chrom = mongoengine.StringField()
     position = mongoengine.IntField()
-    contig = mongoengine.StringField()
     alleles = mongoengine.StringField()
     illumina = mongoengine.StringField()
     illumina_forward = mongoengine.StringField()
     illumina_strand = mongoengine.StringField()
     strand = mongoengine.StringField()
     imported_from = mongoengine.StringField()
+
+    # this could be the manifactured date or the last updated
+    date = mongoengine.DateTimeField()
 
     consequences = mongoengine.ListField(
         mongoengine.EmbeddedDocumentField(Consequence))

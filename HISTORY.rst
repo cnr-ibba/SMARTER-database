@@ -5,6 +5,7 @@ History
 TODO
 ^^^^
 
+* fix linter issues
 * Check chromosomes in *Variants locations*: mind to **scaffold**, **null**, and
   **non-autosomal** chromosomes for *Goat* and *Sheep*
 * Skip ``null`` fields when importing datasets
@@ -18,6 +19,7 @@ TODO
 0.3.1.dev0
 ----------
 
+* Track illumina manifactured date
 * Upgrade dependencies
 * Enable continuous integration
   - Github Workflow

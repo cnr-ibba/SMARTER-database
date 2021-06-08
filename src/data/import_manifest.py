@@ -53,7 +53,8 @@ def main(species, manifest, chip_name, version, sender):
             illumina=record.snp,
             illumina_strand=record.ilmnstrand,
             strand=record.sourcestrand,
-            imported_from="manifest"
+            imported_from="manifest",
+            date=record.date,
         )
 
         variant = VariantSpecie(

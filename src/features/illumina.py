@@ -8,8 +8,12 @@ Created on Mon Feb  8 17:15:26 2021
 
 import re
 import csv
+import datetime
 import logging
 import collections
+
+from typing import Union
+from dateutil.parser import parse as parse_date
 
 from src.features.utils import sanitize, text_or_gzip_open
 
@@ -17,32 +21,61 @@ from src.features.utils import sanitize, text_or_gzip_open
 logger = logging.getLogger(__name__)
 
 
-def skip_lines(handle, skip):
+def skip_lines(handle, skip) -> (int, list):
     logger.info(f"Skipping {skip} lines")
+
+    # track skipped lines
+    skipped = list()
 
     for i in range(skip):
         line = handle.readline().strip()
         position = handle.tell()
 
         logger.warning(f"Skipping: {line}")
+        skipped.append(line)
 
-    return position
+    return position, skipped
 
 
-def skip_until_section(handle, section) -> int:
+def skip_until_section(handle, section) -> (int, list):
     """Ignore lines until a precise sections"""
+
+    # track skipped lines
+    skipped = list()
 
     # search for 'section' record
     while True:
         line = handle.readline().strip()
         position = handle.tell()
 
+        logger.warning(f"Skipping: {line}")
+        skipped.append(line)
+
+        # last skipped line is included in skipped array
         if section in line:
             break
 
-        logger.warning(f"Skipping: {line}")
+    return position, skipped
 
-    return position
+
+def search_manifactured_date(header: list) -> Union[datetime.datetime, None]:
+    """Grep manifactured date from illumina header
+
+    Args:
+        header (list): the illumina header skipped lines
+    Returns:
+        datetime.datetime: a datetime object
+    """
+
+    records = list(filter(lambda record: 'date' in record.lower(), header))
+
+    date = None
+
+    if records:
+        record = records[0].split(",")
+        date = parse_date(record[1])
+
+    return date
 
 
 def sniff_file(handle, size, position=0):
@@ -107,15 +140,15 @@ def read_Manifest(path: str, size=2048, skip=0, delimiter=None):
     with text_or_gzip_open(path) as handle:
         if delimiter:
             reader = csv.reader(handle, delimiter=delimiter)
-            skip_until_section(handle, "[Assay]")
+            _, skipped = skip_until_section(handle, "[Assay]")
 
         else:
             if skip > 0:
-                position = skip_lines(handle, skip)
+                position, skipped = skip_lines(handle, skip)
 
             else:
                 # search for [Assay] row
-                position = skip_until_section(handle, "[Assay]")
+                position, skipped = skip_until_section(handle, "[Assay]")
 
             # try to determine dialect
             reader = sniff_file(handle, size, position)
@@ -126,6 +159,12 @@ def read_Manifest(path: str, size=2048, skip=0, delimiter=None):
         # sanitize column names
         header = [sanitize(column) for column in header]
 
+        # ok try to get the manifatcured date
+        date = search_manifactured_date(skipped)
+
+        # add date to header
+        header.append("date")
+
         logger.info(header)
 
         # define a datatype for my data
@@ -133,6 +172,9 @@ def read_Manifest(path: str, size=2048, skip=0, delimiter=None):
 
         # add records to data
         for record in reader:
+            # add date to record
+            record.append(date)
+
             # break after assay section
             if record[0] == '[Controls]':
                 logger.debug("[Assay] section processed")
@@ -204,7 +246,7 @@ def read_snpList(path: str, size=2048, skip=0, delimiter=None):
 def read_illuminaRow(path: str, size=2048):
     with text_or_gzip_open(path) as handle:
         # search for [DATA] record
-        position = skip_until_section(handle, "[Data]")
+        position, _ = skip_until_section(handle, "[Data]")
 
         # try to determine dialect
         reader = sniff_file(handle, size, position)
