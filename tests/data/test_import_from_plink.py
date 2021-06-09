@@ -18,13 +18,13 @@ from src.data.import_from_plink import main as import_from_plink
 from src.features.smarterdb import SampleSheep
 
 from ..common import (
-    MongoMockMixin, SmarterIDMixin, VariantsMixin, IlluminaChipMixin)
+    MongoMockMixin, SmarterIDMixin, VariantsMixin, SupportedChipMixin)
 
 DATA_DIR = pathlib.Path(__file__).parents[1] / "features/data"
 
 
 class TestImportFromPlink(
-        VariantsMixin, SmarterIDMixin, IlluminaChipMixin, MongoMockMixin,
+        VariantsMixin, SmarterIDMixin, SupportedChipMixin, MongoMockMixin,
         unittest.TestCase):
 
     @classmethod

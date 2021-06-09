@@ -16,7 +16,7 @@ from mongoengine.queryset import QuerySet
 
 from src.features.illumina import read_Manifest
 from src.features.smarterdb import (
-    VariantSheep, Location, global_connection, IlluminaChip, VariantGoat)
+    VariantSheep, Location, global_connection, SupportedChip, VariantGoat)
 from src.data.common import get_variant_species
 
 logger = logging.getLogger(__name__)
@@ -33,7 +33,7 @@ def main(species, manifest, chip_name, version, sender):
     VariantSpecie = get_variant_species(species)
 
     # check chip_name
-    illumina_chip = IlluminaChip.objects(name=chip_name).get()
+    illumina_chip = SupportedChip.objects(name=chip_name).get()
 
     # reset chip data (if any)
     illumina_chip.n_of_snps = 0

@@ -18,11 +18,11 @@ from src.data.import_samples import main as import_samples
 from src.features.smarterdb import Dataset, SampleSheep, SEX
 
 from ..common import (
-    MongoMockMixin, SmarterIDMixin, IlluminaChipMixin)
+    MongoMockMixin, SmarterIDMixin, SupportedChipMixin)
 
 
 class TestImportSamples(
-        SmarterIDMixin, IlluminaChipMixin, MongoMockMixin, unittest.TestCase):
+        SmarterIDMixin, SupportedChipMixin, MongoMockMixin, unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()

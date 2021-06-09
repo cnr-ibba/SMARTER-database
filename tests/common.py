@@ -13,7 +13,7 @@ from mongoengine import connect, disconnect, connection
 
 from src.features.smarterdb import (
     DB_ALIAS, Breed, BreedAlias, Counter, Dataset, SampleSheep, VariantSheep,
-    IlluminaChip)
+    SupportedChip)
 
 FIXTURES_DIR = pathlib.Path(__file__).parent / "fixtures"
 
@@ -134,17 +134,17 @@ class VariantsMixin():
         super().tearDownClass()
 
 
-class IlluminaChipMixin():
+class SupportedChipMixin():
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
 
         cls.chip_name = "IlluminaOvineSNP50"
-        cls.chip = IlluminaChip(name=cls.chip_name, species="Sheep")
+        cls.chip = SupportedChip(name=cls.chip_name, species="Sheep")
         cls.chip.save()
 
     @classmethod
     def tearDownClass(cls):
-        IlluminaChip.objects.delete()
+        SupportedChip.objects.delete()
 
         super().tearDownClass()

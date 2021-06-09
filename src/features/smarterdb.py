@@ -84,14 +84,15 @@ class Counter(mongoengine.Document):
         return f"{self.id}: {self.sequence_value}"
 
 
-class IlluminaChip(mongoengine.Document):
+class SupportedChip(mongoengine.Document):
     name = mongoengine.StringField(required=True, unique=True)
     species = mongoengine.StringField(required=True)
+    manifacturer = mongoengine.StringField()
     n_of_snps = mongoengine.IntField(default=0)
 
     meta = {
         'db_alias': DB_ALIAS,
-        'collection': 'illuminaChips'
+        'collection': 'supportedChips'
     }
 
     def __str__(self):
