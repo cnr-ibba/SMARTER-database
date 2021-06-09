@@ -69,11 +69,6 @@ data: requirements
 	$(PYTHON_INTERPRETER) src/data/import_breeds.py --species Goat --dataset ADAPTmap_genotypeTOP_20161201.zip \
 		--datafile ADAPTmap_genotypeTOP_20161201/ADAPTmap_Breeds_20161201_fix.csv --breed_column Breed_fullname --code_column Breed_code
 
-	## create samples from custom files
-	$(PYTHON_INTERPRETER) src/data/import_samples.py --src_dataset ADAPTmap_phenotype_20161201.zip --dst_dataset ADAPTmap_genotypeTOP_20161201.zip \
-		--datafile ADAPTmap_phenotype_20161201/ADAPTmap_InfoSample_20161201_fix.xlsx --code_column Breed_code --id_column ADAPTmap_code \
-		--chip_name IlluminaGoatSNP50 --country_column Sampling_Country --sex_column SEX
-
 	## import data from plink (or report) files for SHEEP
 	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --file TEXEL_UY --dataset TEXEL_INIA_UY.zip --chip_name IlluminaOvineSNP50 \
 		--assembly OAR3
@@ -91,6 +86,11 @@ data: requirements
 		--dataset "High density genotypes of French Sheep populations.zip" --chip_name IlluminaOvineHDSNP --assembly OAR3
 	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --file ovine_SNP50HapMap_data/SNP50_Breedv1/SNP50_Breedv1 \
 		--dataset ovine_SNP50HapMap_data.zip --chip_name IlluminaOvineSNP50 --assembly OAR3
+
+	## create samples from custom files
+	$(PYTHON_INTERPRETER) src/data/import_samples.py --src_dataset ADAPTmap_phenotype_20161201.zip --dst_dataset ADAPTmap_genotypeTOP_20161201.zip \
+		--datafile ADAPTmap_phenotype_20161201/ADAPTmap_InfoSample_20161201_fix.xlsx --code_column Breed_code --id_column ADAPTmap_code \
+		--chip_name IlluminaGoatSNP50 --country_column Sampling_Country --sex_column SEX
 
 	## import data from plink (or report) files for GOAT
 	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --bfile ADAPTmap_genotypeTOP_20161201/binary_fileset/ADAPTmap_genotypeTOP_20161201 \
