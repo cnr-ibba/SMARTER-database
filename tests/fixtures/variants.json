@@ -19,6 +19,9 @@
         "illumina_strand": "TOP",
         "strand": "BOT",
         "imported_from": "manifest",
+        "date": {
+          "$date": "2009-01-07T00:00:00Z"
+        },
         "consequences": []
       },
       {
@@ -59,6 +62,9 @@
         "illumina_strand": "TOP",
         "strand": "BOT",
         "imported_from": "manifest",
+        "date": {
+          "$date": "2009-01-07T00:00:00Z"
+        },
         "consequences": []
       },
       {
@@ -100,6 +106,9 @@
         "illumina_strand": "BOT",
         "strand": "BOT",
         "imported_from": "manifest",
+        "date": {
+          "$date": "2009-01-07T00:00:00Z"
+        },
         "consequences": []
       },
       {

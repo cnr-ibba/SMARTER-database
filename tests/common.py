@@ -8,6 +8,9 @@ Created on Fri Apr  9 17:44:00 2021
 
 import json
 import pathlib
+import logging
+
+from dateutil.parser import parse as parse_date
 
 from mongoengine import connect, disconnect, connection
 
@@ -16,6 +19,9 @@ from src.features.smarterdb import (
     SupportedChip)
 
 FIXTURES_DIR = pathlib.Path(__file__).parent / "fixtures"
+
+# Get an instance of a logger
+logger = logging.getLogger(__name__)
 
 
 class MongoMockMixin():
@@ -110,6 +116,40 @@ class SmarterIDMixin():
         super().tearDownClass()
 
 
+def sanitize_dict(record: dict):
+    """Remove unsupported mongoengine keys from a dictionary"""
+
+    if '_id' in record:
+        logger.debug(f"remove key '_id': {record['_id']}")
+        del(record['_id'])
+
+    for key, value in record.items():
+        if isinstance(value, dict):
+            record[key] = sanitize_dict(value)
+
+            if '$date' in value:
+                logger.debug(f"fix '{key}': {value['$date']}")
+                record[key] = parse_date(value['$date'])
+
+        elif isinstance(value, list):
+            record[key] = sanitize_list(value)
+
+    return record
+
+
+def sanitize_list(record: list):
+    """Remove unsupported mongoengine keys from a list"""
+
+    for i, item in enumerate(record):
+        if isinstance(item, dict):
+            record[i] = sanitize_dict(item)
+
+        if isinstance(item, list):
+            record[i] = sanitize_list(item)
+
+    return record
+
+
 class VariantsMixin():
     @classmethod
     def setUpClass(cls):
@@ -123,7 +163,9 @@ class VariantsMixin():
         # I can't track data with from_json like mongoengine does. I need
         # to instantiate objects from dict (without unsupported keys)
         for item in cls.data:
-            del(item['_id'])
+            # remove unsupported keys
+            item = sanitize_dict(item)
+
             variant = VariantSheep(**item)
             variant.save()
 
