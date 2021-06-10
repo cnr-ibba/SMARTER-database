@@ -14,10 +14,13 @@ from typing import Union
 from pathlib import Path
 from collections import namedtuple
 
+from mongoengine.errors import NotUniqueError
+from mongoengine.queryset import QuerySet
+
 import pandas as pd
 
 from src.features.smarterdb import (
-    Dataset, VariantGoat, VariantSheep, SampleSheep, SampleGoat)
+    Dataset, VariantGoat, VariantSheep, SampleSheep, SampleGoat, Location)
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -173,3 +176,66 @@ def pandas_open(datapath: Path, **kwargs) -> pd.DataFrame:
         )
 
     return data
+
+
+def new_variant(
+        variant: Union[VariantSheep, VariantGoat],
+        location: Location):
+
+    variant.locations.append(location)
+
+    logger.info(f"adding {variant} to database")
+
+    try:
+        variant.save()
+
+    except NotUniqueError as e:
+        logger.error(
+            f"Cannot insert {variant}, reason: {e}")
+
+
+def update_variant(
+        qs: QuerySet,
+        variant: Union[VariantSheep, VariantGoat],
+        location: Location):
+    """Update an existing variant (if necessary)"""
+
+    record = qs.get()
+    logger.debug(f"found {record} in database")
+
+    # check chip_name in variant list
+    record = update_chip_name(variant, record)
+
+    # I chose to not update other values, I suppose they be the same
+    # However check for locations
+    check_location(location, record)
+
+
+def update_chip_name(variant, record):
+    variant_set = set(variant.chip_name)
+    record_set = set(record.chip_name)
+
+    # get new items as a difference of two sets
+    new_chips = variant_set - record_set
+
+    if len(new_chips) > 0:
+        # this will append the resulting set as a list
+        record.chip_name += list(new_chips)
+        record.save()
+
+    return record
+
+
+def check_location(location, variant):
+    # get the old location as index
+    index = variant.get_location_index(
+        version=location.version, imported_from=location.imported_from)
+
+    # ok get the old location and check with the new one
+    if variant.locations[index] == location:
+        logger.debug("Locations match")
+
+    # HINT: should I update location?
+    else:
+        logger.warning(
+            f"Locations differ: {location} <> {variant.locations[index]}")
