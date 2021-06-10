@@ -55,7 +55,7 @@ def main(species, manifest, chip_name, version, sender):
         variant = VariantSpecie(
             chip_name=[chip_name],
             name=record.name,
-            sequence=record.sourceseq,
+            sequence={'manifest': record.sourceseq},
             sender=sender
         )
 

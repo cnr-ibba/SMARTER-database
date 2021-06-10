@@ -743,18 +743,43 @@ class Location(mongoengine.EmbeddedDocument):
 class VariantSpecies(mongoengine.Document):
     rs_id = mongoengine.StringField()
     chip_name = mongoengine.ListField(mongoengine.StringField())
+
     name = mongoengine.StringField(unique=True)
-    sequence = mongoengine.StringField()
+
+    # sequence should model both illumina or affymetrix sequences
+    sequence = mongoengine.DictField()
+
     locations = mongoengine.ListField(
         mongoengine.EmbeddedDocumentField(Location))
+
+    # HINT: should sender be a Location attribute?
     sender = mongoengine.StringField()
 
+    # Affymetryx specific fields
+    probeset_id = mongoengine.StringField()
+    affy_snp_id = mongoengine.StringField()
+    cust_id = mongoengine.StringField()
+
+    # abstract class with custom indexes
     meta = {
         'abstract': True,
+        'indexes': [
+            'probeset_id',
+        ]
     }
 
     def __str__(self):
         return (f"name='{self.name}', rs_id='{self.rs_id}'")
+
+    def save(self, *args, **kwargs):
+        """Custom save method. Deal with variant name before save"""
+
+        if not self.name and self.probeset_id:
+            logger.warning(f"Set variant name to {self.probeset_id}")
+            self.name = self.probeset_id
+
+        # default save method
+        super(VariantSpecies, self).save(*args, **kwargs)
 
     def get_location_index(self, version: str, imported_from='SNPchiMp v.3'):
         """Returns location index for assembly version and imported source
