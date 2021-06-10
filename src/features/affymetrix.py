@@ -71,7 +71,6 @@ def read_Manifest(path: str):
                    Genome,
                    cust_id
               FROM Annotations
-             LIMIT 10
         """
 
         reader = curs.execute(statement)
@@ -96,4 +95,3 @@ def read_Manifest(path: str):
             # convert into collection
             record = SnpChip._make(record)
             yield record
-

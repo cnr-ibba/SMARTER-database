@@ -15,6 +15,7 @@ TODO
   - import grece sheep data (20210407 and 20200731)
 * Enable continuous integration
   - ReadTheDocs
+* Rename objects (use names in a consistent way)
 
 0.3.1.dev0
 ----------

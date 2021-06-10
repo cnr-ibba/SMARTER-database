@@ -206,6 +206,10 @@ def update_variant(
     # check chip_name in variant list
     record = update_chip_name(variant, record)
 
+    # TODO: update sequence record
+
+    # TODO: update affymetrix record (if any)
+
     # I chose to not update other values, I suppose they be the same
     # However check for locations
     check_location(location, record)
@@ -235,7 +239,7 @@ def check_location(location, variant):
     if variant.locations[index] == location:
         logger.debug("Locations match")
 
-    # HINT: should I update location?
+    # HINT: should I update location? maybe relying on date and __gt__ method?
     else:
         logger.warning(
             f"Locations differ: {location} <> {variant.locations[index]}")
