@@ -765,6 +765,7 @@ class VariantSpecies(mongoengine.Document):
         'abstract': True,
         'indexes': [
             'probeset_id',
+            'rs_id'
         ]
     }
 

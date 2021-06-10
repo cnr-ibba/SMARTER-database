@@ -20,7 +20,8 @@ from mongoengine.queryset import QuerySet
 import pandas as pd
 
 from src.features.smarterdb import (
-    Dataset, VariantGoat, VariantSheep, SampleSheep, SampleGoat, Location)
+    Dataset, VariantGoat, VariantSheep, SampleSheep, SampleGoat, Location,
+    SmarterDBException)
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -206,13 +207,27 @@ def update_variant(
     # check chip_name in variant list
     record = update_chip_name(variant, record)
 
-    # TODO: update sequence record
+    # update sequence record
+    record = update_sequence(variant, record)
 
-    # TODO: update affymetrix record (if any)
+    # update affymetrix record (if any)
+    record = update_affymetrix_record(variant, record)
 
     # I chose to not update other values, I suppose they be the same
     # However check for locations
-    check_location(location, record)
+    try:
+        check_location(location, record)
+
+    except SmarterDBException as exc:
+        logger.debug(exc)
+
+        # if I'm impotring Affymetrix data, I could have a variant but not
+        # a location to check. So add a location to variant
+        logger.info(f"Append location {location} to variant {variant}")
+        record.locations.append(location)
+
+    # update record
+    record.save()
 
 
 def update_chip_name(variant, record):
@@ -225,7 +240,24 @@ def update_chip_name(variant, record):
     if len(new_chips) > 0:
         # this will append the resulting set as a list
         record.chip_name += list(new_chips)
-        record.save()
+
+    return record
+
+
+def update_sequence(variant, record):
+    if variant.sequence != record.sequence:
+        record.sequence.update(variant.sequence)
+
+    return record
+
+
+def update_affymetrix_record(variant, record):
+    for key in ['probeset_id', 'affy_snp_id', 'cust_id']:
+        variant_attr = getattr(variant, key)
+        record_attr = getattr(record, key)
+
+        if variant_attr and variant_attr != record_attr:
+            setattr(record, key, variant_attr)
 
     return record
 

@@ -46,9 +46,9 @@ def main(species, manifest, chip_name, version):
         # create a location object
         location = Location(
             version=version,
-            chrom=record.chr_id,
+            chrom=str(record.chr_id),
             position=record.start,
-            #
+            # How to track genotype?
             strand=record.strand,
             imported_from="affymetrix",
             date=record.date,
@@ -59,7 +59,7 @@ def main(species, manifest, chip_name, version):
             rs_id=record.dbsnp_rs_id,
             probeset_id=record.probeset_id,
             affy_snp_id=record.affy_snp_id,
-            sequence={'affimetrix': record.flank},
+            sequence={'affymetrix': record.flank},
             cust_id=record.cust_id,
         )
 
@@ -67,7 +67,7 @@ def main(species, manifest, chip_name, version):
 
         # search for a snp in database (relying on name or rs_id)
         if record.dbsnp_rs_id:
-            qs = VariantSpecie.objects.filter(name=record.dbsnp_rs_id)
+            qs = VariantSpecie.objects.filter(rs_id=record.dbsnp_rs_id)
 
         else:
             qs = VariantSpecie.objects.filter(name=record.probeset_id)
