@@ -11,8 +11,8 @@ import logging
 
 from src.features.snpchimp import read_snpChimp
 from src.features.smarterdb import (
-    Location, global_connection, SmarterDBException)
-from src.data.common import get_variant_species
+    Location, global_connection)
+from src.data.common import get_variant_species, update_location
 
 logger = logging.getLogger(__name__)
 
@@ -48,12 +48,14 @@ def main(species, snpchimp, version):
         )
 
         # Should I update a location or not?
-        if not check_and_update_location(location, variant):
-            logger.warning(snpchimp)
+        variant, updated = update_location(location, variant)
 
-        else:
-            # update variant with snpchimp data
+        if snpchimp.rs and snpchimp.rs != variant.rs_id:
             variant.rs_id = snpchimp.rs
+            updated = True
+
+        if updated:
+            # update variant with snpchimp data
             variant.save()
 
         if (i+1) % 5000 == 0:
@@ -62,37 +64,6 @@ def main(species, snpchimp, version):
     logger.info(f"{i+1} variants processed")
 
     logger.info("Completed")
-
-
-# TODO: use commnon functions to check and update locations
-def check_and_update_location(location, variant) -> bool:
-    # get the old location as index
-    try:
-        index = variant.get_location_index(
-            version=location.version, imported_from=location.imported_from)
-
-    except SmarterDBException as exc:
-        # if a index does not exist, then insert feature without warnings
-        logger.debug(exc)
-        variant.locations.append(location)
-        return True
-
-    # ok get the old location and check with the new one
-    if variant.locations[index] == location:
-        logger.debug(f"Locations match {location}")
-        return True
-
-    else:
-        logger.warning(
-            f"Locations differ for '{variant.name}': {location} <> "
-            f"{variant.locations[index]}"
-        )
-
-        variant.locations[index] = location
-        logger.warning(
-            f"Updating {variant}")
-
-        return False
 
 
 if __name__ == '__main__':

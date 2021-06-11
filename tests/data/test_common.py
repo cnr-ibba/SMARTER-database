@@ -17,7 +17,7 @@ from openpyxl import Workbook
 from src.data.common import (
     fetch_and_check_dataset, get_variant_species, get_sample_species,
     pandas_open, update_chip_name, update_sequence, update_affymetrix_record,
-    update_variant)
+    update_location, update_variant)
 from src.features.smarterdb import (
     Dataset, VariantGoat, VariantSheep, SampleSheep, SampleGoat, Location)
 
@@ -218,6 +218,10 @@ class VariantUpdateTests(VariantsMixin, MongoMockMixin, unittest.TestCase):
         self.variant = VariantSheep(**variant_data)
         self.location = Location(**location_data)
 
+    def tearDown(self):
+        # reset record to its original state
+        self.record.update(**self.data[0])
+
     def test_update_chip_name(self):
         record, updated = update_chip_name(self.variant, self.record)
         self.assertFalse(updated)
@@ -252,6 +256,59 @@ class VariantUpdateTests(VariantsMixin, MongoMockMixin, unittest.TestCase):
         record, updated = update_affymetrix_record(self.variant, self.record)
         self.assertTrue(updated)
 
+    def test_update_location(self):
+        record, updated = update_location(self.location, self.record)
+        self.assertFalse(updated)
+
+        # change location
+        self.location.version = "test"
+        record, updated = update_location(self.location, self.record)
+        self.assertTrue(updated)
+
+    def test_update_location_mismatch(self):
+        # test a location mismatch
+        # HINT: should I overwrite the location?
+        self.location.chrom = "test"
+        record, updated = update_location(self.location, self.record)
+        self.assertFalse(updated)
+
+        # no location added
+        self.assertEqual(len(self.record.locations), 2)
+
+    def test_update_variant_chip_name(self):
+        qs = VariantSheep.objects.filter(
+            name="250506CS3900065000002_1238.1")
+        updated = update_variant(qs, self.variant, self.location)
+        self.assertFalse(updated)
+
+        # set a new chip_name
+        self.variant.chip_name = ["test"]
+        updated = update_variant(qs, self.variant, self.location)
+        self.assertTrue(updated)
+
+    def test_update_variant_sequence(self):
+        qs = VariantSheep.objects.filter(
+            name="250506CS3900065000002_1238.1")
+        updated = update_variant(qs, self.variant, self.location)
+        self.assertFalse(updated)
+
+        # update sequence
+        self.variant.sequence = {"test": "AGCT"}
+        updated = update_variant(qs, self.variant, self.location)
+        self.assertTrue(updated)
+
+    def test_update_variant_affymetrix_record(self):
+        qs = VariantSheep.objects.filter(
+            name="250506CS3900065000002_1238.1")
+        updated = update_variant(qs, self.variant, self.location)
+        self.assertFalse(updated)
+
+        # add affimetrix attribute
+        self.variant.probeset_id = "test"
+        self.variant.affy_snp_id = "test"
+        updated = update_variant(qs, self.variant, self.location)
+        self.assertTrue(updated)
+
     def test_update_variant_with_location(self):
         qs = VariantSheep.objects.filter(
             name="250506CS3900065000002_1238.1")
@@ -260,7 +317,6 @@ class VariantUpdateTests(VariantsMixin, MongoMockMixin, unittest.TestCase):
 
         # change location
         self.location.version = "test"
-
         updated = update_variant(qs, self.variant, self.location)
         self.assertTrue(updated)
 

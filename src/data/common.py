@@ -14,7 +14,6 @@ from typing import Union
 from pathlib import Path
 from collections import namedtuple
 
-from mongoengine.errors import NotUniqueError
 from mongoengine.queryset import QuerySet
 
 import pandas as pd
@@ -188,12 +187,7 @@ def new_variant(
 
     logger.info(f"adding {variant} to database")
 
-    try:
-        variant.save()
-
-    except NotUniqueError as e:
-        logger.error(
-            f"Cannot insert {variant}, reason: {e}")
+    variant.save()
 
 
 def update_variant(
@@ -227,16 +221,9 @@ def update_variant(
 
     # I chose to not update other values, I suppose they be the same
     # However check for locations
-    try:
-        check_location(location, record)
+    record, updated = update_location(location, record)
 
-    except SmarterDBException as exc:
-        logger.debug(exc)
-
-        # if I'm impotring Affymetrix data, I could have a variant but not
-        # a location to check. So add a location to variant
-        logger.info(f"Append location {location} to variant {record}")
-        record.locations.append(location)
+    if updated:
         update_record = True
 
     if update_record:
@@ -246,7 +233,9 @@ def update_variant(
 
 
 def update_chip_name(
-        variant, record) -> [Union[VariantSheep, VariantGoat], bool]:
+        variant: Union[VariantSheep, VariantGoat],
+        record: Union[VariantSheep, VariantGoat]
+        ) -> [Union[VariantSheep, VariantGoat], bool]:
     variant_set = set(variant.chip_name)
     record_set = set(record.chip_name)
 
@@ -264,7 +253,9 @@ def update_chip_name(
 
 
 def update_sequence(
-        variant, record) -> [Union[VariantSheep, VariantGoat], bool]:
+        variant: Union[VariantSheep, VariantGoat],
+        record: Union[VariantSheep, VariantGoat]
+        ) -> [Union[VariantSheep, VariantGoat], bool]:
 
     updated = False
 
@@ -276,7 +267,9 @@ def update_sequence(
 
 
 def update_affymetrix_record(
-        variant, record) -> [Union[VariantSheep, VariantGoat], bool]:
+        variant: Union[VariantSheep, VariantGoat],
+        record: Union[VariantSheep, VariantGoat]
+        ) -> [Union[VariantSheep, VariantGoat], bool]:
 
     updated = False
 
@@ -291,16 +284,38 @@ def update_affymetrix_record(
     return record, updated
 
 
-def check_location(location, variant) -> None:
+def update_location(
+        location: Location,
+        variant: Union[VariantSheep, VariantGoat],
+        ) -> [Union[VariantSheep, VariantGoat], bool]:
+
+    updated = False
+
     # get the old location as index
-    index = variant.get_location_index(
-        version=location.version, imported_from=location.imported_from)
+    try:
+        index = variant.get_location_index(
+            version=location.version, imported_from=location.imported_from)
 
-    # ok get the old location and check with the new one
-    if variant.locations[index] == location:
-        logger.debug("Locations match")
+        # ok get the old location and check with the new one
+        if variant.locations[index] == location:
+            logger.debug("Locations match")
 
-    # HINT: should I update location? maybe relying on date and __gt__ method?
-    else:
-        logger.warning(
-            f"Locations differ: {location} <> {variant.locations[index]}")
+        # HINT: should I update location? maybe relying on date and
+        # __gt__ method?
+        else:
+            logger.warning(
+                f"Locations differ for '{variant.name}': {location} <> "
+                f"{variant.locations[index]}"
+            )
+
+    except SmarterDBException as exc:
+        # if a index does not exist, then insert feature without warnings
+        logger.debug(exc)
+
+        # if I'm impotring Affymetrix data, I could have a variant but not
+        # a location to check. So add a location to variant
+        logger.info(f"Append location {location} to variant {variant}")
+        variant.locations.append(location)
+        updated = True
+
+    return variant, updated
