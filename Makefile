@@ -31,6 +31,7 @@ initialize: test_environment
 
 	## TODO: import manifest and SNPchimp for all assemblies
 	## import data for Sheep
+	## Oar_v3
 	$(PYTHON_INTERPRETER) src/data/import_manifest.py --species sheep --manifest data/external/SHE/ILLUMINA/ovinesnp50-genome-assembly-oar-v3-1.csv.gz \
 		--chip_name IlluminaOvineSNP50 --version Oar_v3.1 --sender AGR_BS
 	$(PYTHON_INTERPRETER) src/data/import_snpchimp.py --species sheep --snpchimp data/external/SHE/SNPCHIMP/SNPchimp_SHE_SNP50v1_oar3.1.csv.gz --version Oar_v3.1
@@ -38,6 +39,11 @@ initialize: test_environment
 		--chip_name IlluminaOvineHDSNP --version Oar_v3.1 --sender AGR_BS
 	$(PYTHON_INTERPRETER) src/data/import_snpchimp.py --species sheep --snpchimp data/external/SHE/SNPCHIMP/SNPchimp_SHE_SNPHDv1_oar3.1.csv.gz --version Oar_v3.1
 
+	## Oar_v4
+	$(PYTHON_INTERPRETER) src/data/import_manifest.py --species sheep --manifest data/external/SHE/ILLUMINA/ovinesnp50-genome-assembly-oar-v4-0.csv.gz \
+		--chip_name IlluminaOvineSNP50 --version Oar_v4.0 --sender AGR_BS
+	$(PYTHON_INTERPRETER) src/data/import_snpchimp.py --species sheep --snpchimp data/external/SHE/SNPCHIMP/SNPchimp_SHE_SNP50v1_oar4.0.csv.gz --version Oar_v4.0
+	$(PYTHON_INTERPRETER) src/data/import_snpchimp.py --species sheep --snpchimp data/external/SHE/SNPCHIMP/SNPchimp_SHE_SNPHDv1_oar4.0.csv.gz --version Oar_v4.0
 	$(PYTHON_INTERPRETER) src/data/import_affymetrix.py --species sheep --manifest data/external/SHE/AFFYMETRIX/Axiom_Ovi_Can.na35.r3.a3.annot.db \
 		--chip_name AffymetrixAxiomOviCan --version Oar_v4.0
 

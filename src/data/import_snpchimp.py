@@ -64,6 +64,7 @@ def main(species, snpchimp, version):
     logger.info("Completed")
 
 
+# TODO: use commnon functions to check and update locations
 def check_and_update_location(location, variant) -> bool:
     # get the old location as index
     try:

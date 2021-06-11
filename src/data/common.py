@@ -31,6 +31,7 @@ AssemblyConf = namedtuple('AssemblyConf', ['version', 'imported_from'])
 
 WORKING_ASSEMBLIES = {
     'OAR3': AssemblyConf('Oar_v3.1', 'SNPchiMp v.3'),
+    'OAR4': AssemblyConf('Oar_v4.0', 'SNPchiMp v.3'),
     'ARS1': AssemblyConf('ARS1', 'manifest'),
     'CHI1': AssemblyConf('CHI1.0', 'SNPchiMp v.3')
 }
@@ -198,20 +199,31 @@ def new_variant(
 def update_variant(
         qs: QuerySet,
         variant: Union[VariantSheep, VariantGoat],
-        location: Location):
+        location: Location) -> bool:
     """Update an existing variant (if necessary)"""
 
     record = qs.get()
     logger.debug(f"found {record} in database")
 
+    update_record = False
+
     # check chip_name in variant list
-    record = update_chip_name(variant, record)
+    record, updated = update_chip_name(variant, record)
+
+    if updated:
+        update_record = True
 
     # update sequence record
-    record = update_sequence(variant, record)
+    record, updated = update_sequence(variant, record)
+
+    if updated:
+        update_record = True
 
     # update affymetrix record (if any)
-    record = update_affymetrix_record(variant, record)
+    record, updated = update_affymetrix_record(variant, record)
+
+    if updated:
+        update_record = True
 
     # I chose to not update other values, I suppose they be the same
     # However check for locations
@@ -223,16 +235,22 @@ def update_variant(
 
         # if I'm impotring Affymetrix data, I could have a variant but not
         # a location to check. So add a location to variant
-        logger.info(f"Append location {location} to variant {variant}")
+        logger.info(f"Append location {location} to variant {record}")
         record.locations.append(location)
+        update_record = True
 
-    # update record
-    record.save()
+    if update_record:
+        record.save()
+
+    return update_record
 
 
-def update_chip_name(variant, record):
+def update_chip_name(
+        variant, record) -> [Union[VariantSheep, VariantGoat], bool]:
     variant_set = set(variant.chip_name)
     record_set = set(record.chip_name)
+
+    updated = False
 
     # get new items as a difference of two sets
     new_chips = variant_set - record_set
@@ -240,29 +258,40 @@ def update_chip_name(variant, record):
     if len(new_chips) > 0:
         # this will append the resulting set as a list
         record.chip_name += list(new_chips)
+        updated = True
 
-    return record
+    return record, updated
 
 
-def update_sequence(variant, record):
-    if variant.sequence != record.sequence:
+def update_sequence(
+        variant, record) -> [Union[VariantSheep, VariantGoat], bool]:
+
+    updated = False
+
+    if variant.sequence and variant.sequence != record.sequence:
         record.sequence.update(variant.sequence)
+        updated = True
 
-    return record
+    return record, updated
 
 
-def update_affymetrix_record(variant, record):
+def update_affymetrix_record(
+        variant, record) -> [Union[VariantSheep, VariantGoat], bool]:
+
+    updated = False
+
     for key in ['probeset_id', 'affy_snp_id', 'cust_id']:
         variant_attr = getattr(variant, key)
         record_attr = getattr(record, key)
 
         if variant_attr and variant_attr != record_attr:
             setattr(record, key, variant_attr)
+            updated = True
 
-    return record
+    return record, updated
 
 
-def check_location(location, variant):
+def check_location(location, variant) -> None:
     # get the old location as index
     index = variant.get_location_index(
         version=location.version, imported_from=location.imported_from)

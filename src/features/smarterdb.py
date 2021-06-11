@@ -761,6 +761,7 @@ class VariantSpecies(mongoengine.Document):
     cust_id = mongoengine.StringField()
 
     # abstract class with custom indexes
+    # TODO: need a index for position (chrom, position, version)
     meta = {
         'abstract': True,
         'indexes': [
