@@ -1,5 +1,8 @@
 SMARTER Database
 ==============================
+[![Pytest Workflow](https://github.com/cnr-ibba/SMARTER-database/actions/workflows/pytest-workflow.yml/badge.svg)](https://github.com/cnr-ibba/SMARTER-database/actions/workflows/pytest-workflow.yml)
+[![Lint Workflow](https://github.com/cnr-ibba/SMARTER-database/actions/workflows/lint-workflow.yml/badge.svg)](https://github.com/cnr-ibba/SMARTER-database/actions/workflows/lint-workflow.yml)
+[![Coverage Status](https://coveralls.io/repos/github/cnr-ibba/SMARTER-database/badge.svg?branch=master)](https://coveralls.io/github/cnr-ibba/SMARTER-database?branch=master)
 
 Smarter Database aims to deal with Smarter data
 

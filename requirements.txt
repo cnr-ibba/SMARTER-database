@@ -67,7 +67,7 @@ markupsafe==1.1.1
 matplotlib==3.3.4
 mccabe==0.6.1
 mistune==0.8.4
-mongoengine==0.23.0
+mongoengine==0.23.1
 mongomock==3.22.1
 munch==2.5.0
 nbclassic==0.2.6
@@ -86,7 +86,7 @@ parso==0.8.1
 partd==1.1.0
 pexpect==4.8.0
 pickleshare==0.7.5
-pillow==8.1.2
+pillow==8.2.0
 plinkio==0.9.8
 pluggy==0.13.1
 pockets==0.9.1
@@ -139,7 +139,7 @@ tornado==6.1
 tox==3.23.0
 tqdm==4.57.0
 traitlets==5.0.5
-urllib3==1.26.4
+urllib3==1.26.5
 virtualenv==20.4.2
 wcwidth==0.2.5
 webencodings==0.5.1
