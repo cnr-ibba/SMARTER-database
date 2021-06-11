@@ -17,8 +17,8 @@ TODO
   - ReadTheDocs
 * Rename objects (use names in a consistent way)
 
-0.3.1.dev0
-----------
+0.3.1 (2021-06-11)
+------------------
 
 * Track illumina manifactured date
 * Upgrade dependencies
