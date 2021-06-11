@@ -15,8 +15,8 @@ TODO
 * Enable continuous integration
   - ReadTheDocs
 
-0.3.1.dev0
-----------
+0.3.1 (2021-06-11)
+------------------
 
 * Upgrade dependencies
 * Enable continuous integration
