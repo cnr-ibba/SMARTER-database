@@ -17,10 +17,20 @@ TODO
   - ReadTheDocs
 * Rename objects (use names in a consistent way)
 
+0.4.0.dev0
+----------
+
+* Test import data from *snpchimp*
+* Import ``OARV4`` coordinates
+* ``data/common`` module refactoring
+* Fix bug when importing a datasource
+* Model affymetrix fields
+* Read from affymetrix manifest file
+* Track illumina manifactured date
+
 0.3.1 (2021-06-11)
 ------------------
 
-* Track illumina manifactured date
 * Upgrade dependencies
 * Enable continuous integration
   - Github Workflow
