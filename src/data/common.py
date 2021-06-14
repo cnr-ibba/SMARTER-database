@@ -185,7 +185,7 @@ def new_variant(
 
     variant.locations.append(location)
 
-    logger.info(f"adding {variant} to database")
+    logger.debug(f"adding {variant} to database")
 
     variant.save()
 
@@ -327,7 +327,7 @@ def update_location(
 
         # if I'm impotring Affymetrix data, I could have a variant but not
         # a location to check. So add a location to variant
-        logger.info(f"Append location {location} to variant {variant}")
+        logger.debug(f"Append location {location} to variant {variant}")
         variant.locations.append(location)
         updated = True
 

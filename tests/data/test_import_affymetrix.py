@@ -93,7 +93,7 @@ class ImportManifestTest(
         self.assertEqual(test.cust_id, "250506CS3900176800001_906_01")
         self.assertEqual(location.chrom, "7")
         self.assertEqual(location.position, 81590897)
-        self.assertEqual(location.illumina_top, None)
+        self.assertEqual(location.illumina_top, "A/G")
         self.assertEqual(location.affymetrix_ab, "T/C")
         self.assertEqual(location.alleles, "C/T")
         self.assertEqual(location.date, datetime.datetime(2018, 12, 17))
@@ -144,6 +144,13 @@ class UpdateManifestTest(
         self.assertIn('affymetrix', test.sequence)
         self.assertEqual(test.cust_id, "250506CS3900176800001_906_01")
 
+        # test updated location
+        location = test.get_location(
+            version="Oar_v3.1",
+            imported_from="affymetrix")
+
+        self.assertEqual(location.illumina_top, "A/G")
+
         # this is only affymetrix
         test = VariantSheep.objects.get(name="Affx-293815543")
 
@@ -154,3 +161,10 @@ class UpdateManifestTest(
         self.assertNotIn('illumina', test.sequence)
         self.assertIn('affymetrix', test.sequence)
         self.assertIsNone(test.cust_id)
+
+        # test updated location
+        location = test.get_location(
+            version="Oar_v3.1",
+            imported_from="affymetrix")
+
+        self.assertEqual(location.illumina_top, "A/G")

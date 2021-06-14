@@ -23,6 +23,8 @@ TODO
 0.4.0.dev0
 ----------
 
+* load data from affymetrix manifest
+* calculate *illumina_top* from affymetrix sequence
 * Test import data from *snpchimp*
 * Import ``OARV4`` coordinates
 * ``data/common`` module refactoring
