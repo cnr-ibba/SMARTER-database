@@ -12,6 +12,8 @@ import datetime
 import logging
 import collections
 
+import Bio.Seq
+
 from typing import Union
 from dateutil.parser import parse as parse_date
 
@@ -19,6 +21,16 @@ from src.features.utils import sanitize, text_or_gzip_open
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
+
+
+class IlluSNPException(Exception):
+    """Base exception class for IlluSNP"""
+
+    def __init__(self, value=None):
+        self.value = value
+
+    def __str__(self):
+        return repr(self.value)
 
 
 def skip_lines(handle, skip) -> (int, list):
@@ -265,3 +277,218 @@ def read_illuminaRow(path: str, size=2048):
             # convert into collection
             record = IlluminaRow._make(record)
             yield record
+
+
+class IlluSNP():
+    def __init__(self, sequence=None, max_iter=10):
+        """Define a IlluSNP class"""
+
+        self.sequence = None
+        self.strand = None
+        self.A = None
+        self.B = None
+        self.snp = None
+        self.max_iter = None
+        self.pos = None
+
+        if sequence is not None:
+            self.fromSequence(sequence, max_iter=max_iter)
+
+    def __repr__(self):
+        """Return a string"""
+
+        return ("<{module}.IlluSNP(sequence='{sequence}', "
+                "snp='{snp}', "
+                "strand='{strand}', A='{A}', B='{B}')>").format(
+                module=self.__module__, sequence=self.sequence,
+                A=self.A, B=self.B, strand=self.strand, snp=self.snp)
+
+    def __eq__(self, other):
+        """Test equality"""
+
+        t1 = (self.sequence, self.strand, self.A, self.B, self.snp)
+        t2 = (other.sequence, other.strand, other.A, other.B, other.snp)
+
+        return t1 == t2
+
+    def __ne__(self, other):
+        """test not equality"""
+
+        t1 = (self.sequence, self.strand, self.A, self.B, self.snp)
+        t2 = (other.sequence, other.strand, other.A, other.B, other.snp)
+
+        return t1 != t2
+
+    def fromSequence(self, sequence, max_iter=10):
+        """Define a IlluSNP from a sequence"""
+
+        # call findSNP
+        snp, pos = self.findSNP(sequence)
+
+        # is snp unambiguous?
+        if self.isUnambiguous(snp):
+            self.A, self.B, self.strand = self._setABsnp(snp)
+
+        else:
+            # When snp is ambiguous, the actual SNP is
+            # considered to be position ‘n’. The sequences immediately
+            # before and after the SNP is evaluated
+
+            # get flanking sequence. mind [] around SNP positions
+            for n in range(1, max_iter+1):
+                # pos is a tuple of indices, like (10, 15). The stop position
+                # is not included
+                pair = "%s/%s" % (sequence[pos[0]-n], sequence[pos[1]+n-1])
+
+                logger.debug("Step %s: considering pair %s" % (n, pair))
+
+                if self.isUnambiguous(pair):
+                    self.A, self.B, self.strand = self._setABpair(pair, snp)
+
+                    # leave cicle
+                    break
+
+            if n == max_iter and not self.isUnambiguous(pair):
+                raise IlluSNPException("Can't find unambiguous pair in %s "
+                                       "steps (%s)" % (
+                                               max_iter, sequence))
+
+        # assign values
+        self.sequence = sequence
+        self.snp = snp
+        self.max_iter = max_iter
+        self.pos = pos
+
+    def _setABsnp(self, snp):
+        """Set strand and A/B alleles for unambiguous SNP"""
+
+        # get strand assignment
+        alleles = snp.split("/")
+        strand = None
+        A = None
+        B = None
+
+        # The simplest case of determining strand and allele designations
+        # occurs when one of the possible variations of the SNP
+        # is an adenine (A), and the remaining variation is either a
+        # cytosine (C) or guanine (G). In this instance, the sequence
+        # for this SNP is designated TOP, and the A nucleotide is designated
+        # Allele A. Therefore, the C or G is Allele B. For more information:
+        # https://www.illumina.com/documents/products/technotes/technote_topbot.pdf
+        if "A" in alleles:
+            strand = "TOP"
+
+            if alleles.index("A") == 0:
+                A, B = alleles
+
+            else:
+                B, A = alleles
+
+            logger.debug("Found A. Set strand = '%s', A = '%s' B = '%s'" %
+                         (strand, A, B))
+
+        # when one of the possible variations of the SNP is a thymine (T),
+        # and the remaining variation is either a C or a G, the
+        # sequence for this SNP is designated BOT and the T
+        # nucleotide is designated Allele A. The C or the G
+        # nucleotide is Allele B. For more information:
+        # https://www.illumina.com/documents/products/technotes/technote_topbot.pdf
+        if "T" in alleles:
+            strand = "BOT"
+
+            if alleles.index("T") == 0:
+                A, B = alleles
+
+            else:
+                B, A = alleles
+
+            logger.debug("Found T. Set strand = '%s', A = '%s' B = '%s'" %
+                         (strand, A, B))
+
+        return A, B, strand
+
+    def _setABpair(self, pair, snp):
+        """Set strand and A/B alleles for unambiguous pair"""
+
+        pair = pair.split("/")
+        alleles = snp.split("/")
+        strand = None
+        A = None
+        B = None
+
+        if "A" in pair[0] or "T" in pair[0]:
+            strand = "TOP"
+            A, B = alleles
+
+            logger.debug("Found %s in 5'. Set strand = '%s', A = '%s' "
+                         "B = '%s'" % (pair[0], strand, A, B))
+
+        else:
+            strand = "BOT"
+            B, A, = alleles
+
+            logger.debug("Found %s in 3'. Set strand = '%s', A = '%s' "
+                         "B = '%s'" % (pair[1], strand, A, B))
+
+        return A, B, strand
+
+    def findSNP(self, sequence):
+        """Find snp (eg [A/G] in sqequence (0-based)"""
+
+        pattern = re.compile(r"\[([acgt]/[acgt])\]", re.IGNORECASE)
+
+        match = re.search(pattern, sequence)
+
+        if match is None:
+            raise IlluSNPException("No SNPs in %s. No indels and only 2 "
+                                   "allelic SNPs are supported" % (sequence))
+
+        # get SNP and position. Capitalize SNP
+        snp = match.groups()[0].upper()
+        position = match.span()
+
+        logger.debug("Found %s in position %s" % (snp, position))
+
+        return(snp, position)
+
+    def isUnambiguous(self, snp):
+        """Return True if snp is unambiguous"""
+
+        # split snp by separator
+        alleles = snp.split("/")
+
+        # test for alleles length
+        if len(alleles) != 2:
+            raise IlluSNPException("Too many alleles in %s "
+                                   "Can only deal with 'A/B' snps" % (alleles))
+
+        # check for ambigousity. Only two snps considered
+        if "A" in alleles or "T" in alleles:
+            if "C" in alleles or "G" in alleles:
+                logger.debug("%s is unambiguous" % (snp))
+                return True
+
+        # default value
+        logger.debug("%s is ambiguous" % (snp))
+        return False
+
+    def toTop(self):
+        """Convert a BOT snp into TOP"""
+
+        if self.strand == "TOP":
+            return self
+
+        # get rid of []
+        sequence = re.sub(r"[\[\]\/]", "", self.sequence)
+
+        # get reverse complement of the sequence
+        reverse = Bio.Seq.MutableSeq(sequence)
+        reverse.reverse_complement()
+
+        # add []
+        reverse.insert(self.pos[0]+2, "]")
+        reverse.insert(self.pos[0]+1, "/")
+        reverse.insert(self.pos[0], "[")
+
+        # convert into string, return a IlluSNP object
+        return IlluSNP(str(reverse), max_iter=self.max_iter)
