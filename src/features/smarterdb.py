@@ -757,7 +757,8 @@ class VariantSpecies(mongoengine.Document):
     sender = mongoengine.StringField()
 
     # Affymetryx specific fields
-    probeset_id = mongoengine.StringField()
+    # more probe could be assigned to the same SNP
+    probeset_id = mongoengine.ListField(mongoengine.StringField())
     affy_snp_id = mongoengine.StringField()
     cust_id = mongoengine.StringField()
 
@@ -785,7 +786,7 @@ class VariantSpecies(mongoengine.Document):
 
         if not self.name and self.probeset_id:
             logger.warning(f"Set variant name to {self.probeset_id}")
-            self.name = self.probeset_id
+            self.name = self.affy_snp_id
 
         # default save method
         super(VariantSpecies, self).save(*args, **kwargs)

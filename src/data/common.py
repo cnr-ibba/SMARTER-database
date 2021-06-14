@@ -277,9 +277,22 @@ def update_affymetrix_record(
         variant_attr = getattr(variant, key)
         record_attr = getattr(record, key)
 
-        if variant_attr and variant_attr != record_attr:
-            setattr(record, key, variant_attr)
-            updated = True
+        if key == 'probeset_id':
+            variant_set = set(variant_attr)
+            record_set = set(record_attr)
+
+            # get new items as a difference of two sets
+            new_probeset_ids = variant_set - record_set
+
+            if len(new_probeset_ids) > 0:
+                # this will append the resulting set as a list
+                record.probeset_id += list(new_probeset_ids)
+                updated = True
+
+        else:
+            if variant_attr and variant_attr != record_attr:
+                setattr(record, key, variant_attr)
+                updated = True
 
     return record, updated
 

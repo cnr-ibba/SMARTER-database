@@ -85,9 +85,9 @@ class ImportManifestTest(
         location = test.locations[0]
 
         # test inserted fields for first object
-        self.assertEqual(test.name, "AX-124359447")
+        self.assertEqual(test.name, "Affx-122835222")
         self.assertEqual(test.chip_name, [self.chip_name])
-        self.assertEqual(test.probeset_id, "AX-124359447")
+        self.assertEqual(test.probeset_id, ["AX-124359447"])
         self.assertEqual(test.affy_snp_id, "Affx-122835222")
         self.assertIn('affymetrix', test.sequence)
         self.assertEqual(test.cust_id, "250506CS3900176800001_906_01")
@@ -113,6 +113,11 @@ class UpdateManifestTest(
         self.chip.n_of_snps = 0
         self.chip.save()
 
+        # assign a fake probeset id to a variant. Test updating list
+        variant = VariantSheep.objects.get(name="250506CS3900176800001_906.1")
+        variant.probeset_id = ["test"]
+        variant.save()
+
     def test_import_manifest(self):
         """test update illumina data with affymetrix"""
         self.import_data()
@@ -133,18 +138,18 @@ class UpdateManifestTest(
             "IlluminaOvineHDSNP",
             self.chip_name
         ])
-        self.assertEqual(test.probeset_id, "AX-124359447")
+        self.assertEqual(test.probeset_id, ["test", "AX-124359447"])
         self.assertEqual(test.affy_snp_id, "Affx-122835222")
         self.assertIn('illumina', test.sequence)
         self.assertIn('affymetrix', test.sequence)
         self.assertEqual(test.cust_id, "250506CS3900176800001_906_01")
 
         # this is only affymetrix
-        test = VariantSheep.objects.get(name="AX-104088695")
+        test = VariantSheep.objects.get(name="Affx-293815543")
 
-        self.assertEqual(test.name, "AX-104088695")
+        self.assertEqual(test.name, "Affx-293815543")
         self.assertEqual(test.chip_name, [self.chip_name])
-        self.assertEqual(test.probeset_id, "AX-104088695")
+        self.assertEqual(test.probeset_id, ["AX-104088695"])
         self.assertEqual(test.affy_snp_id, "Affx-293815543")
         self.assertNotIn('illumina', test.sequence)
         self.assertIn('affymetrix', test.sequence)

@@ -70,7 +70,7 @@ def main(species, manifest, chip_name, version):
         variant = VariantSpecie(
             chip_name=[chip_name],
             rs_id=record.dbsnp_rs_id,
-            probeset_id=record.probeset_id,
+            probeset_id=[record.probeset_id],
             affy_snp_id=record.affy_snp_id,
             sequence={'affymetrix': record.flank},
             cust_id=record.cust_id,
@@ -83,7 +83,7 @@ def main(species, manifest, chip_name, version):
             qs = VariantSpecie.objects.filter(rs_id=record.dbsnp_rs_id)
 
         else:
-            qs = VariantSpecie.objects.filter(name=record.probeset_id)
+            qs = VariantSpecie.objects.filter(name=record.affy_snp_id)
 
         if qs.count() == 1:
             update_variant(qs, variant, location)
