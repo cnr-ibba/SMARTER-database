@@ -5,6 +5,9 @@ History
 TODO
 ^^^^
 
+* ``alleles`` and ``illumina_top`` attributes should be referred to variants, while
+  in ``locations`` should be stored the read value from data source. Alleles and
+  illumina_top shouldn't change within the same SNP, indipendently from data source
 * fix linter issues
 * Check chromosomes in *Variants locations*: mind to **scaffold**, **null**, and
   **non-autosomal** chromosomes for *Goat* and *Sheep*

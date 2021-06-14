@@ -544,6 +544,7 @@ class Location(mongoengine.EmbeddedDocument):
     illumina = mongoengine.StringField()
     illumina_forward = mongoengine.StringField()
     illumina_strand = mongoengine.StringField()
+    affymetrix_ab = mongoengine.StringField()
     strand = mongoengine.StringField()
     imported_from = mongoengine.StringField()
 
@@ -765,6 +766,12 @@ class VariantSpecies(mongoengine.Document):
     meta = {
         'abstract': True,
         'indexes': [
+            {
+                'fields': [
+                    "locations.chrom",
+                    "locations.position"
+                ],
+            },
             'probeset_id',
             'rs_id'
         ]

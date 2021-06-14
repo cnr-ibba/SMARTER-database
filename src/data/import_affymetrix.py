@@ -43,12 +43,25 @@ def main(species, manifest, chip_name, version):
         # 'ref_allele', 'alt_allele', 'ordered_alleles', 'genome', 'cust_id',
         # 'date']
 
+        affymetrix_ab = f"{record.allele_a}/{record.allele_b}"
+
+        alleles = None
+
+        # A snp not in dbSNP could have no allele
+        if record.ref_allele and record.alt_allele:
+            # in dbSNP alleles order has no meaning: it's writtein in
+            # alphabetical order
+            # https://www.ncbi.nlm.nih.gov/books/NBK44476/#Reports.does_the_order_of_the_alleles_li
+            alleles = sorted([record.ref_allele, record.alt_allele])
+            alleles = "/".join(alleles)
+
         # create a location object
         location = Location(
             version=version,
             chrom=str(record.chr_id),
             position=record.start,
-            # How to track genotype?
+            affymetrix_ab=affymetrix_ab,
+            alleles=alleles,
             strand=record.strand,
             imported_from="affymetrix",
             date=record.date,
@@ -91,7 +104,7 @@ def main(species, manifest, chip_name, version):
 
 if __name__ == '__main__':
     log_fmt = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-    logging.basicConfig(level=logging.DEBUG, format=log_fmt)
+    logging.basicConfig(level=logging.INFO, format=log_fmt)
 
     # connect to database
     global_connection()

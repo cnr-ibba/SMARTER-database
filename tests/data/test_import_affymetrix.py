@@ -94,6 +94,8 @@ class ImportManifestTest(
         self.assertEqual(location.chrom, "7")
         self.assertEqual(location.position, 81590897)
         self.assertEqual(location.illumina_top, None)
+        self.assertEqual(location.affymetrix_ab, "T/C")
+        self.assertEqual(location.alleles, "C/T")
         self.assertEqual(location.date, datetime.datetime(2018, 12, 17))
 
 
@@ -118,10 +120,6 @@ class UpdateManifestTest(
         # affychip should report 2 snps
         self.chip.reload()
         self.assertEqual(self.chip.n_of_snps, 2)
-
-        # testing two chips names
-        for variant in VariantSheep.objects():
-            print(variant)
 
         # should have 4 variant in total, 2 illumina, 1 both, 1 affymetrix
         self.assertEqual(VariantSheep.objects.count(), 4)
