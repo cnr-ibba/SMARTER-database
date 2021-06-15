@@ -44,6 +44,8 @@ def main(species, manifest, chip_name, version):
         # 'ref_allele', 'alt_allele', 'ordered_alleles', 'genome', 'cust_id',
         # 'date']
 
+        logger.debug(f"Processing {record}")
+
         affymetrix_ab = f"{record.allele_a}/{record.allele_b}"
 
         alleles = None
@@ -57,7 +59,7 @@ def main(species, manifest, chip_name, version):
             alleles = "/".join(alleles)
 
         # get the illumina coded snp relying on sequence
-        illusnp = IlluSNP(record.flank).toTop()
+        illusnp = IlluSNP(record.flank, max_iter=25).toTop()
 
         # create a location object
         location = Location(
@@ -67,7 +69,7 @@ def main(species, manifest, chip_name, version):
             affymetrix_ab=affymetrix_ab,
             alleles=alleles,
             strand=record.strand,
-            illumina=illusnp.snp,
+            illumina_top=illusnp.snp,
             illumina_strand=illusnp.strand,
             imported_from="affymetrix",
             date=record.date,
@@ -82,7 +84,7 @@ def main(species, manifest, chip_name, version):
             cust_id=record.cust_id,
         )
 
-        logger.debug(f"{variant}, {location}")
+        logger.debug(f"Processing location {variant}, {location}")
 
         # search for a snp in database (relying on name or rs_id)
         if record.dbsnp_rs_id:

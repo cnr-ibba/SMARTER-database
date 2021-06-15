@@ -393,7 +393,7 @@ class IlluSNP():
         # nucleotide is designated Allele A. The C or the G
         # nucleotide is Allele B. For more information:
         # https://www.illumina.com/documents/products/technotes/technote_topbot.pdf
-        if "T" in alleles:
+        elif "T" in alleles:
             strand = "BOT"
 
             if alleles.index("T") == 0:
@@ -420,28 +420,33 @@ class IlluSNP():
             strand = "TOP"
             A, B = alleles
 
-            logger.debug("Found %s in 5'. Set strand = '%s', A = '%s' "
-                         "B = '%s'" % (pair[0], strand, A, B))
+            logger.debug(
+                "Found %s in 5'. Set strand = '%s', A = '%s' "
+                "B = '%s'" % (pair[0], strand, A, B))
 
         else:
             strand = "BOT"
             B, A, = alleles
 
-            logger.debug("Found %s in 3'. Set strand = '%s', A = '%s' "
-                         "B = '%s'" % (pair[1], strand, A, B))
+            logger.debug(
+                "Found %s in 3'. Set strand = '%s', A = '%s' "
+                "B = '%s'" % (pair[1], strand, A, B))
 
         return A, B, strand
 
     def findSNP(self, sequence):
         """Find snp (eg [A/G] in sqequence (0-based)"""
 
+        logger.debug(f"Got '{sequence}' as sequence")
+
         pattern = re.compile(r"\[([acgt]/[acgt])\]", re.IGNORECASE)
 
         match = re.search(pattern, sequence)
 
         if match is None:
-            raise IlluSNPException("No SNPs in %s. No indels and only 2 "
-                                   "allelic SNPs are supported" % (sequence))
+            raise IlluSNPException(
+                "No SNPs in %s. No indels and only 2 "
+                "allelic SNPs are supported" % (sequence))
 
         # get SNP and position. Capitalize SNP
         snp = match.groups()[0].upper()
@@ -459,8 +464,9 @@ class IlluSNP():
 
         # test for alleles length
         if len(alleles) != 2:
-            raise IlluSNPException("Too many alleles in %s "
-                                   "Can only deal with 'A/B' snps" % (alleles))
+            raise IlluSNPException(
+                "Too many alleles in %s "
+                "Can only deal with 'A/B' snps" % (alleles))
 
         # check for ambigousity. Only two snps considered
         if "A" in alleles or "T" in alleles:
@@ -475,6 +481,8 @@ class IlluSNP():
     def toTop(self):
         """Convert a BOT snp into TOP"""
 
+        logger.debug("Convert SNP into illumina top")
+
         if self.strand == "TOP":
             return self
 
@@ -486,9 +494,9 @@ class IlluSNP():
         reverse.reverse_complement()
 
         # add []
-        reverse.insert(self.pos[0]+2, "]")
-        reverse.insert(self.pos[0]+1, "/")
-        reverse.insert(self.pos[0], "[")
+        reverse.insert(-self.pos[0], "]")
+        reverse.insert(-self.pos[0]-2, "/")
+        reverse.insert(-self.pos[0]-4, "[")
 
         # convert into string, return a IlluSNP object
         return IlluSNP(str(reverse), max_iter=self.max_iter)

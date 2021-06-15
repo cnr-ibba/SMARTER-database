@@ -784,8 +784,8 @@ class VariantSpecies(mongoengine.Document):
     def save(self, *args, **kwargs):
         """Custom save method. Deal with variant name before save"""
 
-        if not self.name and self.probeset_id:
-            logger.warning(f"Set variant name to {self.probeset_id}")
+        if not self.name and self.affy_snp_id:
+            logger.warning(f"Set variant name to {self.affy_snp_id}")
             self.name = self.affy_snp_id
 
         # default save method

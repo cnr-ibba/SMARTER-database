@@ -319,6 +319,18 @@ class testIlluSNP(unittest.TestCase):
 
         self.assertEqual(test, illu_snp)
 
+    def test_toTop_flank_not_equal(self):
+        # Trasnlate a BOT snp in TOP
+        illu_snp = IlluSNP(
+            "TCCTTTGTGGGTGGAGAGGCTGACCCATTTGCAAG[C/T]"
+            "AGATTTCAGACCTCCGGGCCCTTTACCCCC")
+        test = illu_snp.toTop()
+        ref = IlluSNP(
+            "GGGGGTAAAGGGCCCGGAGGTCTGAAATCT[A/G]"
+            "CTTGCAAATGGGTCAGCCTCTCCACCCACAAAGGA")
+
+        self.assertEqual(test, ref)
+
 
 if __name__ == '__main__':
     unittest.main()
