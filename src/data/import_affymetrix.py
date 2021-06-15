@@ -6,6 +6,7 @@ Created on Wed Jun  9 15:44:58 2021
 @author: Paolo Cozzi <paolo.cozzi@ibba.cnr.it>
 """
 
+import re
 import click
 import logging
 
@@ -67,6 +68,19 @@ def main(species, manifest, chip_name, version):
             logger.warning(f"Ignoring: {record}")
             continue
 
+        # try to read the cust_id like illumina name:
+        illumina_name = None
+
+        if record.cust_id:
+            tmp = record.cust_id.split("_")
+
+            # last element is a number
+            tmp[-1] = str(int(tmp[-1]))
+
+            # recode the illumina name and define a re.pattern
+            illumina_name = "_".join(tmp[:-1]) + "." + tmp[-1]
+            illumina_pattern = re.compile(".".join(tmp))
+
         # create a location object
         location = Location(
             version=version,
@@ -92,9 +106,16 @@ def main(species, manifest, chip_name, version):
 
         logger.debug(f"Processing location {variant}, {location}")
 
-        # search for a snp in database (relying on name or rs_id)
-        if record.dbsnp_rs_id:
-            qs = VariantSpecie.objects.filter(rs_id=record.dbsnp_rs_id)
+        # search for a snp in database (relying on illumina name first)
+        if illumina_name:
+            qs = VariantSpecie.objects.filter(name=illumina_name)
+
+            if qs.count() == 0:
+                logger.info(
+                    f"Couldn't find a variant with '{illumina_name}'. "
+                    f"Trying with '{illumina_pattern}' pattern")
+                # ok make an attempt with pattern
+                qs = VariantSpecie.objects.filter(name=illumina_pattern)
 
         else:
             qs = VariantSpecie.objects.filter(name=record.affy_snp_id)

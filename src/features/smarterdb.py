@@ -785,7 +785,7 @@ class VariantSpecies(mongoengine.Document):
         """Custom save method. Deal with variant name before save"""
 
         if not self.name and self.affy_snp_id:
-            logger.warning(f"Set variant name to {self.affy_snp_id}")
+            logger.debug(f"Set variant name to {self.affy_snp_id}")
             self.name = self.affy_snp_id
 
         # default save method
