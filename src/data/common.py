@@ -291,6 +291,10 @@ def update_affymetrix_record(
 
         else:
             if variant_attr and variant_attr != record_attr:
+                if record_attr:
+                    logger.warning(
+                        f"Updating {key} {variant_attr} with {record_attr}")
+
                 setattr(record, key, variant_attr)
                 updated = True
 

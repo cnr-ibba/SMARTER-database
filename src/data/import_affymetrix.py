@@ -18,6 +18,53 @@ from src.data.common import get_variant_species, update_variant, new_variant
 logger = logging.getLogger(__name__)
 
 
+def get_alleles(record):
+    """Define dbSNP alleles from affymetrix record"""
+
+    alleles = None
+
+    # A snp not in dbSNP could have no allele
+    if record.ref_allele and record.alt_allele:
+        # in dbSNP alleles order has no meaning: it's writtein in
+        # alphabetical order
+        # https://www.ncbi.nlm.nih.gov/books/NBK44476/#Reports.does_the_order_of_the_alleles_li
+        alleles = sorted([record.ref_allele, record.alt_allele])
+        alleles = "/".join(alleles)
+
+    return alleles
+
+
+def search_database(record, VariantSpecie):
+    # try to read the cust_id like illumina name:
+    illumina_name = None
+
+    if record.cust_id:
+        tmp = record.cust_id.split("_")
+
+        # last element is a number
+        tmp[-1] = str(int(tmp[-1]))
+
+        # recode the illumina name and define a re.pattern
+        illumina_name = "_".join(tmp[:-1]) + "." + tmp[-1]
+        illumina_pattern = re.compile(".".join(tmp))
+
+    # search for a snp in database (relying on illumina name first)
+    if illumina_name:
+        qs = VariantSpecie.objects.filter(name=illumina_name)
+
+        if qs.count() == 0:
+            logger.debug(
+                f"Couldn't find a variant with '{illumina_name}'. "
+                f"Trying with '{illumina_pattern}' pattern")
+            # ok make an attempt with pattern
+            qs = VariantSpecie.objects.filter(name=illumina_pattern)
+
+    else:
+        qs = VariantSpecie.objects.filter(name=record.affy_snp_id)
+
+    return qs
+
+
 @click.command()
 @click.option('--species', type=str, required=True)
 @click.option('--manifest', type=str, required=True)
@@ -49,37 +96,17 @@ def main(species, manifest, chip_name, version):
 
         affymetrix_ab = f"{record.allele_a}/{record.allele_b}"
 
-        alleles = None
-
-        # A snp not in dbSNP could have no allele
-        if record.ref_allele and record.alt_allele:
-            # in dbSNP alleles order has no meaning: it's writtein in
-            # alphabetical order
-            # https://www.ncbi.nlm.nih.gov/books/NBK44476/#Reports.does_the_order_of_the_alleles_li
-            alleles = sorted([record.ref_allele, record.alt_allele])
-            alleles = "/".join(alleles)
+        alleles = get_alleles(record)
 
         # get the illumina coded snp relying on sequence
         try:
             illusnp = IlluSNP(record.flank, max_iter=25).toTop()
 
         except IlluSNPException as e:
-            logger.error(e)
-            logger.warning(f"Ignoring: {record}")
+            logger.debug(e)
+            logger.warning(
+                f"Ignoring {record}: only 2 allelic SNPs are supported")
             continue
-
-        # try to read the cust_id like illumina name:
-        illumina_name = None
-
-        if record.cust_id:
-            tmp = record.cust_id.split("_")
-
-            # last element is a number
-            tmp[-1] = str(int(tmp[-1]))
-
-            # recode the illumina name and define a re.pattern
-            illumina_name = "_".join(tmp[:-1]) + "." + tmp[-1]
-            illumina_pattern = re.compile(".".join(tmp))
 
         # create a location object
         location = Location(
@@ -106,19 +133,7 @@ def main(species, manifest, chip_name, version):
 
         logger.debug(f"Processing location {variant}, {location}")
 
-        # search for a snp in database (relying on illumina name first)
-        if illumina_name:
-            qs = VariantSpecie.objects.filter(name=illumina_name)
-
-            if qs.count() == 0:
-                logger.info(
-                    f"Couldn't find a variant with '{illumina_name}'. "
-                    f"Trying with '{illumina_pattern}' pattern")
-                # ok make an attempt with pattern
-                qs = VariantSpecie.objects.filter(name=illumina_pattern)
-
-        else:
-            qs = VariantSpecie.objects.filter(name=record.affy_snp_id)
+        qs = search_database(record, VariantSpecie)
 
         if qs.count() == 1:
             update_variant(qs, variant, location)
