@@ -281,7 +281,7 @@ class testIlluSNP(unittest.TestCase):
         for negative in negatives:
             self.assertRaisesRegex(
                 IlluSNPException,
-                "No SNPs in",
+                "Can't find a SNP in",
                 self.illusnp.findSNP,
                 negative)
 

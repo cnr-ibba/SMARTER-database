@@ -445,7 +445,7 @@ class IlluSNP():
 
         if match is None:
             raise IlluSNPException(
-                "No SNPs in %s. No indels and only 2 "
+                "Can't find a SNP in %s. No indels and only 2 "
                 "allelic SNPs are supported" % (sequence))
 
         # get SNP and position. Capitalize SNP

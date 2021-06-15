@@ -9,7 +9,7 @@ Created on Wed Jun  9 15:44:58 2021
 import click
 import logging
 
-from src.features.illumina import IlluSNP
+from src.features.illumina import IlluSNP, IlluSNPException
 from src.features.smarterdb import global_connection, SupportedChip, Location
 from src.features.affymetrix import read_Manifest
 from src.data.common import get_variant_species, update_variant, new_variant
@@ -59,7 +59,13 @@ def main(species, manifest, chip_name, version):
             alleles = "/".join(alleles)
 
         # get the illumina coded snp relying on sequence
-        illusnp = IlluSNP(record.flank, max_iter=25).toTop()
+        try:
+            illusnp = IlluSNP(record.flank, max_iter=25).toTop()
+
+        except IlluSNPException as e:
+            logger.error(e)
+            logger.warning(f"Ignoring: {record}")
+            continue
 
         # create a location object
         location = Location(
