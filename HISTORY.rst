@@ -23,12 +23,15 @@ TODO
 0.4.0.dev0
 ----------
 
+* ignore affymetrix insertions and deletions
+* join affymetrix data with illumina relying on ``cust_id``
+* define ``illumina_top`` from affymetrix flanking sequences
 * load data from affymetrix manifest
 * calculate *illumina_top* from affymetrix sequence
 * Test import data from *snpchimp*
 * Import ``OARV4`` coordinates
 * ``data/common`` module refactoring
-* Fix bug when importing a datasource
+* Fix bug in importing dataset order
 * Model affymetrix fields
 * Read from affymetrix manifest file
 * Track illumina manifactured date

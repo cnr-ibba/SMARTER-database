@@ -249,7 +249,7 @@ class VariantUpdateTests(VariantsMixin, MongoMockMixin, unittest.TestCase):
         record, updated = update_affymetrix_record(self.variant, self.record)
         self.assertFalse(updated)
 
-        # add affimetrix attribute
+        # add affymetrix attribute
         self.variant.probeset_id = "test"
         self.variant.affy_snp_id = "test"
 
@@ -303,7 +303,7 @@ class VariantUpdateTests(VariantsMixin, MongoMockMixin, unittest.TestCase):
         updated = update_variant(qs, self.variant, self.location)
         self.assertFalse(updated)
 
-        # add affimetrix attribute
+        # add affymetrix attribute
         self.variant.probeset_id = "test"
         self.variant.affy_snp_id = "test"
         updated = update_variant(qs, self.variant, self.location)
