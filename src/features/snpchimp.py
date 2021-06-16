@@ -62,6 +62,10 @@ def read_snpChimp(path: str, size=2048):
             # transform NULL valies in None
             record = [None if col == 'NULL' else col for col in record]
 
+            # clean chromosome
+            record[header.index('chromosome')] = clean_chrom(
+                record[header.index('chromosome')])
+
             # convert into collection
             record = SnpChimp._make(record)
             yield record

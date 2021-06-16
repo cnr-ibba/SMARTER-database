@@ -82,3 +82,18 @@ class ImportSNPChimpTest(VariantsMixin, MongoMockMixin, unittest.TestCase):
         self.assertEqual(location.position, 5859890)
         self.assertEqual(location.illumina_top, "A/G")
         self.assertEqual(self.variant.rs_id, "rs55630613")
+
+    def test_import_snpchimp_clean_chrom(self):
+        self.import_data()
+
+        # get an unmapped variant
+        variant = VariantSheep.objects.get(
+            name="250506CS3900435700001_1658.1")
+
+        location = variant.get_location(
+            version=self.version,
+            imported_from='SNPchiMp v.3')
+
+        self.assertEqual(location.chrom, "0")
+        self.assertEqual(location.position, 0)
+        self.assertEqual(location.illumina_top, "A/G")

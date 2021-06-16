@@ -23,6 +23,7 @@ TODO
 0.4.0.dev0
 ----------
 
+* Transform *SNPchiMp* unmapped chroms to ``0``
 * ignore affymetrix insertions and deletions
 * join affymetrix data with illumina relying on ``cust_id``
 * define ``illumina_top`` from affymetrix flanking sequences
