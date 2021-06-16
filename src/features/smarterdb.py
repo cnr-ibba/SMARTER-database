@@ -537,16 +537,16 @@ class Consequence(mongoengine.EmbeddedDocument):
 
 class Location(mongoengine.EmbeddedDocument):
     ss_id = mongoengine.StringField()
-    version = mongoengine.StringField()
-    chrom = mongoengine.StringField()
-    position = mongoengine.IntField()
+    version = mongoengine.StringField(required=True)
+    chrom = mongoengine.StringField(required=True)
+    position = mongoengine.IntField(required=True)
     alleles = mongoengine.StringField()
-    illumina = mongoengine.StringField()
+    illumina = mongoengine.StringField(required=True)
     illumina_forward = mongoengine.StringField()
     illumina_strand = mongoengine.StringField()
     affymetrix_ab = mongoengine.StringField()
     strand = mongoengine.StringField()
-    imported_from = mongoengine.StringField()
+    imported_from = mongoengine.StringField(required=True)
 
     # this could be the manifactured date or the last updated
     date = mongoengine.DateTimeField()
