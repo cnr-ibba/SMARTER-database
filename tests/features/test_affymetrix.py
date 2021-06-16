@@ -7,26 +7,30 @@ Created on Wed Jun  9 16:39:57 2021
 """
 
 import types
-import sqlite3
 import pathlib
 import unittest
 import datetime
 
-from src.features.affymetrix import search_manifactured_date, read_Manifest
+from src.features.affymetrix import (
+    search_manifactured_date, read_Manifest, skip_comments)
 
 SCRIPTS_DATA_DIR = pathlib.Path(__file__).parents[1] / "data/data"
 
 
 class ReadManifest(unittest.TestCase):
-    data_path = SCRIPTS_DATA_DIR / "test_affy.db"
+    data_path = SCRIPTS_DATA_DIR / "test_affy.csv"
+
+    def test_skip_comments(self):
+        with open(self.data_path) as handle:
+            position, skipped = skip_comments(handle)
+            self.assertEqual(len(skipped), 20)
 
     def test_search_manifactured_date(self):
-        with sqlite3.connect(self.data_path) as conn:
-            curs = conn.cursor()
+        with open(self.data_path) as handle:
+            position, skipped = skip_comments(handle)
+            test = search_manifactured_date(skipped)
 
-            test = search_manifactured_date(curs)
-
-        reference = datetime.datetime(2018, 12, 17)
+        reference = datetime.datetime(2019, 1, 17)
 
         self.assertEqual(reference, test)
 

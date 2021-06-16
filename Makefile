@@ -44,7 +44,7 @@ initialize: test_environment
 		--chip_name IlluminaOvineSNP50 --version Oar_v4.0 --sender AGR_BS
 	$(PYTHON_INTERPRETER) src/data/import_snpchimp.py --species sheep --snpchimp data/external/SHE/SNPCHIMP/SNPchimp_SHE_SNP50v1_oar4.0.csv.gz --version Oar_v4.0
 	$(PYTHON_INTERPRETER) src/data/import_snpchimp.py --species sheep --snpchimp data/external/SHE/SNPCHIMP/SNPchimp_SHE_SNPHDv1_oar4.0.csv.gz --version Oar_v4.0
-	$(PYTHON_INTERPRETER) src/data/import_affymetrix.py --species sheep --manifest data/external/SHE/AFFYMETRIX/Axiom_Ovi_Can.na35.r3.a3.annot.db \
+	$(PYTHON_INTERPRETER) src/data/import_affymetrix.py --species sheep --manifest data/external/SHE/AFFYMETRIX/Axiom_Ovi_Can.na35.r3.a3.annot.csv.gz \
 		--chip_name AffymetrixAxiomOviCan --version Oar_v4.0
 
 	## import data for goat

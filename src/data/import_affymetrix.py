@@ -84,10 +84,17 @@ def main(species, manifest, chip_name, version):
 
     # grep a sample SNP
     for i, record in enumerate(read_Manifest(manifest)):
-        # ['probeset_id', 'affy_snp_id', 'chr_id', 'start', 'stop', 'strand',
-        # 'dbsnp_rs_id', 'strand_vs_dbsnp', 'flank', 'allele_a', 'allele_b',
-        # 'ref_allele', 'alt_allele', 'ordered_alleles', 'genome', 'cust_id',
-        # 'date']
+        # ['probe_set_id', 'affy_snp_id', 'dbsnp_rs_id', 'dbsnp_loctype',
+        # 'chromosome', 'physical_position', 'position_end', 'strand',
+        # 'chrx_pseudo_autosomal_region_1', 'cytoband', 'flank', 'allele_a',
+        # 'allele_b', 'ref_allele', 'alt_allele', 'associated_gene',
+        # 'genetic_map', 'microsatellite', 'allele_frequencies',
+        # 'heterozygous_allele_frequencies', 'number_of_individuals',
+        # 'in_hapmap', 'strand_versus_dbsnp', 'probe_count',
+        # 'chrx_pseudo_autosomal_region_2', 'minor_allele',
+        # 'minor_allele_frequency', 'omim', 'biomedical',
+        # 'annotation_notes', 'ordered_alleles', 'allele_count',
+        # 'genome', 'cust_id', 'cust_genes', 'cust_traits', 'date']
         logger.debug(f"Processing {record}")
 
         affymetrix_ab = f"{record.allele_a}/{record.allele_b}"
@@ -110,8 +117,8 @@ def main(species, manifest, chip_name, version):
         # create a location object
         location = Location(
             version=version,
-            chrom=str(record.chr_id),
-            position=record.start,
+            chrom=record.chromosome,
+            position=record.physical_position,
             affymetrix_ab=affymetrix_ab,
             alleles=alleles,
             strand=record.strand,
@@ -124,7 +131,7 @@ def main(species, manifest, chip_name, version):
         variant = VariantSpecie(
             chip_name=[chip_name],
             rs_id=record.dbsnp_rs_id,
-            probeset_id=[record.probeset_id],
+            probeset_id=[record.probe_set_id],
             affy_snp_id=record.affy_snp_id,
             sequence={'affymetrix': record.flank},
             cust_id=record.cust_id,

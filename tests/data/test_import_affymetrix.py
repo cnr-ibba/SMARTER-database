@@ -31,7 +31,7 @@ class ManifestMixin():
         cls.chip.save()
 
     def import_data(self):
-        manifest_file = DATA_DIR / "test_affy.db"
+        manifest_file = DATA_DIR / "test_affy.csv"
 
         result = self.runner.invoke(
             self.main_function,
@@ -96,7 +96,7 @@ class ImportManifestTest(
         self.assertEqual(location.illumina_top, "A/G")
         self.assertEqual(location.affymetrix_ab, "T/C")
         self.assertEqual(location.alleles, "C/T")
-        self.assertEqual(location.date, datetime.datetime(2018, 12, 17))
+        self.assertEqual(location.date, datetime.datetime(2019, 1, 17))
 
 
 class UpdateManifestTest(
