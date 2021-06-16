@@ -7,7 +7,6 @@ Created on Wed Jun  9 16:39:57 2021
 """
 
 import csv
-import sqlite3
 import logging
 import collections
 import datetime
@@ -103,60 +102,6 @@ def read_Manifest(path: str, delimiter=","):
 
             # set null values to items
             record = [col if col != '---' else None for col in record]
-
-            # convert into collection
-            record = SnpChip._make(record)
-            yield record
-
-
-def read_ManifestDB(path: str):
-    """Read manifest sqlite file"""
-
-    with sqlite3.connect(path) as conn:
-        curs = conn.cursor()
-
-        # ok try to get the manifatcured date
-        date = search_manifactured_date(curs)
-
-        statement = """
-            SELECT ProbeSet_ID,
-                   Affy_SNP_ID,
-                   Chr_id,
-                   Start,
-                   Stop,
-                   Strand,
-                   dbSNP_RS_ID,
-                   Strand_Vs_dbSNP,
-                   Flank,
-                   Allele_A,
-                   Allele_B,
-                   Ref_Allele,
-                   Alt_Allele,
-                   Ordered_Alleles,
-                   Genome,
-                   cust_id
-              FROM Annotations
-        """
-
-        reader = curs.execute(statement)
-
-        header = [sanitize(column[0]) for column in reader.description]
-
-        # add date to header
-        header.append("date")
-
-        logger.info(header)
-
-        # define a datatype for my data
-        SnpChip = collections.namedtuple("SnpChip", header)
-
-        # add records to data
-        for record in reader:
-            # convert a tutple into list
-            record = list(record)
-
-            # add date to record
-            record.append(date)
 
             # convert into collection
             record = SnpChip._make(record)
