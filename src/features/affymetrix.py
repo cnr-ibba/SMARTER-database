@@ -103,6 +103,13 @@ def read_Manifest(path: str, delimiter=","):
             # set null values to items
             record = [col if col != '---' else None for col in record]
 
+            # mind to null position
+            if not record[header.index("chromosome")]:
+                record[header.index("chromosome")] = "0"
+
+            if not record[header.index("physical_position")]:
+                record[header.index("physical_position")] = 0
+
             # convert into collection
             record = SnpChip._make(record)
             yield record

@@ -30,6 +30,9 @@ class ManifestMixin():
         cls.chip = SupportedChip(name=cls.chip_name, species="Sheep")
         cls.chip.save()
 
+        # custom attributes
+        cls.version = "Oar_v3.1"
+
     def import_data(self):
         manifest_file = DATA_DIR / "test_affy.csv"
 
@@ -43,7 +46,7 @@ class ManifestMixin():
                 "--chip_name",
                 self.chip_name,
                 "--version",
-                "Oar_v3.1",
+                self.version,
             ]
         )
 
@@ -102,6 +105,8 @@ class ImportManifestTest(
 class UpdateManifestTest(
         ManifestMixin, SupportedChipMixin, VariantsMixin, MongoMockMixin,
         unittest.TestCase):
+
+    """test import with already loaded data"""
 
     main_function = import_affymetrix
 
@@ -167,4 +172,19 @@ class UpdateManifestTest(
             version="Oar_v3.1",
             imported_from="affymetrix")
 
+        self.assertEqual(location.illumina_top, "A/G")
+
+    def test_import_manifest_not_mapped(self):
+        self.import_data()
+
+        # get an unmapped variant
+        variant = VariantSheep.objects.get(
+            name="250506CS3900435700001_1658.1")
+
+        location = variant.get_location(
+            version=self.version,
+            imported_from='affymetrix')
+
+        self.assertEqual(location.chrom, "0")
+        self.assertEqual(location.position, 0)
         self.assertEqual(location.illumina_top, "A/G")
