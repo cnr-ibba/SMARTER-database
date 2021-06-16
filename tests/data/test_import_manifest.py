@@ -71,7 +71,7 @@ class ImportManifestTest(
         self.import_data()
 
         self.chip.reload()
-        self.assertEqual(self.chip.n_of_snps, 3)
+        self.assertEqual(self.chip.n_of_snps, 4)
 
         # get first inserted object
         test = VariantSheep.objects.first()

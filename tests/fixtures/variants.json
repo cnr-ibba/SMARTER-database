@@ -126,5 +126,42 @@
     ],
     "sender": "AGR_BS",
     "rs_id": "rs55630654"
+  },
+  {
+    "_id": {
+      "$oid": "60c8c3a8334e2c735342ebca"
+    },
+    "chip_name": [
+      "IlluminaOvineSNP50"
+    ],
+    "name": "250506CS3900435700001_1658.1",
+    "sequence": {
+      "manifest": "GTGCCAGCGTGCAGGGAGGAGAATCAGGTTAATGAGGTACAGGCTTTTCGGGTATTCCCG[A/G]AGCTTTTCTTTGGGTAAGGGCCACATCGCCAGTTCCCTCCAATTAATAAATTGTCAGGAG"
+    },
+    "locations": [
+      {
+        "version": "Oar_v3.1",
+        "chrom": "12",
+        "position": 45221821,
+        "illumina": "T/C",
+        "illumina_strand": "BOT",
+        "strand": "TOP",
+        "imported_from": "manifest",
+        "date": {
+          "$date": "2009-01-07T00:00:00Z"
+        },
+        "consequences": []
+      },
+      {
+        "version": "Oar_v3.1",
+        "chrom": "0",
+        "position": 0,
+        "illumina": "A/G",
+        "illumina_forward": "A/G",
+        "imported_from": "SNPchiMp v.3",
+        "consequences": []
+      }
+    ],
+    "sender": "AGR_BS"
   }
 ]

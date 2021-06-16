@@ -84,14 +84,10 @@ def main(species, manifest, chip_name, version):
 
     # grep a sample SNP
     for i, record in enumerate(read_Manifest(manifest)):
-        # update chip data indipendentely if it is an update or not
-        affymetrix_chip.n_of_snps += 1
-
         # ['probeset_id', 'affy_snp_id', 'chr_id', 'start', 'stop', 'strand',
         # 'dbsnp_rs_id', 'strand_vs_dbsnp', 'flank', 'allele_a', 'allele_b',
         # 'ref_allele', 'alt_allele', 'ordered_alleles', 'genome', 'cust_id',
         # 'date']
-
         logger.debug(f"Processing {record}")
 
         affymetrix_ab = f"{record.allele_a}/{record.allele_b}"
@@ -107,6 +103,9 @@ def main(species, manifest, chip_name, version):
             logger.warning(
                 f"Ignoring {record}: only 2 allelic SNPs are supported")
             continue
+
+        # update chip data indipendentely if it is an update or not
+        affymetrix_chip.n_of_snps += 1
 
         # create a location object
         location = Location(

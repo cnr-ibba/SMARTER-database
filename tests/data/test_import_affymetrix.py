@@ -78,7 +78,7 @@ class ImportManifestTest(
         self.import_data()
 
         self.chip.reload()
-        self.assertEqual(self.chip.n_of_snps, 2)
+        self.assertEqual(self.chip.n_of_snps, 3)
 
         # get first inserted object
         test = VariantSheep.objects.first()
@@ -124,10 +124,10 @@ class UpdateManifestTest(
 
         # affychip should report 2 snps
         self.chip.reload()
-        self.assertEqual(self.chip.n_of_snps, 2)
+        self.assertEqual(self.chip.n_of_snps, 3)
 
-        # should have 4 variant in total, 2 illumina, 1 both, 1 affymetrix
-        self.assertEqual(VariantSheep.objects.count(), 4)
+        # should have 4 variant in total, 2 illumina, 2 both, 1 affymetrix
+        self.assertEqual(VariantSheep.objects.count(), 5)
 
         # get the variation in common from two manifacturers
         test = VariantSheep.objects.get(name="250506CS3900176800001_906.1")
