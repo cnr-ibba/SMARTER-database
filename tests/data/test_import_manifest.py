@@ -8,13 +8,14 @@ Created on Thu Apr 22 12:22:12 2021
 
 import unittest
 import pathlib
+import datetime
 
 from click.testing import CliRunner
 
 from src.data.import_manifest import main as import_manifest
 from src.features.smarterdb import VariantSheep
 
-from ..common import MongoMockMixin, VariantsMixin, IlluminaChipMixin
+from ..common import MongoMockMixin, VariantsMixin, SupportedChipMixin
 
 DATA_DIR = pathlib.Path(__file__).parent / "data"
 
@@ -42,8 +43,8 @@ class ManifestMixin():
         self.assertEqual(0, result.exit_code, msg=result.exception)
 
 
-class ImportSNPChipsTest(
-        ManifestMixin, IlluminaChipMixin, MongoMockMixin, unittest.TestCase):
+class ImportManifestTest(
+        ManifestMixin, SupportedChipMixin, MongoMockMixin, unittest.TestCase):
 
     main_function = import_manifest
 
@@ -70,11 +71,22 @@ class ImportSNPChipsTest(
         self.import_data()
 
         self.chip.reload()
-        self.assertEqual(self.chip.n_of_snps, 3)
+        self.assertEqual(self.chip.n_of_snps, 4)
+
+        # get first inserted object
+        test = VariantSheep.objects.first()
+        location = test.locations[0]
+
+        # test inserted fields for first object
+        self.assertEqual(test.name, "250506CS3900065000002_1238.1")
+        self.assertEqual(location.chrom, "15")
+        self.assertEqual(location.position, 5870057)
+        self.assertEqual(location.illumina_top, "A/G")
+        self.assertEqual(location.date, datetime.datetime(2009, 1, 7))
 
 
-class UpdateSNPChipsTest(
-        ManifestMixin, IlluminaChipMixin, VariantsMixin, MongoMockMixin,
+class UpdateManifestTest(
+        ManifestMixin, SupportedChipMixin, VariantsMixin, MongoMockMixin,
         unittest.TestCase):
 
     main_function = import_manifest

@@ -23,7 +23,7 @@ from click_option_group import optgroup, RequiredMutuallyExclusiveOptionGroup
 
 from src.features.plinkio import (
     TextPlinkIO, BinaryPlinkIO, plink_binary_exists)
-from src.features.smarterdb import Dataset, global_connection, IlluminaChip
+from src.features.smarterdb import Dataset, global_connection, SupportedChip
 from src.data.common import WORKING_ASSEMBLIES, PLINK_SPECIES_OPT
 
 logger = logging.getLogger(__name__)
@@ -163,7 +163,7 @@ def main(file_, bfile, dataset, coding, chip_name, assembly):
             bfile, dataset, assembly)
 
     # check chip_name
-    illumina_chip = IlluminaChip.objects(name=chip_name).get()
+    illumina_chip = SupportedChip.objects(name=chip_name).get()
 
     # set chip name for this sample
     plinkio.chip_name = illumina_chip.name

@@ -7,7 +7,9 @@
       "IlluminaOvineSNP50"
     ],
     "name": "250506CS3900065000002_1238.1",
-    "sequence": "NNNNNNNNNNNNNNNNCTGCTTCCGTATTTGGGTCTTCTCTCAACTTCTCTTCTTCTCCC[T/C]TGCTGAGGAGGAGGCACTTTCAGATGTATTATGTTAATGGAGAGAAAAAGCATAATATTG",
+    "sequence": {
+      "illumina": "NNNNNNNNNNNNNNNNCTGCTTCCGTATTTGGGTCTTCTCTCAACTTCTCTTCTTCTCCC[T/C]TGCTGAGGAGGAGGCACTTTCAGATGTATTATGTTAATGGAGAGAAAAAGCATAATATTG"
+    },
     "locations": [
       {
         "version": "Oar_v3.1",
@@ -17,6 +19,9 @@
         "illumina_strand": "TOP",
         "strand": "BOT",
         "imported_from": "manifest",
+        "date": {
+          "$date": "2009-01-07T00:00:00Z"
+        },
         "consequences": []
       },
       {
@@ -45,7 +50,9 @@
       "IlluminaOvineHDSNP"
     ],
     "name": "250506CS3900140500001_312.1",
-    "sequence": "TATGCATGTACATTTTCTTGCCCTTTCCGGGCTTGCACTGTGTGCTTCTCACACCTTCTG[T/C]TTGAAAACTTATGTTACTTGGTATGCTCTGGAAGAGTATGTGAGGGAGTCAGGGATTGTG",
+    "sequence": {
+      "illumina": "TATGCATGTACATTTTCTTGCCCTTTCCGGGCTTGCACTGTGTGCTTCTCACACCTTCTG[T/C]TTGAAAACTTATGTTACTTGGTATGCTCTGGAAGAGTATGTGAGGGAGTCAGGGATTGTG"
+    },
     "locations": [
       {
         "version": "Oar_v3.1",
@@ -55,6 +62,9 @@
         "illumina_strand": "TOP",
         "strand": "BOT",
         "imported_from": "manifest",
+        "date": {
+          "$date": "2009-01-07T00:00:00Z"
+        },
         "consequences": []
       },
       {
@@ -83,7 +93,9 @@
       "IlluminaOvineHDSNP"
     ],
     "name": "250506CS3900176800001_906.1",
-    "sequence": "ACCTTAGTGTTAAAGGATTAACATAAGGAAACTGCAGCAGTATAGAAAAGACAAGACATT[T/C]TCTATTTAGATTGAACCCATTAAAATAATGACATTACAGGTGTAAAACCAAGACAATACT",
+    "sequence": {
+      "illumina": "ACCTTAGTGTTAAAGGATTAACATAAGGAAACTGCAGCAGTATAGAAAAGACAAGACATT[T/C]TCTATTTAGATTGAACCCATTAAAATAATGACATTACAGGTGTAAAACCAAGACAATACT"
+    },
     "locations": [
       {
         "version": "Oar_v3.1",
@@ -93,6 +105,9 @@
         "illumina_strand": "BOT",
         "strand": "BOT",
         "imported_from": "manifest",
+        "date": {
+          "$date": "2009-01-07T00:00:00Z"
+        },
         "consequences": []
       },
       {
@@ -111,5 +126,42 @@
     ],
     "sender": "AGR_BS",
     "rs_id": "rs55630654"
+  },
+  {
+    "_id": {
+      "$oid": "60c8c3a8334e2c735342ebca"
+    },
+    "chip_name": [
+      "IlluminaOvineSNP50"
+    ],
+    "name": "250506CS3900435700001_1658.1",
+    "sequence": {
+      "manifest": "GTGCCAGCGTGCAGGGAGGAGAATCAGGTTAATGAGGTACAGGCTTTTCGGGTATTCCCG[A/G]AGCTTTTCTTTGGGTAAGGGCCACATCGCCAGTTCCCTCCAATTAATAAATTGTCAGGAG"
+    },
+    "locations": [
+      {
+        "version": "Oar_v3.1",
+        "chrom": "12",
+        "position": 45221821,
+        "illumina": "T/C",
+        "illumina_strand": "BOT",
+        "strand": "TOP",
+        "imported_from": "manifest",
+        "date": {
+          "$date": "2009-01-07T00:00:00Z"
+        },
+        "consequences": []
+      },
+      {
+        "version": "Oar_v3.1",
+        "chrom": "0",
+        "position": 0,
+        "illumina": "A/G",
+        "illumina_forward": "A/G",
+        "imported_from": "SNPchiMp v.3",
+        "consequences": []
+      }
+    ],
+    "sender": "AGR_BS"
   }
 ]

@@ -19,7 +19,7 @@ import subprocess
 from pathlib import Path
 
 from src.features.plinkio import IlluminaReportIO, plink_binary_exists
-from src.features.smarterdb import global_connection, IlluminaChip
+from src.features.smarterdb import global_connection, SupportedChip
 from src.data.common import (
     fetch_and_check_dataset, WORKING_ASSEMBLIES, PLINK_SPECIES_OPT)
 
@@ -79,7 +79,7 @@ def main(dataset, snpfile, report, coding, breed_code, chip_name, assembly):
     )
 
     # check chip_name
-    illumina_chip = IlluminaChip.objects(name=chip_name).get()
+    illumina_chip = SupportedChip.objects(name=chip_name).get()
 
     # instantiating a TextPlinkIO object
     report = IlluminaReportIO(

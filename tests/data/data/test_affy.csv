@@ -1,0 +1,24 @@
+##For information about the Annotation file content, please see the bundled README file.
+#%create_date=2019-01-17 GMT-08:00 12:04:49
+#%chip_type=Axiom_Ovi_Can
+#%genome-species=Ovis aries
+#%genome-version=Oar_v4.0
+#%genome-version-ucsc=Oar_v4.0
+#%genome-version-ncbi=Oar_v4.0
+#%genome-version-create_date=2017-12-17
+#%mitochondrion-version=NA
+#%dbSNP-date=2017-10-20
+#%dbSNP-version=151
+#%hapmap-date=NA
+#%hapmap-version=NA
+#%omim-date=NA
+#%allele_frequency_data_reference=NA
+#%netaffx-annotation-date=2018-12-17
+#%netaffx-annotation-netaffx-build=35
+#%netaffx-annotation-netaffx-revision=r3.a3
+#%netaffx-annotation-tabular-format-version=1.5
+##This database/product contains information from the Online Mendelian Inheritance in Man(R) (OMIM(R)) database, which has been obtained under a license from the Johns Hopkins University.  This database/product does not represent the entire, unmodified OMIM(R) database, which is available in its entirety at www.ncbi.nlm.nih.gov/omim/.
+"Probe Set ID","Affy SNP ID","dbSNP RS ID","dbSNP Loctype","Chromosome","Physical Position","Position End","Strand","ChrX pseudo-autosomal region 1","Cytoband","Flank","Allele A","Allele B","Ref Allele","Alt Allele","Associated Gene","Genetic Map","Microsatellite","Allele Frequencies","Heterozygous Allele Frequencies","Number of individuals","In Hapmap","Strand Versus dbSNP","Probe Count","ChrX pseudo-autosomal region 2","Minor Allele","Minor Allele Frequency","OMIM","Biomedical","Annotation Notes","Ordered Alleles","Allele Count","Genome","cust_id","cust_genes","cust_traits"
+"AX-124359447","Affx-122835222","rs55630654","2","7","81590897","81590897","+","0","---","AGGAAACTGCAGCAGTATAGAAAAGACAAGACATT[C/T]TCTATTTAGATTGAACCCATTAAAATAATGACATT","T","C","C","T","XM_012182000 // exon // 0 // --- // --- // --- // --- /// XM_012182007 // exon // 0 // --- // --- // --- // --- /// XM_015097167 // exon // 0 // --- // --- // --- // --- /// XM_015097168 // exon // 0 // --- // --- // --- // --- /// XM_015097169 // exon // 0 // --- // --- // --- // --- /// XM_015097170 // exon // 0 // --- // --- // --- // --- /// XM_015097171 // exon // 0 // --- // --- // --- // --- /// XM_015097172 // exon // 0 // --- // --- // --- // ---","---","---","---","---","---","---","---","1","0","---","---","---","---","---","T // C","2","Oar_v4.0","250506CS3900176800001_906_01","---","---"
+"AX-104088695","Affx-293815543","---","2","10","86367023","86367023","+","0","---","GCAAAATACATGAAGCGTGGAAAAGGAAAGTATTA[C/T]TGCAAAATTTGTTGCTGTCGTGCTATGAAAAAAGG","T","C","T","C","XM_004012243 // cds // 0 // --- // CHAMP1 // 101118032 // chromosome alignment maintaining phosphoprotein 1 /// XM_012184979 // cds // 0 // --- // --- // --- // --- /// XM_012184980 // cds // 0 // --- // --- // --- // --- /// XM_015098282 // cds // 0 // --- // --- // --- // ---","---","---","---","---","---","---","---","1","0","---","---","---","---","---","T // C","2","Oar_v4.0","---","---","---"
+"AX-124372958","Affx-122818990","---","2","---","---","---","+","0","---","AGGTTAATGAGGTACAGGCTTTTCGGGTATTCCCG[A/G]AGCTTTTCTTTGGGTAAGGGCCACATCGCCAGTTC","A","G","---","---","---","---","---","---","---","---","---","---","1","0","---","---","---","---","---","A // G","2","---","250506CS3900435700001_1658_01","---","---"

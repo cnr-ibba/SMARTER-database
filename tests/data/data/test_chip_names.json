@@ -2,6 +2,7 @@
   {
     "name": "IlluminaOvineSNP50",
     "species": "Sheep",
+    "manifacturer": "illumina",
     "n_of_snps": 0
   }
 ]

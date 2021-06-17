@@ -17,10 +17,10 @@ from unittest.mock import patch, PropertyMock
 from src.data.import_phenotypes import main as import_phenotypes
 from src.features.smarterdb import Dataset, SampleSheep, Phenotype
 
-from ..common import MongoMockMixin, SmarterIDMixin, IlluminaChipMixin
+from ..common import MongoMockMixin, SmarterIDMixin, SupportedChipMixin
 
 
-class PhenotypeMixin(SmarterIDMixin, IlluminaChipMixin, MongoMockMixin):
+class PhenotypeMixin(SmarterIDMixin, SupportedChipMixin, MongoMockMixin):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()

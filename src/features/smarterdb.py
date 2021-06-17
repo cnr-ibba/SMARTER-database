@@ -84,14 +84,15 @@ class Counter(mongoengine.Document):
         return f"{self.id}: {self.sequence_value}"
 
 
-class IlluminaChip(mongoengine.Document):
+class SupportedChip(mongoengine.Document):
     name = mongoengine.StringField(required=True, unique=True)
     species = mongoengine.StringField(required=True)
+    manifacturer = mongoengine.StringField()
     n_of_snps = mongoengine.IntField(default=0)
 
     meta = {
         'db_alias': DB_ALIAS,
-        'collection': 'illuminaChips'
+        'collection': 'supportedChips'
     }
 
     def __str__(self):
@@ -536,16 +537,19 @@ class Consequence(mongoengine.EmbeddedDocument):
 
 class Location(mongoengine.EmbeddedDocument):
     ss_id = mongoengine.StringField()
-    version = mongoengine.StringField()
-    chrom = mongoengine.StringField()
-    position = mongoengine.IntField()
-    contig = mongoengine.StringField()
+    version = mongoengine.StringField(required=True)
+    chrom = mongoengine.StringField(required=True)
+    position = mongoengine.IntField(required=True)
     alleles = mongoengine.StringField()
-    illumina = mongoengine.StringField()
+    illumina = mongoengine.StringField(required=True)
     illumina_forward = mongoengine.StringField()
     illumina_strand = mongoengine.StringField()
+    affymetrix_ab = mongoengine.StringField()
     strand = mongoengine.StringField()
-    imported_from = mongoengine.StringField()
+    imported_from = mongoengine.StringField(required=True)
+
+    # this could be the manifactured date or the last updated
+    date = mongoengine.DateTimeField()
 
     consequences = mongoengine.ListField(
         mongoengine.EmbeddedDocumentField(Consequence))
@@ -740,18 +744,52 @@ class Location(mongoengine.EmbeddedDocument):
 class VariantSpecies(mongoengine.Document):
     rs_id = mongoengine.StringField()
     chip_name = mongoengine.ListField(mongoengine.StringField())
+
     name = mongoengine.StringField(unique=True)
-    sequence = mongoengine.StringField()
+
+    # sequence should model both illumina or affymetrix sequences
+    sequence = mongoengine.DictField()
+
     locations = mongoengine.ListField(
         mongoengine.EmbeddedDocumentField(Location))
+
+    # HINT: should sender be a Location attribute?
     sender = mongoengine.StringField()
 
+    # Affymetryx specific fields
+    # more probe could be assigned to the same SNP
+    probeset_id = mongoengine.ListField(mongoengine.StringField())
+    affy_snp_id = mongoengine.StringField()
+    cust_id = mongoengine.StringField()
+
+    # abstract class with custom indexes
+    # TODO: need a index for position (chrom, position, version)
     meta = {
         'abstract': True,
+        'indexes': [
+            {
+                'fields': [
+                    "locations.chrom",
+                    "locations.position"
+                ],
+            },
+            'probeset_id',
+            'rs_id'
+        ]
     }
 
     def __str__(self):
         return (f"name='{self.name}', rs_id='{self.rs_id}'")
+
+    def save(self, *args, **kwargs):
+        """Custom save method. Deal with variant name before save"""
+
+        if not self.name and self.affy_snp_id:
+            logger.debug(f"Set variant name to {self.affy_snp_id}")
+            self.name = self.affy_snp_id
+
+        # default save method
+        super(VariantSpecies, self).save(*args, **kwargs)
 
     def get_location_index(self, version: str, imported_from='SNPchiMp v.3'):
         """Returns location index for assembly version and imported source
