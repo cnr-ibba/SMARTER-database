@@ -11,7 +11,7 @@ import pathlib
 
 from functools import partial
 
-from src.features.dbsnp import search_chip_snps, read_dbSNP, read_dbSNP_new
+from src.features.dbsnp import search_chip_snps, read_dbSNP
 
 # set data dir
 DATA_DIR = pathlib.Path(__file__).parent / "data"
@@ -55,9 +55,3 @@ class DBSNPTest(unittest.TestCase):
         }
 
         self.assertDictEqual(reference, test)
-
-    def test_new_method(self):
-        iterator = filter(search_agr_bs, read_dbSNP_new(self.dbsnp_path))
-        test = next(iterator)
-
-        self.assertDictEqual(self.snp, test)
