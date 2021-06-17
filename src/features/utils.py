@@ -110,10 +110,10 @@ def get_processed_dir() -> pathlib.PosixPath:
     return get_project_dir() / "data/processed"
 
 
-def text_or_gzip_open(path: str):
+def text_or_gzip_open(path: str, mode="r"):
     if pathlib.Path(path).suffix == '.gz':
         logger.debug(f"Gzip detected for {path}")
         return gzip.open(path, mode='rt')
 
     else:
-        return open(path)
+        return open(path, mode=mode)
