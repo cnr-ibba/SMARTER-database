@@ -213,6 +213,12 @@ def update_variant(
     if updated:
         update_record = True
 
+    # test for rs_id:
+    record, updated = update_rs_id(variant, record)
+
+    if updated:
+        update_record = True
+
     # update affymetrix record (if any)
     record, updated = update_affymetrix_record(variant, record)
 
@@ -336,3 +342,18 @@ def update_location(
         updated = True
 
     return variant, updated
+
+
+def update_rs_id(
+        variant: Union[VariantSheep, VariantGoat],
+        record: Union[VariantSheep, VariantGoat]
+        ) -> [Union[VariantSheep, VariantGoat], bool]:
+
+    updated = False
+
+    if variant.rs_id and variant.rs_id != record.rs_id:
+        logger.warning(f"Update '{record}' with '{variant.rs_id}'")
+        record.rs_id = variant.rs_id
+        updated = True
+
+    return record, updated

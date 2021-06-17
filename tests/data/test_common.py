@@ -17,7 +17,7 @@ from openpyxl import Workbook
 from src.data.common import (
     fetch_and_check_dataset, get_variant_species, get_sample_species,
     pandas_open, update_chip_name, update_sequence, update_affymetrix_record,
-    update_location, update_variant)
+    update_location, update_variant, update_rs_id)
 from src.features.smarterdb import (
     Dataset, VariantGoat, VariantSheep, SampleSheep, SampleGoat, Location)
 
@@ -275,6 +275,20 @@ class VariantUpdateTests(VariantsMixin, MongoMockMixin, unittest.TestCase):
         # no location added
         self.assertEqual(len(self.record.locations), 2)
 
+    def test_update_rs_id(self):
+        record, updated = update_rs_id(self.variant, self.record)
+        self.assertFalse(updated)
+
+        # unset rs_id
+        self.variant.rs_id = None
+        record, updated = update_rs_id(self.variant, self.record)
+        self.assertFalse(updated)
+
+        # udpate rs_id
+        self.variant.rs_id = "test"
+        record, updated = update_rs_id(self.variant, self.record)
+        self.assertTrue(updated)
+
     def test_update_variant_chip_name(self):
         qs = VariantSheep.objects.filter(
             name="250506CS3900065000002_1238.1")
@@ -317,6 +331,17 @@ class VariantUpdateTests(VariantsMixin, MongoMockMixin, unittest.TestCase):
 
         # change location
         self.location.version = "test"
+        updated = update_variant(qs, self.variant, self.location)
+        self.assertTrue(updated)
+
+    def test_update_variant_with_rs_id(self):
+        qs = VariantSheep.objects.filter(
+            name="250506CS3900065000002_1238.1")
+        updated = update_variant(qs, self.variant, self.location)
+        self.assertFalse(updated)
+
+        # update rs_id
+        self.variant.rs_id = "test"
         updated = update_variant(qs, self.variant, self.location)
         self.assertTrue(updated)
 
