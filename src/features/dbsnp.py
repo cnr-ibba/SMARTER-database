@@ -7,10 +7,11 @@ Created on Wed Mar  3 10:54:15 2021
 """
 
 import re
-import gzip
 import logging
 
 from lxml import etree as ET
+
+from src.features.utils import text_or_gzip_open
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -107,7 +108,7 @@ def process_rs_elem(elem: ET.Element):
 
 
 def read_dbSNP(path: str):
-    with gzip.open(path) as handle:
+    with text_or_gzip_open(path, mode="rb") as handle:
         for event, elem in ET.iterparse(handle, events=("end", )):
             tag = re.sub(r"\{.*\}", "", elem.tag)
 

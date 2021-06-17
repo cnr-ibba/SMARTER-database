@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ExchangeSet xmlns:xsi="https://www.w3.org/2001/XMLSchema-instance" xmlns="https://www.ncbi.nlm.nih.gov/SNP/docsum" xsi:schemaLocation="https://www.ncbi.nlm.nih.gov/SNP/docsum ftp://ftp.ncbi.nlm.nih.gov/snp/specs/docsum_3.4.xsd" specVersion="3.4" dbSnpBuild="151" generated="2017-10-19 16:06">
+    <SourceDatabase taxId="9940" organism="sheep" gpipeOrgAbbr="oar"/>
+    <Rs rsId="55627891" snpClass="snp" snpType="notwithdrawn" molType="genomic" bitField="050000000005000000000100" taxId="9940">
+        <Validation byCluster="true"/>
+        <Create build="128" date="2007-10-03 12:07"/>
+        <Update build="150" date="2017-08-07 16:15"/>
+        <Sequence exemplarSs="76880054">
+            <Seq5>TCCTGTCTCCCTGGTTCTTGACTTGACGCAGCCCCTGGCTCCAGTTTCAGATTTTGCCTTAGGCTCCTGAGTCAATCAGGAGAGGCGTCCCCTTCCAGCT</Seq5>
+            <Observed>G/T</Observed>
+            <Seq3>AACTGGCCTAGTCAGGCGCGGGGCATCCTAGACCATTCCTGGTAGGGCTCTGCTGTCTTCTTACTGGCCACCACGCTTCTTTTCAATCTACCCTGACTCC</Seq3>
+        </Sequence>
+        <Ss ssId="76880054" handle="AGRF" batchId="52127" locSnpId="cgc891.1.581" subSnpClass="snp" orient="forward" strand="bottom" molType="genomic" buildId="128" methodClass="computed">
+            <Sequence>
+                <Seq5>TCCTGTCTCCCTGGTTCTTGACTTGACGCAGCCCCTGGCTCCAGTTTCAGATTTTGCCTTAGGCTCCTGAGTCAATCAGGAGAGGCGTCCCCTTCCAGCT</Seq5>
+                <Observed>G/T</Observed>
+                <Seq3>AACTGGCCTAGTCAGGCGCGGGGCATCCTAGACCATTCCTGGTAGGGCTCTGCTGTCTTCTTACTGGCCACCACGCTTCTTTTCAATCTACCCTGACTCC</Seq3>
+            </Sequence>
+        </Ss>
+        <Ss ssId="836318739" handle="AGR_BS" batchId="1059595" locSnpId="DU170943_581.1" subSnpClass="snp" orient="forward" strand="bottom" molType="genomic" buildId="140" methodClass="hybridize" validated="by-submitter">
+            <Sequence>
+                <Seq5>TCCAGTTTCAGATTTTGCCTTAGGCTCCTGAGTCAACAGGAGAGGCGTCCCCTTCCAGCT</Seq5>
+                <Observed>G/T</Observed>
+                <Seq3>AACTGGCCTAGTCAGGTGCGGGGCATCCTAGACCATTCCTGGTAGGGCTCTGCTGTCTTC</Seq3>
+            </Sequence>
+        </Ss>
+        <Ss ssId="900456133" handle="AGR_BS" batchId="1059601" locSnpId="oar3_OAR24_33934482" subSnpClass="snp" orient="reverse" molType="genomic" buildId="140" methodClass="sequence">
+            <Sequence>
+                <Seq5>TGCCCCGCGCCTGACTAGGCCAGTT</Seq5>
+                <Observed>A/C</Observed>
+                <Seq3>AGCTGGAAGGGGACGCCTCTCCTGA</Seq3>
+            </Sequence>
+        </Ss>
+        <Ss ssId="1145658169" handle="EVA_LIVESTOCK" batchId="1061867" locSnpId="IROA.24:g33934482a&gt;c" subSnpClass="snp" orient="reverse" strand="top" molType="genomic" buildId="143" methodClass="sequence" validated="by-submitter">
+            <Sequence>
+                <Seq5>TGCCCCGCGCCTGACTAGGCCAGTT</Seq5>
+                <Observed>A/C</Observed>
+                <Seq3>AGCTGGAAGGGGACGCCTCTCCTGA</Seq3>
+            </Sequence>
+        </Ss>
+        <Ss ssId="1210436664" handle="EVA_LIVESTOCK" batchId="1061869" locSnpId="MOOA.24:g33934482a&gt;c" subSnpClass="snp" orient="reverse" strand="top" molType="genomic" buildId="143" methodClass="sequence" validated="by-submitter">
+            <Sequence>
+                <Seq5>TGCCCCGCGCCTGACTAGGCCAGTT</Seq5>
+                <Observed>A/C</Observed>
+                <Seq3>AGCTGGAAGGGGACGCCTCTCCTGA</Seq3>
+            </Sequence>
+        </Ss>
+        <Ss ssId="2564717414" handle="EVA_SHEEPGENOMESDB" batchId="1062697" locSnpId="EVA_SHEEPGENOMESDB_run1_filtered.24:g33934482a&gt;c" subSnpClass="snp" orient="reverse" molType="genomic" buildId="150" methodClass="sequence">
+            <Sequence>
+                <Seq5>TGCCCCGCGCCTGACTAGGCCAGTT</Seq5>
+                <Observed>A/C</Observed>
+                <Seq3>AGCTGGAAGGGGACGCCTCTCCTGA</Seq3>
+            </Sequence>
+        </Ss>
+        <Assembly dbSnpBuild="151" genomeBuild="2.1" groupLabel="Oar_v4.0" current="true" reference="true">
+            <Component componentType="contig" accession="NW_014639033.1" chromosome="24" start="0" end="41976826" orientation="fwd" gi="957807192" groupTerm="NC_019481.2" contigLabel="GCF_000298735.2">
+                <MapLoc asnFrom="33913077" asnTo="33913077" locType="exact" alnQuality="1" orient="reverse" physMapInt="33913077" leftContigNeighborPos="33913076" rightContigNeighborPos="33913078" refAllele="A"/>
+            </Component>
+            <SnpStat mapWeight="unique-in-contig" chromCount="1" placedContigCount="1" unplacedContigCount="0" seqlocCount="1" hapCount="0"/>
+        </Assembly>
+        <RsLinkout resourceId="1" linkValue="55627891"/>
+    </Rs>
+    <Rs rsId="55627892" snpClass="snp" snpType="notwithdrawn" molType="genomic" bitField="050000800005000000000100" taxId="9940">
+        <Validation/>
+        <Create build="128" date="2007-10-03 12:07"/>
+        <Update build="150" date="2017-06-12 12:31"/>
+        <Sequence exemplarSs="900459963">
+            <Seq5>TCCCAGCTACCACAGCCGGAGCAGCTCAGAGAGTGGGGGCTTCTGAGCCCAGCGAACCCAGCCTCATGCCCTCTGGCACAGGGCAAGGCGAGGGCTCCAGGAGCCGTGGGAGGCGGTGGGGCCTGCACCCCACTGCTACAAAGAGGTCCC</Seq5>
+            <Observed>A/G</Observed>
+            <Seq3>GAACCGGGGAAGACCTTGAGGGTGGTGGGTGCCCTGAAGACAAAGAGGAGCTGGATTCTGCTGCTTCTGGAGGGTCCCCACCCCACCTCCTGCTCACCTACGCAGTCCAGGGAACAAAGAGCCGTTTCGAACACAGGGATCATCACCCTT</Seq3>
+        </Sequence>
+        <Ss ssId="76880055" handle="AGRF" batchId="52127" locSnpId="cgc891.2.378" subSnpClass="snp" orient="forward" strand="top" molType="genomic" buildId="128" methodClass="computed">
+            <Sequence>
+                <Seq5>AGCGAACCCAGCCTCATGCCCTCTGGCACAGGGCAAGGCGAGGGCTCCAGGAGCCGTGGGAGGCGGTGGGGCCTGCACCCCACTGCTACAAAGAGGTCCC</Seq5>
+                <Observed>A/G</Observed>
+                <Seq3>GAACCGGGGAAGACCTTGAGGGTGGTGGGTGCCCTGAAGACAAAGAGGAGCTGGATTCTGCTGCTTCTGGAGGGTCCCCACCCCACCTCCTGCTCACCTA</Seq3>
+            </Sequence>
+        </Ss>
+        <Ss ssId="900459963" handle="AGR_BS" batchId="1059596" locSnpId="oar3_OAR24_34247565" subSnpClass="snp" orient="forward" strand="top" molType="genomic" buildId="140" methodClass="hybridize" validated="by-submitter">
+            <Sequence>
+                <Seq5>TCCCAGCTACCACAGCCGGAGCAGCTCAGAGAGTGGGGGCTTCTGAGCCCAGCGAACCCAGCCTCATGCCCTCTGGCACAGGGCAAGGCGAGGGCTCCAGGAGCCGTGGGAGGCGGTGGGGCCTGCACCCCACTGCTACAAAGAGGTCCC</Seq5>
+                <Observed>A/G</Observed>
+                <Seq3>GAACCGGGGAAGACCTTGAGGGTGGTGGGTGCCCTGAAGACAAAGAGGAGCTGGATTCTGCTGCTTCTGGAGGGTCCCCACCCCACCTCCTGCTCACCTACGCAGTCCAGGGAACAAAGAGCCGTTTCGAACACAGGGATCATCACCCTT</Seq3>
+            </Sequence>
+        </Ss>
+        <Ss ssId="1145661259" handle="EVA_LIVESTOCK" batchId="1061867" locSnpId="IROA.24:g34247565a&gt;g" subSnpClass="snp" orient="forward" strand="top" molType="genomic" buildId="143" methodClass="sequence" validated="by-submitter">
+            <Sequence>
+                <Seq5>CACCCCACTGCTACAAAGAGGTCCC</Seq5>
+                <Observed>A/G</Observed>
+                <Seq3>GAACCGGGGAAGACCTTGAGGGTGG</Seq3>
+            </Sequence>
+        </Ss>
+        <Ss ssId="1210444552" handle="EVA_LIVESTOCK" batchId="1061869" locSnpId="MOOA.24:g34247565a&gt;g" subSnpClass="snp" orient="forward" strand="top" molType="genomic" buildId="143" methodClass="sequence" validated="by-submitter">
+            <Sequence>
+                <Seq5>CACCCCACTGCTACAAAGAGGTCCC</Seq5>
+                <Observed>A/G</Observed>
+                <Seq3>GAACCGGGGAAGACCTTGAGGGTGG</Seq3>
+            </Sequence>
+        </Ss>
+        <Ss ssId="2564722762" handle="EVA_SHEEPGENOMESDB" batchId="1062697" locSnpId="EVA_SHEEPGENOMESDB_run1_filtered.24:g34247565a&gt;g" subSnpClass="snp" orient="forward" molType="genomic" buildId="150" methodClass="sequence">
+            <Sequence>
+                <Seq5>CACCCCACTGCTACAAAGAGGTCCC</Seq5>
+                <Observed>A/G</Observed>
+                <Seq3>GAACCGGGGAAGACCTTGAGGGTGG</Seq3>
+            </Sequence>
+        </Ss>
+        <Assembly dbSnpBuild="151" genomeBuild="2.1" groupLabel="Oar_v4.0" current="true" reference="true">
+            <Component componentType="contig" accession="NW_014639033.1" chromosome="24" start="0" end="41976826" orientation="fwd" gi="957807192" groupTerm="NC_019481.2" contigLabel="GCF_000298735.2">
+                <MapLoc asnFrom="34224818" asnTo="34224818" locType="exact" alnQuality="1" orient="forward" physMapInt="34224818" leftContigNeighborPos="34224817" rightContigNeighborPos="34224819" refAllele="A">
+                    <FxnSet geneId="105604868" symbol="SRRM3" mrnaAcc="XM_012123071" mrnaVer="2" fxnClass="utr-variant-3-prime" allele="A" soTerm="3_prime_UTR_variant"/>
+                </MapLoc>
+            </Component>
+            <SnpStat mapWeight="unique-in-contig" chromCount="1" placedContigCount="1" unplacedContigCount="0" seqlocCount="1" hapCount="0"/>
+        </Assembly>
+        <PrimarySequence dbSnpBuild="151" gi="965814914" source="hgvs" accession="XM_012123071.2">
+            <MapLoc asnFrom="2208" asnTo="2208" locType="exact" alnQuality="1" orient="forward" leftContigNeighborPos="2207" rightContigNeighborPos="2209" refAllele="G"/>
+        </PrimarySequence>
+        <RsLinkout resourceId="1" linkValue="55627892"/>
+    </Rs>
+    <Rs rsId="55627996" snpClass="snp" snpType="notwithdrawn" molType="genomic" bitField="050000080005000000000100" taxId="9940">
+        <Validation byCluster="true"/>
+        <Create build="128" date="2007-10-03 12:07"/>
+        <Update build="150" date="2017-08-07 16:15"/>
+        <Sequence exemplarSs="76881063">
+            <Seq5>GATATTTTGCTTTTCTGCAAAGCAAAGGGACCTGGGGACTCCTTTGCAGGCTGGCCATGTCCTGTGCAATCCCAACTGTGTCTGGAGATGCTAGCAGGGA</Seq5>
+            <Observed>C/T</Observed>
+            <Seq3>AGAGGGTGTGGCCGGGACTTGGTGGGGAGTCGGGTTGCATCAGAAGCACGGAGGGGAAGGGAAGGAATAGAGAACTAAGGCAGAAAGCTTTCTGTGACCA</Seq3>
+        </Sequence>
+        <Ss ssId="76881063" handle="AGRF" batchId="52137" locSnpId="cgc267.4.299" subSnpClass="snp" orient="forward" strand="bottom" molType="genomic" buildId="128" methodClass="computed">
+            <Sequence>
+                <Seq5>GATATTTTGCTTTTCTGCAAAGCAAAGGGACCTGGGGACTCCTTTGCAGGCTGGCCATGTCCTGTGCAATCCCAACTGTGTCTGGAGATGCTAGCAGGGA</Seq5>
+                <Observed>C/T</Observed>
+                <Seq3>AGAGGGTGTGGCCGGGACTTGGTGGGGAGTCGGGTTGCATCAGAAGCACGGAGGGGAAGGGAAGGAATAGAGAACTAAGGCAGAAAGCTTTCTGTGACCA</Seq3>
+            </Sequence>
+        </Ss>
+        <Ss ssId="900062377" handle="AGR_BS" batchId="1059601" locSnpId="oar3_OAR24_5384735" subSnpClass="snp" orient="forward" molType="genomic" buildId="140" methodClass="sequence">
+            <Sequence>
+                <Seq5>CTGTGTCTGGAGATGCTAGCAGGGA</Seq5>
+                <Observed>C/T</Observed>
+                <Seq3>AGAGGGTGTGGCCGGGACTTGGTGG</Seq3>
+            </Sequence>
+        </Ss>
+        <Ss ssId="1145347403" handle="EVA_LIVESTOCK" batchId="1061867" locSnpId="IROA.24:g5384735t&gt;c" subSnpClass="snp" orient="forward" strand="bottom" molType="genomic" buildId="143" methodClass="sequence" validated="by-submitter">
+            <Sequence>
+                <Seq5>CTGTGTCTGGAGATGCTAGCAGGGA</Seq5>
+                <Observed>C/T</Observed>
+                <Seq3>AGAGGGTGTGGCCGGGACTTGGTGG</Seq3>
+            </Sequence>
+        </Ss>
+        <Ss ssId="1209668875" handle="EVA_LIVESTOCK" batchId="1061869" locSnpId="MOOA.24:g5384735t&gt;c" subSnpClass="snp" orient="forward" strand="bottom" molType="genomic" buildId="143" methodClass="sequence" validated="by-submitter">
+            <Sequence>
+                <Seq5>CTGTGTCTGGAGATGCTAGCAGGGA</Seq5>
+                <Observed>C/T</Observed>
+                <Seq3>AGAGGGTGTGGCCGGGACTTGGTGG</Seq3>
+            </Sequence>
+        </Ss>
+        <Ss ssId="2564170202" handle="EVA_SHEEPGENOMESDB" batchId="1062697" locSnpId="EVA_SHEEPGENOMESDB_run1_filtered.24:g5384735t&gt;c" subSnpClass="snp" orient="forward" molType="genomic" buildId="150" methodClass="sequence">
+            <Sequence>
+                <Seq5>CTGTGTCTGGAGATGCTAGCAGGGA</Seq5>
+                <Observed>C/T</Observed>
+                <Seq3>AGAGGGTGTGGCCGGGACTTGGTGG</Seq3>
+            </Sequence>
+        </Ss>
+        <Assembly dbSnpBuild="151" genomeBuild="2.1" groupLabel="Oar_v4.0" current="true" reference="true">
+            <Component componentType="contig" accession="NW_014639033.1" chromosome="24" start="0" end="41976826" orientation="fwd" gi="957807192" groupTerm="NC_019481.2" contigLabel="GCF_000298735.2">
+                <MapLoc asnFrom="5384082" asnTo="5384082" locType="exact" alnQuality="1" orient="forward" physMapInt="5384082" leftContigNeighborPos="5384081" rightContigNeighborPos="5384083" refAllele="T">
+                    <FxnSet geneId="101105300" symbol="RBFOX1" mrnaAcc="XM_012121751" mrnaVer="2" fxnClass="intron-variant" soTerm="intron_variant"/>
+                    <FxnSet geneId="101105300" symbol="RBFOX1" mrnaAcc="XM_015105432" mrnaVer="1" fxnClass="intron-variant" soTerm="intron_variant"/>
+                    <FxnSet geneId="101105300" symbol="RBFOX1" mrnaAcc="XM_015105433" mrnaVer="1" fxnClass="intron-variant" soTerm="intron_variant"/>
+                    <FxnSet geneId="101105300" symbol="RBFOX1" mrnaAcc="XM_015105434" mrnaVer="1" fxnClass="intron-variant" soTerm="intron_variant"/>
+                    <FxnSet geneId="101105300" symbol="RBFOX1" mrnaAcc="XM_015105435" mrnaVer="1" fxnClass="intron-variant" soTerm="intron_variant"/>
+                    <FxnSet geneId="101105300" symbol="RBFOX1" mrnaAcc="XM_015105436" mrnaVer="1" fxnClass="intron-variant" soTerm="intron_variant"/>
+                    <FxnSet geneId="101105300" symbol="RBFOX1" mrnaAcc="XM_015105437" mrnaVer="1" fxnClass="intron-variant" soTerm="intron_variant"/>
+                </MapLoc>
+            </Component>
+            <SnpStat mapWeight="unique-in-contig" chromCount="1" placedContigCount="1" unplacedContigCount="0" seqlocCount="1" hapCount="0"/>
+        </Assembly>
+        <RsLinkout resourceId="1" linkValue="55627996"/>
+    </Rs>
+    <Summary numRsIds="1092256" numContigHits="1092256" numGeneHits="3702508" numGiHits="293595" num3dStructs="267" numStsHits="0"/>
+    <BaseURL urlId="1" resourceName="RefSNP" resourceId="snp_id">http://www.ncbi.nlm.nih.gov/SNP/snp_ref.cgi?rs=</BaseURL>
+    <BaseURL urlId="2" resourceName="SubSNP" resourceId="subsnp_id">http://www.ncbi.nlm.nih.gov/SNP/snp_retrieve.cgi?subsnp_id=</BaseURL>
+    <BaseURL urlId="3" resourceName="LocusLink" resourceId="locus_id">http://www.ncbi.nlm.nih.gov/LocusLink/LocRpt.cgi?l=</BaseURL>
+    <BaseURL urlId="4" resourceName="dbSTS" resourceId="uid">http://www.ncbi.nlm.nih.gov/genome/sts/sts.cgi?uid=</BaseURL>
+    <BaseURL urlId="5" resourceName="PubMed" resourceId="pmid">http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?cmd=Search&amp;db=PubMed&amp;term=</BaseURL>
+</ExchangeSet>
