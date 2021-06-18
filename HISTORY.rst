@@ -8,7 +8,6 @@ TODO
 * ``alleles`` and ``illumina_top`` attributes should be referred to variants, while
   in ``locations`` should be stored the read value from data source. Alleles and
   illumina_top shouldn't change within the same SNP, indipendently from data source
-* fix linter issues
 * Check chromosomes in *Variants locations*: mind to **scaffold**, **null**, and
   **non-autosomal** chromosomes for *Goat* and *Sheep*
 * Skip ``null`` fields when importing datasets
@@ -19,10 +18,16 @@ TODO
 * Enable continuous integration
   - ReadTheDocs
 * Rename objects (use names in a consistent way)
+* Generate output files for *OARV4* and *CHIR1*
 
-0.4.0.dev0
-----------
+0.4.0 (2021-06-18)
+------------------
 
+Features
+^^^^^^^^
+
+* ``dbSNP`` feature library refactor
+* fix linter issues
 * Transform *affymetrix* unmapped chrom to ``0``
 * Transform *SNPchiMp* unmapped chroms to ``0``
 * ignore affymetrix insertions and deletions
@@ -40,6 +45,9 @@ TODO
 
 0.3.1 (2021-06-11)
 ------------------
+
+Features
+^^^^^^^^
 
 * Upgrade dependencies
 * Enable continuous integration
