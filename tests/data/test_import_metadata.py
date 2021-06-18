@@ -17,10 +17,10 @@ from unittest.mock import patch, PropertyMock
 from src.data.import_metadata import main as import_metadata
 from src.features.smarterdb import Dataset, SampleSheep
 
-from ..common import MongoMockMixin, SmarterIDMixin, IlluminaChipMixin
+from ..common import MongoMockMixin, SmarterIDMixin, SupportedChipMixin
 
 
-class MetaDataMixin(SmarterIDMixin, IlluminaChipMixin, MongoMockMixin):
+class MetaDataMixin(SmarterIDMixin, SupportedChipMixin, MongoMockMixin):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()

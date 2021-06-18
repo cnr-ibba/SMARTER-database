@@ -14,10 +14,13 @@ from typing import Union
 from pathlib import Path
 from collections import namedtuple
 
+from mongoengine.queryset import QuerySet
+
 import pandas as pd
 
 from src.features.smarterdb import (
-    Dataset, VariantGoat, VariantSheep, SampleSheep, SampleGoat)
+    Dataset, VariantGoat, VariantSheep, SampleSheep, SampleGoat, Location,
+    SmarterDBException)
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -27,6 +30,7 @@ AssemblyConf = namedtuple('AssemblyConf', ['version', 'imported_from'])
 
 WORKING_ASSEMBLIES = {
     'OAR3': AssemblyConf('Oar_v3.1', 'SNPchiMp v.3'),
+    'OAR4': AssemblyConf('Oar_v4.0', 'SNPchiMp v.3'),
     'ARS1': AssemblyConf('ARS1', 'manifest'),
     'CHI1': AssemblyConf('CHI1.0', 'SNPchiMp v.3')
 }
@@ -173,3 +177,183 @@ def pandas_open(datapath: Path, **kwargs) -> pd.DataFrame:
         )
 
     return data
+
+
+def new_variant(
+        variant: Union[VariantSheep, VariantGoat],
+        location: Location):
+
+    variant.locations.append(location)
+
+    logger.debug(f"adding {variant} to database")
+
+    variant.save()
+
+
+def update_variant(
+        qs: QuerySet,
+        variant: Union[VariantSheep, VariantGoat],
+        location: Location) -> bool:
+    """Update an existing variant (if necessary)"""
+
+    record = qs.get()
+    logger.debug(f"found {record} in database")
+
+    update_record = False
+
+    # check chip_name in variant list
+    record, updated = update_chip_name(variant, record)
+
+    if updated:
+        update_record = True
+
+    # update sequence record
+    record, updated = update_sequence(variant, record)
+
+    if updated:
+        update_record = True
+
+    # test for rs_id:
+    record, updated = update_rs_id(variant, record)
+
+    if updated:
+        update_record = True
+
+    # update affymetrix record (if any)
+    record, updated = update_affymetrix_record(variant, record)
+
+    if updated:
+        update_record = True
+
+    # I chose to not update other values, I suppose they be the same
+    # However check for locations
+    record, updated = update_location(location, record)
+
+    if updated:
+        update_record = True
+
+    if update_record:
+        record.save()
+
+    return update_record
+
+
+def update_chip_name(
+        variant: Union[VariantSheep, VariantGoat],
+        record: Union[VariantSheep, VariantGoat]
+        ) -> [Union[VariantSheep, VariantGoat], bool]:
+    variant_set = set(variant.chip_name)
+    record_set = set(record.chip_name)
+
+    updated = False
+
+    # get new items as a difference of two sets
+    new_chips = variant_set - record_set
+
+    if len(new_chips) > 0:
+        # this will append the resulting set as a list
+        record.chip_name += list(new_chips)
+        updated = True
+
+    return record, updated
+
+
+def update_sequence(
+        variant: Union[VariantSheep, VariantGoat],
+        record: Union[VariantSheep, VariantGoat]
+        ) -> [Union[VariantSheep, VariantGoat], bool]:
+
+    updated = False
+
+    if variant.sequence and variant.sequence != record.sequence:
+        record.sequence.update(variant.sequence)
+        updated = True
+
+    return record, updated
+
+
+def update_affymetrix_record(
+        variant: Union[VariantSheep, VariantGoat],
+        record: Union[VariantSheep, VariantGoat]
+        ) -> [Union[VariantSheep, VariantGoat], bool]:
+
+    updated = False
+
+    for key in ['probeset_id', 'affy_snp_id', 'cust_id']:
+        variant_attr = getattr(variant, key)
+        record_attr = getattr(record, key)
+
+        if key == 'probeset_id':
+            variant_set = set(variant_attr)
+            record_set = set(record_attr)
+
+            # get new items as a difference of two sets
+            new_probeset_ids = variant_set - record_set
+
+            if len(new_probeset_ids) > 0:
+                # this will append the resulting set as a list
+                record.probeset_id += list(new_probeset_ids)
+                updated = True
+
+        else:
+            if variant_attr and variant_attr != record_attr:
+                if record_attr:
+                    logger.warning(
+                        f"Updating {key} {variant_attr} with {record_attr}")
+
+                setattr(record, key, variant_attr)
+                updated = True
+
+    return record, updated
+
+
+def update_location(
+        location: Location,
+        variant: Union[VariantSheep, VariantGoat],
+        ) -> [Union[VariantSheep, VariantGoat], bool]:
+
+    updated = False
+
+    # get the old location as index
+    try:
+        index = variant.get_location_index(
+            version=location.version, imported_from=location.imported_from)
+
+        # ok get the old location and check with the new one
+        if variant.locations[index] == location:
+            logger.debug("Locations match")
+
+        # HINT: should I update location? maybe relying on date and
+        # __gt__ method?
+        else:
+            logger.warning(
+                f"Locations differ for '{variant.name}': {location} <> "
+                f"{variant.locations[index]}"
+            )
+
+    except SmarterDBException as exc:
+        # if a index does not exist, then insert feature without warnings
+        logger.debug(exc)
+
+        # if I'm impotring Affymetrix data, I could have a variant but not
+        # a location to check. So add a location to variant
+        logger.debug(f"Append location {location} to variant {variant}")
+        variant.locations.append(location)
+        updated = True
+
+    return variant, updated
+
+
+def update_rs_id(
+        variant: Union[VariantSheep, VariantGoat],
+        record: Union[VariantSheep, VariantGoat]
+        ) -> [Union[VariantSheep, VariantGoat], bool]:
+
+    updated = False
+
+    if variant.rs_id and variant.rs_id != record.rs_id:
+        logger.warning(f"Update '{record}' with '{variant.rs_id}'")
+        record.rs_id = variant.rs_id
+        updated = True
+
+    return record, updated

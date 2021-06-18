@@ -5,6 +5,10 @@ History
 TODO
 ^^^^
 
+* ``alleles`` and ``illumina_top`` attributes should be referred to variants, while
+  in ``locations`` should be stored the read value from data source. Alleles and
+  illumina_top shouldn't change within the same SNP, indipendently from data source
+* fix linter issues
 * Check chromosomes in *Variants locations*: mind to **scaffold**, **null**, and
   **non-autosomal** chromosomes for *Goat* and *Sheep*
 * Skip ``null`` fields when importing datasets
@@ -14,6 +18,25 @@ TODO
   - import grece sheep data (20210407 and 20200731)
 * Enable continuous integration
   - ReadTheDocs
+* Rename objects (use names in a consistent way)
+
+0.4.0.dev0
+----------
+
+* Transform *affymetrix* unmapped chrom to ``0``
+* Transform *SNPchiMp* unmapped chroms to ``0``
+* ignore affymetrix insertions and deletions
+* join affymetrix data with illumina relying on ``cust_id``
+* define ``illumina_top`` from affymetrix flanking sequences
+* load data from affymetrix manifest
+* calculate *illumina_top* from affymetrix sequence
+* Test import data from *snpchimp*
+* Import ``OARV4`` coordinates
+* ``data/common`` module refactoring
+* Fix bug in importing dataset order
+* Model affymetrix fields
+* Read from affymetrix manifest file
+* Track illumina manifactured date
 
 0.3.1 (2021-06-11)
 ------------------

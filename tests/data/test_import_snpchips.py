@@ -12,7 +12,7 @@ import pathlib
 from click.testing import CliRunner
 
 from src.data.import_snpchips import main as import_snpchips
-from src.features.smarterdb import IlluminaChip
+from src.features.smarterdb import SupportedChip
 
 from ..common import MongoMockMixin
 
@@ -28,7 +28,7 @@ class ImportSNPChipsTest(MongoMockMixin, unittest.TestCase):
         self.runner = CliRunner()
 
     def tearDown(self):
-        IlluminaChip.objects.delete()
+        SupportedChip.objects.delete()
 
         super().tearDown()
 
@@ -51,5 +51,5 @@ class ImportSNPChipsTest(MongoMockMixin, unittest.TestCase):
 
         self.assertEqual(0, result.exit_code)
 
-        qs = IlluminaChip.objects()
+        qs = SupportedChip.objects()
         self.assertEqual(qs.count(), 1)

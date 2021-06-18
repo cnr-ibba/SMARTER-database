@@ -12,7 +12,7 @@ import logging
 
 from pathlib import Path
 
-from src.features.smarterdb import global_connection, IlluminaChip
+from src.features.smarterdb import global_connection, SupportedChip
 
 logger = logging.getLogger(__name__)
 
@@ -33,10 +33,10 @@ def main(chip_file):
         data = json.load(handle)
 
     for item in data:
-        qs = IlluminaChip.objects(name=item['name'])
+        qs = SupportedChip.objects(name=item['name'])
 
         if qs.count() == 0:
-            chip = IlluminaChip(**item)
+            chip = SupportedChip(**item)
             chip.save()
 
             logger.info(f"{chip} added to database")
