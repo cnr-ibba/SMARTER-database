@@ -19,6 +19,19 @@ TODO
   - ReadTheDocs
 * Rename objects (use names in a consistent way)
 * Generate output files for *OARV4* and *CHIR1*
+* Use ``elemMatch`` in projection in ``plinkio.SmarterMixin.fetch_coordinates``
+  (ex: ``VariantSheep.objects.fields(elemMatch__locations={"imported_from": "SNPchiMp v.3", "version": "Oar_v4.0"})``)
+* Check coordinates with sheep and goat genome projects
+* Release a *smarter* coordinate version with information on every variant defined 
+  in database
+
+0.4.1.dev0
+----------
+
+* Fix github Workflow
+
+Features
+^^^^^^^^
 
 0.4.0 (2021-06-18)
 ------------------
