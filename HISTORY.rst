@@ -24,14 +24,15 @@ TODO
 * Check coordinates with sheep and goat genome projects
 * Release a *smarter* coordinate version with information on every variant defined 
   in database
+* Map affymetrix snps in OARV3 coordinates
 
 0.4.1.dev0
 ----------
 
-* Fix github Workflow
-
 Features
 ^^^^^^^^
+
+* Fix github Workflow
 
 0.4.0 (2021-06-18)
 ------------------
