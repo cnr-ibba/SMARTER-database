@@ -20,6 +20,18 @@ from src.data.common import get_variant_species, update_location
 logger = logging.getLogger(__name__)
 
 
+def check_chromosomes(chrom, species):
+    if species.lower() == "sheep":
+        if int(chrom) <= 26:
+            return chrom
+
+        elif int(chrom) == 27:
+            return "X"
+
+    else:
+        raise NotImplementedError(f"Specie {species} not yet implemenmented")
+
+
 @click.command()
 @click.option('--species', type=str, required=True)
 @click.option('--datafile', type=str, required=True)
@@ -47,7 +59,9 @@ def main(species, datafile, version):
             idx = header.index('alleles')
             line[idx] = "/".join(list(line[idx]))
 
-            # TODO: check chromosome number (27?)
+            # check chromosome number (27?)
+            idx = header.index('chrom')
+            line[idx] = check_chromosomes(line[idx], species)
 
             # make a record from csv line
             record = Record._make(line)

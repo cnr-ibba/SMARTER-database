@@ -33,6 +33,7 @@ Features
 ^^^^^^^^
 
 * Fix github Workflow
+* Import sheep coordinates from genome project
 
 0.4.0 (2021-06-18)
 ------------------
