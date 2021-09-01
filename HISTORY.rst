@@ -28,6 +28,7 @@ TODO
 0.4.1.dev0
 ----------
 
+* Security updates
 * Fix github Workflow
 
 Features
