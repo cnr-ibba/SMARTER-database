@@ -53,11 +53,11 @@ jmespath==0.10.0
 json5==0.9.5
 jsonschema==3.2.0
 jupyter==1.0.0
-jupyter-client==6.1.11
+jupyter-client==7.0.2
 jupyter-console==6.2.0
 jupyter-core==4.7.1
 jupyter-server==1.10.2
-jupyterlab==3.0.17
+jupyterlab==3.1.9
 jupyterlab-pygments==0.1.2
 jupyterlab-server==2.7.2
 jupyterlab-widgets==1.0.0
@@ -71,7 +71,7 @@ mistune==0.8.4
 mongoengine==0.23.1
 mongomock==3.22.1
 munch==2.5.0
-nbclassic==0.2.6
+nbclassic==0.3.1
 nbclient==0.5.2
 nbconvert==6.0.7
 nbformat==5.1.2
