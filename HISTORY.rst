@@ -32,6 +32,7 @@ TODO
 Features
 ^^^^^^^^
 
+* Security updates
 * Fix github Workflow
 * Import sheep coordinates from genome project
 
