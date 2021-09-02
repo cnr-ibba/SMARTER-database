@@ -181,6 +181,51 @@ class TestImportSamples(
             self.assertEqual(sample.smarter_id, "ESOA-TEX-000000002")
             self.assertEqual(sample.sex, SEX.FEMALE)
 
+    @patch('src.features.smarterdb.Dataset.working_dir',
+           new_callable=PropertyMock)
+    def test_import_same_country_and_code(self, my_working_dir):
+        """Apply the same country and code to all samples"""
+
+        # create a temporary directory using the context manager
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            working_dir = pathlib.Path(tmpdirname)
+            my_working_dir.return_value = working_dir
+
+            # save worksheet in temporary folder
+            self.workbook.save(f"{working_dir}/metadata.xlsx")
+
+            # got first sample from database
+            self.assertEqual(SampleSheep.objects.count(), 1)
+
+            result = self.runner.invoke(
+                import_samples,
+                [
+                    "--src_dataset",
+                    "test2.zip",
+                    "--dst_dataset",
+                    "test.zip",
+                    "--datafile",
+                    "metadata.xlsx",
+                    "--code_all",
+                    "TEX",
+                    "--country_all",
+                    "Italy",
+                    "--id_column",
+                    "Id",
+                    "--chip_name",
+                    self.chip_name
+                ]
+            )
+
+            self.assertEqual(0, result.exit_code, msg=result.exception)
+
+            # I should have two record for samples, One already present one new
+            self.assertEqual(SampleSheep.objects.count(), 2)
+
+            # get the new sample: country will be always Italy
+            sample = SampleSheep.objects.get(original_id="test-2")
+            self.assertEqual(sample.smarter_id, "ITOA-TEX-000000002")
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -24,10 +24,13 @@ TODO
 * Check coordinates with sheep and goat genome projects
 * Release a *smarter* coordinate version with information on every variant defined 
   in database
+* Import from affymetrix dataset
+* Rename original_id while importing samples
 
 0.4.1.dev0
 ----------
 
+* Import samples from file by providing *country* and *breeds* values as parameters
 * Security updates
 * Fix github Workflow
 

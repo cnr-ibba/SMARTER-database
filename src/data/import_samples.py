@@ -17,6 +17,7 @@ import logging
 import functools
 
 from pathlib import Path
+from click_option_group import optgroup, RequiredMutuallyExclusiveOptionGroup
 
 import pycountry
 
@@ -59,15 +60,43 @@ def find_country(country: str):
     help="The raw dataset file name (zip archive) in which define samples"
 )
 @click.option('--datafile', type=str, required=True)
-@click.option('--code_column', type=str, default="code")
-@click.option('--country_column', type=str, default="country")
+@optgroup.group(
+    'Codes',
+    cls=RequiredMutuallyExclusiveOptionGroup
+)
+@optgroup.option(
+    '--code_column',
+    type=str,
+    default="code",
+    help="Code column in src datafile"
+)
+@optgroup.option(
+    '--code_all',
+    type=str,
+    help="Code applied to all items in datafile"
+)
+@optgroup.group(
+    'Countries',
+    cls=RequiredMutuallyExclusiveOptionGroup
+)
+@optgroup.option(
+    '--country_column',
+    type=str,
+    default="country",
+    help="Country column in src datafile"
+)
+@optgroup.option(
+    '--country_all',
+    type=str,
+    help="Country applied to all items in datafile"
+)
 @click.option('--id_column', type=str, required=True,
               help="The 'original_id' column to place in smarter database")
 @click.option('--sex_column', type=str)
 @click.option('--chip_name', type=str, required=True)
 def main(
-        src_dataset, dst_dataset, datafile, code_column, country_column,
-        id_column, sex_column, chip_name):
+        src_dataset, dst_dataset, datafile, code_column, code_all,
+        country_column, country_all, id_column, sex_column, chip_name):
     logger.info(f"{Path(__file__).name} started")
 
     # custom method to check a dataset and ensure that needed stuff exists
@@ -92,9 +121,39 @@ def main(
 
     for index, row in data.iterrows():
         logger.debug(f"Got: {row.to_list()}")
-        code = row.get(code_column)
-        country = row.get(country_column)
+
+        # this will be the original_id
         original_id = row.get(id_column)
+
+        # assign code from parameter or from datasource column
+        if code_all:
+            code = code_all
+
+            # get breed from database
+            breed = Breed.objects(code=code).get()
+
+        else:
+            code = row.get(code_column)
+
+            # get breed from database
+            breed = Breed.objects(
+                aliases__match={'fid': code, 'dataset': dst_dataset}).get()
+
+        logger.debug(f"found breed '{breed}'")
+
+        # assign country from parameter or from datasource column
+        if country_all:
+            country = country_all
+
+        else:
+            country = row.get(country_column)
+
+        # process a country by doing a fuzzy search
+        # HINT: this function cache results relying arguments using lru_cache
+        # see find country implementation for more informations
+        country = find_country(country)
+
+        # Have I sex? search for a sex column if provided
         sex = None
 
         if sex_column:
@@ -109,17 +168,6 @@ def main(
             f"Got code: {code}, country: {country}, "
             f"original_id: {original_id}, sex: {sex}"
         )
-
-        # process a country by doing a fuzzy search
-        # HINT: this function cache results relying arguments using lru_cache
-        # see find country implementation for more informations
-        country = find_country(country)
-
-        # get breed from database
-        breed = Breed.objects(
-            aliases__match={'fid': code, 'dataset': dst_dataset}).get()
-
-        logger.debug(f"found breed '{breed}'")
 
         # get or create a new Sample Obj
         sample, created = get_or_create_sample(
