@@ -391,7 +391,7 @@ class TextPlinkIOPed(
         test = self.plinkio._process_pedline(child, self.dataset, 'top')
 
         # define smarter_id
-        smarter_id = f"ITOA-TEX-000000001"
+        smarter_id = "ITOA-TEX-000000001"
 
         self.assertEqual(test[1], smarter_id)
         self.assertEqual(test[2], "0")
@@ -578,7 +578,7 @@ class IlluminaReportIOPed(
             self.assertEqual(len(list(test.read_pedfile())), 2)
 
 
-class AffyPlinkIOMap(VariantsMixin, MongoMockMixin, unittest.TestCase):
+class AffyPlinkIOMapTest(VariantsMixin, MongoMockMixin, unittest.TestCase):
     # load a custom fixture for this class
     variant_fixture = "affy_variants.json"
 
@@ -647,6 +647,78 @@ class AffyPlinkIOMap(VariantsMixin, MongoMockMixin, unittest.TestCase):
                     version="Oar_v3.1", imported_from="SNPchiMp v.3")
                 self.assertEqual(location.chrom, record.chrom)
                 self.assertEqual(location.position, record.position)
+
+
+class AffyPlinkIOPedTest(
+        VariantsMixin, SmarterIDMixin, MongoMockMixin, unittest.TestCase):
+
+    # load a custom fixture for this class
+    variant_fixture = "affy_variants.json"
+
+    def setUp(self):
+        super().setUp()
+
+        self.plinkio = AffyPlinkIO(
+            prefix=str(DATA_DIR / "affytest"),
+            species="Sheep",
+            chip_name="AffymetrixAxiomOviCan"
+        )
+
+        # read info from map
+        self.plinkio.read_mapfile()
+        self.plinkio.fetch_coordinates(
+            version="Oar_v3.1",
+            imported_from="SNPchiMp v.3",
+            search_field='probeset_id'
+        )
+
+        # read ped files
+        self.lines = list(self.plinkio.read_pedfile(fid="TEX"))
+
+    def test_read_pedfile(self):
+        test = self.plinkio.read_pedfile(fid="TEX")
+        self.assertIsInstance(test, types.GeneratorType)
+
+        # consume data and count rows
+        test = list(test)
+        self.assertEqual(len(test), 2)
+
+    def test_process_pedline(self):
+        # define reference
+        reference = [
+            'TEX', 'ITOA-TEX-000000001', '0', '0', '0', -9,
+            'A', 'G', 'A', 'A']
+
+        # get a line for testing
+        line = self.lines[0]
+
+        # get a dataset
+        dataset = Dataset.objects(file="test.zip").get()
+
+        test = self.plinkio._process_pedline(line, dataset, 'forward')
+
+        self.assertEqual(reference, test)
+
+        for sample in SampleSheep.objects.all():
+            print(sample, sample.original_id)
+
+    def test_update_pedfile(self):
+        # get a dataset
+        dataset = Dataset.objects(file="test.zip").get()
+
+        # create a temporary directory using the context manager
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            outfile = pathlib.Path(tmpdirname) / "affytes_updated.ped"
+            self.plinkio.update_pedfile(
+                str(outfile), dataset, 'forward', fid="TEX")
+
+            # now open outputfile and test stuff
+            test = TextPlinkIO(
+                mapfile=str(DATA_DIR / "plinktest.map"),
+                pedfile=str(outfile))
+
+            # assert two records written
+            self.assertEqual(len(list(test.read_pedfile())), 2)
 
 
 if __name__ == '__main__':

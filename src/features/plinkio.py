@@ -515,7 +515,16 @@ class AffyPlinkIO(TextPlinkIO):
                 if not record[0].startswith("#"):
                     self.mapdata.append(MapRecord(*record))
 
-    def read_pedfile(self):
+    def get_breed(self, fid, *args, **kwargs):
+        """Override the default get_breed method"""
+
+        breed = Breed.objects(code=fid, species=self.species).get()
+
+        logger.debug(f"Found breed {breed}")
+
+        return breed
+
+    def read_pedfile(self, fid: str):
         """Open pedfile for reading return iterator"""
 
         with open(self.pedfile) as handle:
@@ -529,10 +538,10 @@ class AffyPlinkIO(TextPlinkIO):
                 line = re.split('[ \t]+', record.strip())
 
                 # affy ped lacks of plink columns. add such value to line
-                line.insert(0, 0)  # FID
-                line.insert(2, 0)  # father
-                line.insert(3, 0)  # mother
-                line.insert(4, 0)  # SEX
+                line.insert(0, fid)  # FID
+                line.insert(2, '0')  # father
+                line.insert(3, '0')  # mother
+                line.insert(4, '0')  # SEX
                 line.insert(5, -9)  # phenotype
 
                 yield line
@@ -660,8 +669,9 @@ class IlluminaReportIO(SmarterMixin):
             self.chip_name = chip_name
 
     def get_breed(self, fid, *args, **kwargs):
-        # this is a $elemMatch query
-        breed = Breed.objects(code=fid).get()
+        """Override the default get_breed method"""
+
+        breed = Breed.objects(code=fid, species=self.species).get()
 
         logger.debug(f"Found breed {breed}")
 
