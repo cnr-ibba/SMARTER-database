@@ -297,10 +297,6 @@ class SmarterMixin():
                     **{search_field: record.name}
                 ).get()
 
-                # track variant.name read from database (useful when searching
-                # using probeset_id)
-                self.variants_name.append(variant.name)
-
             except DoesNotExist as e:
                 logger.error(f"Couldn't find {record.name}: {e}")
 
@@ -323,6 +319,10 @@ class SmarterMixin():
 
                 # track data for this location
                 self.locations.append(location)
+
+                # track variant.name read from database (useful when searching
+                # using probeset_id)
+                self.variants_name.append(variant.name)
 
             except SmarterDBException as e:
                 logger.error(f"Discarding {record.name}: {e}")
