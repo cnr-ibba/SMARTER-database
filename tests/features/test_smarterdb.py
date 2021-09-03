@@ -454,37 +454,51 @@ class SampleSheepTestCase(SmarterIDMixin, MongoMockMixin, unittest.TestCase):
         self.smarter_id = "ITOA-TEX-000000001"
         self.original_id = "TEST"
 
-        self.sample = SampleSheep(
-            original_id=self.original_id,
-            smarter_id=None
-        )
-
-        # need country, breed and species in order to get a smarter_id
-        self.sample.country = "Italy"
-        self.sample.breed = "Texel"
-        self.sample.species = "Sheep"
-
         # fetch some values from database
         self.dataset = Dataset.objects.get(file="test.zip")
         self.breed = Breed.objects.get(species="Sheep", code="TEX")
+
+        # this is required to create a sample
+        self.country = "Italy"
+
+        # additional sample fields
+        self.chip_name = "IlluminaOvineSNP50"
+        self.sex = SEX.MALE
+        self.alias = "TEST-ALIAS"
 
     def tearDown(self):
         SampleSheep.objects().delete()
 
         super().tearDown()
 
-    def test__str(self):
+    def create_sample(self):
+        """Create a sample instance in mongodb"""
+
+        self.sample = SampleSheep(
+            original_id=self.original_id,
+            smarter_id=None
+        )
+
+        # need country, breed and species in order to get a smarter_id
+        self.sample.country = self.country
+        self.sample.breed = "Texel"
+        self.sample.species = "Sheep"
+
         # save sample in db
         self.sample.save()
+
+        return self.sample
+
+    def test__str(self):
+        self.create_sample()
 
         self.assertEqual(
             str(self.sample),
             f"{self.smarter_id} (Texel)"
         )
 
-    def test_save(self):
-        # save sample in db
-        self.sample.save()
+    def test_save_smarter_id(self):
+        self.create_sample()
 
         self.assertEqual(self.sample.smarter_id, self.smarter_id)
 
@@ -495,7 +509,11 @@ class SampleSheepTestCase(SmarterIDMixin, MongoMockMixin, unittest.TestCase):
             self.original_id,
             self.dataset,
             self.breed,
-            "Italy")
+            self.country,
+            self.chip_name,
+            self.sex,
+            self.alias
+        )
 
         self.assertIsInstance(sample, SampleSheep)
         self.assertEqual(sample.smarter_id, self.smarter_id)
@@ -508,7 +526,11 @@ class SampleSheepTestCase(SmarterIDMixin, MongoMockMixin, unittest.TestCase):
             self.original_id,
             self.dataset,
             self.breed,
-            "Italy")
+            self.country,
+            self.chip_name,
+            self.sex,
+            self.alias
+        )
 
         self.assertIsInstance(sample, SampleSheep)
         self.assertEqual(sample.smarter_id, self.smarter_id)

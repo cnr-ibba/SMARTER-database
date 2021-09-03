@@ -375,6 +375,10 @@ class SampleSpecies(mongoengine.Document):
     breed = mongoengine.StringField(required=True)
     breed_code = mongoengine.StringField(min_length=3)
 
+    # this will be a original_id alias (a different sample name in original
+    # data file)
+    alias = mongoengine.StringField()
+
     # required to search a sample relying only on original ID
     dataset = mongoengine.ReferenceField(
         Dataset,
@@ -475,7 +479,8 @@ def get_or_create_sample(
         breed: Breed,
         country: str,
         chip_name: str = None,
-        sex: SEX = None) -> Union[SampleGoat, SampleSheep]:
+        sex: SEX = None,
+        alias: str = None) -> Union[SampleGoat, SampleSheep]:
     """Get or create a sample providing attributes (search for original_id in
     provided dataset
 
@@ -488,6 +493,7 @@ def get_or_create_sample(
         country (str): Country as a string
         chip_name (str): the chip name
         sex (SEX): A SEX instance
+        alias (str): an original_id alias
 
     Returns:
         Union[SampleGoat, SampleSheep]: a SampleSpecies instance
@@ -514,7 +520,8 @@ def get_or_create_sample(
             breed_code=breed.code,
             dataset=dataset,
             chip_name=chip_name,
-            sex=sex
+            sex=sex,
+            alias=alias
         )
         sample.save()
 

@@ -94,9 +94,14 @@ def find_country(country: str):
               help="The 'original_id' column to place in smarter database")
 @click.option('--sex_column', type=str)
 @click.option('--chip_name', type=str, required=True)
+@click.option(
+    '--alias_column',
+    type=str,
+    help="An alias for original_id")
 def main(
         src_dataset, dst_dataset, datafile, code_column, code_all,
-        country_column, country_all, id_column, sex_column, chip_name):
+        country_column, country_all, id_column, sex_column, chip_name,
+        alias_column):
     logger.info(f"{Path(__file__).name} started")
 
     # custom method to check a dataset and ensure that needed stuff exists
@@ -123,14 +128,17 @@ def main(
         logger.debug(f"Got: {row.to_list()}")
 
         # this will be the original_id
-        original_id = row.get(id_column)
+        original_id = str(row.get(id_column))
 
         # assign code from parameter or from datasource column
         if code_all:
             code = code_all
 
             # get breed from database
-            breed = Breed.objects(code=code).get()
+            breed = Breed.objects(
+                code=code,
+                species=dst_dataset.species
+            ).get()
 
         else:
             code = row.get(code_column)
@@ -164,9 +172,14 @@ def main(
             if sex == SEX.UNKNOWN:
                 sex = None
 
+        alias = None
+
+        if alias_column:
+            alias = row.get(alias_column)
+
         logger.debug(
             f"Got code: {code}, country: {country}, "
-            f"original_id: {original_id}, sex: {sex}"
+            f"original_id: {original_id}, sex: {sex}, alias: {alias}"
         )
 
         # get or create a new Sample Obj
@@ -177,7 +190,8 @@ def main(
             breed,
             country.name,
             chip_name,
-            sex)
+            sex,
+            alias)
 
         if created:
             logger.info(f"Sample '{sample}' added to database")

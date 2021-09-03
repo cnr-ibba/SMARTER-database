@@ -96,7 +96,12 @@ data: requirements
 	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --file ovine_SNP50HapMap_data/SNP50_Breedv1/SNP50_Breedv1 \
 		--dataset ovine_SNP50HapMap_data.zip --chip_name IlluminaOvineSNP50 --assembly OAR3
 
-	## create samples from custom files
+	## create samples from custom files for sheep
+	$(PYTHON_INTERPRETER) src/data/import_samples.py --src_dataset Affymetrix_data_Plate_652_660.zip --dst_dataset Affymetrix_data_Plate_652_660.zip \
+		--datafile Affymetrix_data_Plate_652_660/Uruguay_Corriedale_ID_GenotypedAnimals.xlsx --code_all CRR --id_column "Sample Name" \
+		--chip_name AffymetrixAxiomOviCan --country_all Uruguay --alias_column "Sample Filename"
+
+	## create samples from custom files for GOAT
 	$(PYTHON_INTERPRETER) src/data/import_samples.py --src_dataset ADAPTmap_phenotype_20161201.zip --dst_dataset ADAPTmap_genotypeTOP_20161201.zip \
 		--datafile ADAPTmap_phenotype_20161201/ADAPTmap_InfoSample_20161201_fix.xlsx --code_column Breed_code --id_column ADAPTmap_code \
 		--chip_name IlluminaGoatSNP50 --country_column Sampling_Country --sex_column SEX
@@ -176,6 +181,11 @@ endif
 ## Test python environment is setup correctly
 test_environment:
 	$(PYTHON_INTERPRETER) test_environment.py
+
+## Test code
+test:
+	coverage run --source src -m py.test
+	coverage html
 
 #################################################################################
 # PROJECT RULES                                                                 #

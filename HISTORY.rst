@@ -25,11 +25,12 @@ TODO
 * Release a *smarter* coordinate version with information on every variant defined 
   in database
 * Import from affymetrix dataset
-* Rename original_id while importing samples
+* Search samples *aliases* while importing genotypes
 
 0.4.1.dev0
 ----------
 
+* Track sample aliases for ``original_id``
 * Import samples from file by providing *country* and *breeds* values as parameters
 * Security updates
 * Fix github Workflow
