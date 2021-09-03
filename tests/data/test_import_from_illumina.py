@@ -82,7 +82,8 @@ class TestImportFromIllumina(
                     "--chip_name",
                     self.chip_name,
                     "--assembly",
-                    "OAR3"
+                    "OAR3",
+                    "--create_samples"
                 ]
             )
 
@@ -147,7 +148,8 @@ class TestImportFromIllumina(
                     "--chip_name",
                     self.chip_name,
                     "--assembly",
-                    "OAR3"
+                    "OAR3",
+                    "--create_samples"
                 ]
             )
 

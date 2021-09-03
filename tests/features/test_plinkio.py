@@ -235,6 +235,60 @@ class TextPlinkIOPed(
 
         self.assertEqual(reference, test)
 
+    def test_get_sample(self):
+        """get a sample without creating item"""
+
+        # get a sample line
+        line = self.lines[0]
+
+        # get a breed
+        breed = Breed.objects(
+            aliases__match={'fid': line[0], 'dataset': self.dataset}).get()
+
+        # no individulas for such breeds
+        self.assertEqual(breed.n_individuals, 0)
+        self.assertEqual(SampleSheep.objects.count(), 0)
+
+        # calling my function and collect sample
+        reference = self.plinkio.get_sample(
+            line, self.dataset)
+
+        # there are no sample in database, so get_sample returns none
+        self.assertIsNone(reference)
+
+        # assert an element in database
+        self.assertEqual(SampleSheep.objects.count(), 0)
+
+        # check individuals updated
+        breed.reload()
+        self.assertEqual(breed.n_individuals, 0)
+
+        # call get_or_create to insert this sample in database
+        test = self.plinkio.get_or_create_sample(line, self.dataset, breed)
+        self.assertIsInstance(test, SampleSheep)
+
+        # assert an element in database
+        self.assertEqual(SampleSheep.objects.count(), 1)
+
+        # check individuals updated
+        breed.reload()
+        self.assertEqual(breed.n_individuals, 1)
+
+        # calling get_sample again to collect the sample
+        reference = self.plinkio.get_sample(
+            line, self.dataset)
+
+        # now reference is a sample.
+        self.assertIsInstance(reference, SampleSheep)
+
+        # Check how many samples I have
+        breed.reload()
+        self.assertEqual(breed.n_individuals, 1)
+        self.assertEqual(SampleSheep.objects.count(), 1)
+
+        # check that objects are the same
+        self.assertEqual(reference, test)
+
     def test_sample_relies_dataset(self):
         """Getting two sample with the same original id is not a problem"""
 
@@ -271,7 +325,7 @@ class TextPlinkIOPed(
         # get a sample line
         line = self.lines[0]
 
-        test = self.plinkio._process_pedline(line, self.dataset, 'top')
+        test = self.plinkio._process_pedline(line, self.dataset, 'top', True)
 
         # define reference
         reference = line.copy()
@@ -311,7 +365,8 @@ class TextPlinkIOPed(
 
         # process data and insert records
         for i, item in enumerate([father, mother, child]):
-            test = self.plinkio._process_pedline(item, self.dataset, 'top')
+            test = self.plinkio._process_pedline(
+                item, self.dataset, 'top', True)
 
             # define smarter_id
             smarter_id = f"ITOA-TEX-00000000{i+1}"
@@ -354,7 +409,7 @@ class TextPlinkIOPed(
 
         # process data and insert records
         for i, item in enumerate([child, father, mother]):
-            self.plinkio._process_pedline(item, self.dataset, 'top')
+            self.plinkio._process_pedline(item, self.dataset, 'top', True)
 
             # special child case
             if item == child:
@@ -370,7 +425,7 @@ class TextPlinkIOPed(
         self.assertIsNone(sample_child.sex)
 
         # ok now try to process child again
-        test = self.plinkio._process_pedline(child, self.dataset, 'top')
+        test = self.plinkio._process_pedline(child, self.dataset, 'top', True)
 
         # refresh database object
         sample_child.reload()
@@ -388,7 +443,7 @@ class TextPlinkIOPed(
         child = self.get_relationships()[-1]
 
         # insert child without parents
-        test = self.plinkio._process_pedline(child, self.dataset, 'top')
+        test = self.plinkio._process_pedline(child, self.dataset, 'top', True)
 
         # define smarter_id
         smarter_id = "ITOA-TEX-000000001"
@@ -401,7 +456,8 @@ class TextPlinkIOPed(
         # create a temporary directory using the context manager
         with tempfile.TemporaryDirectory() as tmpdirname:
             outfile = pathlib.Path(tmpdirname) / "plinktest_updated.ped"
-            self.plinkio.update_pedfile(str(outfile), self.dataset, 'top')
+            self.plinkio.update_pedfile(
+                str(outfile), self.dataset, 'top', True)
 
             # now open outputfile and test stuff
             test = TextPlinkIO(
@@ -410,6 +466,24 @@ class TextPlinkIOPed(
 
             # assert two records written
             self.assertEqual(len(list(test.read_pedfile())), 2)
+
+    def test_update_pedfile_no_insert(self):
+        """Test no sample creating while processing genotypes"""
+
+        # create a temporary directory using the context manager
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            outfile = pathlib.Path(tmpdirname) / "plinktest_updated.ped"
+            self.plinkio.update_pedfile(
+                str(outfile), self.dataset, 'top', False)
+
+            with open(outfile) as handle:
+                data = handle.read()
+
+            # outfile is an empty
+            self.assertEqual(data, '')
+
+        # no sample created
+        self.assertEqual(SampleSheep.objects.count(), 0)
 
 
 class BinaryPlinkIOTest(
@@ -455,7 +529,7 @@ class BinaryPlinkIOTest(
         # get a dataset
         dataset = Dataset.objects(file="test.zip").get()
 
-        test = self.plinkio._process_pedline(line, dataset, 'top')
+        test = self.plinkio._process_pedline(line, dataset, 'top', True)
 
         self.assertEqual(reference, test)
 
@@ -555,7 +629,7 @@ class IlluminaReportIOPed(
         # get a dataset
         dataset = Dataset.objects(file="test.zip").get()
 
-        test = self.plinkio._process_pedline(line, dataset, 'ab')
+        test = self.plinkio._process_pedline(line, dataset, 'ab', True)
 
         self.assertEqual(reference, test)
 
@@ -567,7 +641,7 @@ class IlluminaReportIOPed(
         with tempfile.TemporaryDirectory() as tmpdirname:
             outfile = pathlib.Path(tmpdirname) / "plinktest_updated.ped"
             self.plinkio.update_pedfile(
-                str(outfile), dataset, 'ab', fid="TEX")
+                str(outfile), dataset, 'ab', fid="TEX", create_samples=True)
 
             # now open outputfile and test stuff
             test = TextPlinkIO(
@@ -695,7 +769,7 @@ class AffyPlinkIOPedTest(
         # get a dataset
         dataset = Dataset.objects(file="test.zip").get()
 
-        test = self.plinkio._process_pedline(line, dataset, 'forward')
+        test = self.plinkio._process_pedline(line, dataset, 'forward', True)
 
         self.assertEqual(reference, test)
 
@@ -710,7 +784,11 @@ class AffyPlinkIOPedTest(
         with tempfile.TemporaryDirectory() as tmpdirname:
             outfile = pathlib.Path(tmpdirname) / "affytes_updated.ped"
             self.plinkio.update_pedfile(
-                str(outfile), dataset, 'forward', fid="TEX")
+                str(outfile),
+                dataset,
+                'forward',
+                fid="TEX",
+                create_samples=True)
 
             # now open outputfile and test stuff
             test = TextPlinkIO(

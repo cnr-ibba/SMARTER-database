@@ -188,7 +188,42 @@ class SmarterMixin():
 
         return sex, father_id, mother_id
 
+    def get_sample(self, line: list, dataset: Dataset):
+        """Get a registered sample from database"""
+
+        # search for sample in database
+        qs = self.SampleSpecies.objects(
+            original_id=line[1], dataset=dataset)
+
+        sex, father_id, mother_id = self._deal_with_relationship(
+            line, dataset)
+
+        # this will be the sample I will return
+        sample = None
+
+        if qs.count() == 1:
+            logger.debug(f"Sample '{line[1]}' found in database")
+            sample = qs.get()
+
+            # update records if necessary
+            if sample.father_id != father_id or sample.mother_id != mother_id:
+                logger.warning(f"Update relationships for sample '{line[1]}'")
+                sample.father_id = father_id
+                sample.mother_id = mother_id
+                sample.save()
+
+        elif qs.count() == 0:
+            logger.error(f"Sample '{line[1]}' not found in database")
+
+        else:
+            raise SmarterDBException(
+                f"Got {qs.count()} results for '{line[1]}'")
+
+        return sample
+
     def get_or_create_sample(self, line: list, dataset: Dataset, breed: Breed):
+        """Get a sample from database or create a new one"""
+
         # search for sample in database
         qs = self.SampleSpecies.objects(
             original_id=line[1], dataset=dataset)
@@ -364,7 +399,13 @@ class SmarterMixin():
 
         return new_line
 
-    def _process_pedline(self, line: list, dataset: Dataset, coding: str):
+    def _process_pedline(
+            self,
+            line: list,
+            dataset: Dataset,
+            coding: str,
+            create_samples: bool):
+
         # check genotypes size 2*mapdata (diploidy) + 6 extra columns:
         if len(line) != len(self.mapdata)*2 + 6:
             logger.critical(
@@ -386,7 +427,15 @@ class SmarterMixin():
             )
 
         # check for sample in database
-        sample = self.get_or_create_sample(line, dataset, breed)
+        if create_samples:
+            sample = self.get_or_create_sample(line, dataset, breed)
+
+        else:
+            sample = self.get_sample(line, dataset)
+
+            # if I couldn't find a registered sample (in such case)
+            # i can skip such record
+            return None
 
         # a new line obj
         new_line = line.copy()
@@ -426,25 +475,51 @@ class SmarterMixin():
         return new_line
 
     def update_pedfile(
-            self, outputfile: str, dataset: Dataset, coding: str,
-            *args, **kwargs):
-        """Update ped contents"""
+            self,
+            outputfile: str,
+            dataset: Dataset,
+            coding: str,
+            create_samples: bool = False,
+            *args,
+            **kwargs):
+        """
+        Write a new pedfile relying on illumina_top genotypes and coordinates
+        stored in smarter database
+
+        Args:
+            outputfile (str): write ped to this path (overwrite if exists)
+            dataset (Dataset): the dataset we are converting
+            coding (str): the source coding (could be 'top', 'ab', 'forward')
+            create_samples (bool): create samples if not exist (useful to
+                create samples directly from ped file)
+        """
 
         with open(outputfile, "w") as target:
             writer = csv.writer(
                 target, delimiter=' ', lineterminator="\n")
 
-            for i, line in enumerate(
-                    self.read_genotype_method(*args, **kwargs)):
-                new_line = self._process_pedline(line, dataset, coding)
+            processed = 0
 
-                # write updated line into updated ped file
-                logger.info(
-                    f"Writing: {new_line[:10]+ ['...']} "
-                    f"({int((len(new_line)-6)/2)} SNPs)")
-                writer.writerow(new_line)
+            for line in self.read_genotype_method(*args, **kwargs):
+                new_line = self._process_pedline(
+                    line, dataset, coding, create_samples)
 
-            logger.info(f"Processed {i+1} individuals")
+                if new_line:
+                    # write updated line into updated ped file
+                    logger.info(
+                        f"Writing: {new_line[:10]+ ['...']} "
+                        f"({int((len(new_line)-6)/2)} SNPs)")
+                    writer.writerow(new_line)
+
+                    processed += 1
+
+                else:
+                    logger.warning(
+                        f"Skipping: {line[:10]+ ['...']} "
+                        f"({int((len(line)-6)/2)} SNPs)"
+                    )
+
+            logger.info(f"Processed {processed} individuals")
 
             # output file block
 

@@ -136,7 +136,8 @@ def deal_with_binary_plink(bfile: str, dataset: Dataset, assembly: str):
 )
 @click.option('--chip_name', type=str, required=True)
 @click.option('--assembly', type=str, required=True)
-def main(file_, bfile, dataset, coding, chip_name, assembly):
+@click.option('--create_samples', is_flag=True)
+def main(file_, bfile, dataset, coding, chip_name, assembly, create_samples):
     """Read sample names from map/ped files and updata smarter database (insert
     a record if necessary and define a smarter id for each sample)
     """
@@ -199,7 +200,7 @@ def main(file_, bfile, dataset, coding, chip_name, assembly):
     plinkio.update_mapfile(str(output_map))
 
     logger.info("Writing a new ped file with fixed genotype")
-    plinkio.update_pedfile(output_ped, dataset, coding)
+    plinkio.update_pedfile(output_ped, dataset, coding, create_samples)
 
     # ok time to convert data in plink binary format
     cmd = ["plink"] + PLINK_SPECIES_OPT[dataset.species] + [

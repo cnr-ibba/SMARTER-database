@@ -78,28 +78,30 @@ data: requirements
 	$(PYTHON_INTERPRETER) src/data/import_breeds.py --species Goat --dataset ADAPTmap_genotypeTOP_20161201.zip \
 		--datafile ADAPTmap_genotypeTOP_20161201/ADAPTmap_Breeds_20161201_fix.csv --breed_column Breed_fullname --code_column Breed_code
 
-	## import data from plink (or report) files for SHEEP
+	## import data from plink (or report) files for SHEEP (and create samples if not exist)
 	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --file TEXEL_UY --dataset TEXEL_INIA_UY.zip --chip_name IlluminaOvineSNP50 \
-		--assembly OAR3
+		--assembly OAR3 --create_samples
 	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --file Frizarta54samples_ped_map_files/Frizarta54samples \
-		--dataset Frizarta54samples_ped_map_files.zip --coding forward --chip_name IlluminaOvineSNP50 --assembly OAR3
+		--dataset Frizarta54samples_ped_map_files.zip --coding forward --chip_name IlluminaOvineSNP50 --assembly OAR3 --create_samples
 	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --file MERINO_UY_96_21_12_17_OV54k \
-		--dataset MERINO_INIA_UY.zip --chip_name IlluminaOvineSNP50 --assembly OAR3
+		--dataset MERINO_INIA_UY.zip --chip_name IlluminaOvineSNP50 --assembly OAR3 --create_samples
 	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --file CORRIEDALE_UY_60_INIA_Ovine_14sep2010 \
-		--dataset CORRIEDALE_INIA_UY.zip --chip_name IlluminaOvineSNP50 --assembly OAR3
+		--dataset CORRIEDALE_INIA_UY.zip --chip_name IlluminaOvineSNP50 --assembly OAR3 --create_samples
 	$(PYTHON_INTERPRETER) src/data/import_from_illumina.py --report JCM2357_UGY_FinalReport1.txt --snpfile OvineHDSNPList.txt \
-		--dataset CREOLE_INIA_UY.zip --breed_code CRL --chip_name IlluminaOvineHDSNP --assembly OAR3
+		--dataset CREOLE_INIA_UY.zip --breed_code CRL --chip_name IlluminaOvineHDSNP --assembly OAR3 --create_samples
 	$(PYTHON_INTERPRETER) src/data/import_from_illumina.py --report JCM2357_UGY_FinalReport2.txt --snpfile OvineHDSNPList.txt \
-		--dataset CREOLE_INIA_UY.zip --breed_code CRL --chip_name IlluminaOvineHDSNP --assembly OAR3
+		--dataset CREOLE_INIA_UY.zip --breed_code CRL --chip_name IlluminaOvineHDSNP --assembly OAR3 --create_samples
 	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --bfile frenchsheep_HD \
-		--dataset "High density genotypes of French Sheep populations.zip" --chip_name IlluminaOvineHDSNP --assembly OAR3
+		--dataset "High density genotypes of French Sheep populations.zip" --chip_name IlluminaOvineHDSNP --assembly OAR3 --create_samples
 	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --file ovine_SNP50HapMap_data/SNP50_Breedv1/SNP50_Breedv1 \
-		--dataset ovine_SNP50HapMap_data.zip --chip_name IlluminaOvineSNP50 --assembly OAR3
+		--dataset ovine_SNP50HapMap_data.zip --chip_name IlluminaOvineSNP50 --assembly OAR3 --create_samples
 
 	## create samples from custom files for sheep
 	$(PYTHON_INTERPRETER) src/data/import_samples.py --src_dataset Affymetrix_data_Plate_652_660.zip --dst_dataset Affymetrix_data_Plate_652_660.zip \
 		--datafile Affymetrix_data_Plate_652_660/Uruguay_Corriedale_ID_GenotypedAnimals.xlsx --code_all CRR --id_column "Sample Name" \
 		--chip_name AffymetrixAxiomOviCan --country_all Uruguay --alias_column "Sample Filename"
+
+	## TODO: import affymetrix plink data
 
 	## create samples from custom files for GOAT
 	$(PYTHON_INTERPRETER) src/data/import_samples.py --src_dataset ADAPTmap_phenotype_20161201.zip --dst_dataset ADAPTmap_genotypeTOP_20161201.zip \
