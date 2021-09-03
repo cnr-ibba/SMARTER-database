@@ -587,7 +587,9 @@ class AffyPlinkIOMap(VariantsMixin, MongoMockMixin, unittest.TestCase):
 
         self.plinkio = AffyPlinkIO(
             prefix=str(DATA_DIR / "affytest"),
-            species="Sheep")
+            species="Sheep",
+            chip_name="AffymetrixAxiomOviCan"
+        )
 
     def test_read_mapfile(self):
         self.plinkio.read_mapfile()
@@ -595,6 +597,56 @@ class AffyPlinkIOMap(VariantsMixin, MongoMockMixin, unittest.TestCase):
         self.assertEqual(len(self.plinkio.mapdata), 4)
         for record in self.plinkio.mapdata:
             self.assertIsInstance(record, MapRecord)
+
+    def test_fetch_coordinates(self):
+        self.plinkio.read_mapfile()
+        self.plinkio.fetch_coordinates(
+            version="Oar_v3.1",
+            imported_from="SNPchiMp v.3",
+            search_field='probeset_id'
+        )
+
+        self.assertIsInstance(self.plinkio.locations, list)
+        self.assertEqual(len(self.plinkio.locations), 4)
+
+        self.assertIsInstance(self.plinkio.filtered, set)
+        self.assertEqual(len(self.plinkio.filtered), 2)
+
+        # assert filtered items
+        self.assertIn(2, self.plinkio.filtered)
+        self.assertIn(3, self.plinkio.filtered)
+
+        for idx, record in enumerate(self.plinkio.locations):
+            if idx in self.plinkio.filtered:
+                self.assertIsNone(record)
+            else:
+                self.assertIsInstance(record, Location)
+
+    def test_update_mapfile(self):
+        # create a temporary directory using the context manager
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            outfile = pathlib.Path(tmpdirname) / "affytest_updated.map"
+            self.plinkio.read_mapfile()
+            self.plinkio.fetch_coordinates(
+                version="Oar_v3.1",
+                imported_from="SNPchiMp v.3",
+                search_field='probeset_id'
+            )
+            self.plinkio.update_mapfile(str(outfile))
+
+            # now open outputfile and test stuff
+            test = TextPlinkIO(mapfile=str(outfile))
+            test.read_mapfile()
+
+            # one snp cannot be mapped
+            self.assertEqual(len(test.mapdata), 2)
+
+            for record in test.mapdata:
+                variant = VariantSheep.objects(name=record.name).get()
+                location = variant.get_location(
+                    version="Oar_v3.1", imported_from="SNPchiMp v.3")
+                self.assertEqual(location.chrom, record.chrom)
+                self.assertEqual(location.position, record.position)
 
 
 if __name__ == '__main__':

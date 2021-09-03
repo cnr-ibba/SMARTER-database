@@ -149,10 +149,13 @@ class SmarterMixin():
                 # get a location relying on indexes
                 location = self.locations[idx]
 
+                # get the tracked variant name relying on indexes
+                variant_name = self.variants_name[idx]
+
                 # a new record in mapfile
                 writer.writerow([
                     clean_chrom(location.chrom),
-                    record.name,
+                    variant_name,
                     get_cM(record),
                     location.position
                 ])
@@ -234,24 +237,34 @@ class SmarterMixin():
 
         return sample
 
-    def fetch_coordinates(self, version: str, imported_from: str):
+    def fetch_coordinates(
+            self, version: str, imported_from: str,
+            search_field: str = "name"):
         """Search for variants in smarter database
 
         Args:
             version (str): the Location.version attribute
             imported_from (str): the Location.imported_from attribute
+            search_field (str): search variant by field (def. "name")
         """
 
         # reset meta informations
         self.locations = list()
         self.filtered = set()
+        self.variants_name = list()
 
         tqdm_out = TqdmToLogger(logger, level=logging.INFO)
 
         for idx, record in enumerate(tqdm(
                 self.mapdata, file=tqdm_out, mininterval=1)):
             try:
-                variant = self.VariantSpecies.objects(name=record.name).get()
+                variant = self.VariantSpecies.objects(
+                    **{search_field: record.name}
+                ).get()
+
+                # track variant.name read from database (useful when searching
+                # using probeset_id)
+                self.variants_name.append(variant.name)
 
             except DoesNotExist as e:
                 logger.error(f"Couldn't find {record.name}: {e}")
@@ -260,18 +273,32 @@ class SmarterMixin():
                 self.filtered.add(idx)
 
                 # need to add an empty value in locations (or my indexes
-                # won't work properly)
+                # won't work properly). The same for variants name
                 self.locations.append(None)
+                self.variants_name.append(None)
 
+                # don't check location for missing SNP
                 continue
 
             # get location using provided parameters
-            location = variant.get_location(
-                version=version,
-                imported_from=imported_from)
+            try:
+                location = variant.get_location(
+                    version=version,
+                    imported_from=imported_from)
 
-            # track data for this location
-            self.locations.append(location)
+                # track data for this location
+                self.locations.append(location)
+
+            except SmarterDBException as e:
+                logger.error(f"Discarding {record.name}: {e}")
+
+                # skip this variant (even in ped)
+                self.filtered.add(idx)
+
+                # need to add an empty value in locations (or my indexes
+                # won't work properly). The same for variants name
+                self.locations.append(None)
+                self.variants_name.append(None)
 
         logger.debug(
             f"collected {len(self.locations)} in '{version}' coordinates")
