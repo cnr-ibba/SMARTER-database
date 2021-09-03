@@ -9,6 +9,7 @@ Try to model data operations on plink files
 """
 
 import io
+import re
 import csv
 import logging
 
@@ -466,6 +467,47 @@ class TextPlinkIO(SmarterMixin):
         with open(self.pedfile) as handle:
             reader = get_reader(handle)
             for line in reader:
+                yield line
+
+
+# a new class for affymetrix plink files, which are slightly different from
+# plink text files
+class AffyPlinkIO(TextPlinkIO):
+    def read_mapfile(self):
+        """Read map data and track informations in memory. Useful to process
+        data files"""
+
+        self.mapdata = []
+
+        with open(self.mapfile) as handle:
+            # affy files has both " " and "\t" in their files
+            for line in handle:
+                record = re.split('[ \t]+', line.strip())
+
+                # affy data may have comments in files
+                if not record[0].startswith("#"):
+                    self.mapdata.append(MapRecord(*record))
+
+    def read_pedfile(self):
+        """Open pedfile for reading return iterator"""
+
+        with open(self.pedfile) as handle:
+            # affy files has both " " and "\t" in their files
+            for record in handle:
+                # affy data may have comments in files
+                if record.startswith("#"):
+                    logger.info(f"Skipping {record}")
+                    continue
+
+                line = re.split('[ \t]+', record.strip())
+
+                # affy ped lacks of plink columns. add such value to line
+                line.insert(0, 0)  # FID
+                line.insert(2, 0)  # father
+                line.insert(3, 0)  # mother
+                line.insert(4, 0)  # SEX
+                line.insert(5, -9)  # phenotype
+
                 yield line
 
 

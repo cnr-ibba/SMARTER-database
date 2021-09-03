@@ -26,6 +26,7 @@ TODO
   in database
 * Import from affymetrix dataset
 * Search samples *aliases* while importing genotypes
+* Add `chip_name` in Dataset (database value, not user value)
 
 0.4.1.dev0
 ----------

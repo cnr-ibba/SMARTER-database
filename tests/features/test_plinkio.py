@@ -15,7 +15,8 @@ from copy import deepcopy
 from src.features.smarterdb import (
     VariantSheep, Location, Breed, Dataset, SampleSheep, SEX)
 from src.features.plinkio import (
-    TextPlinkIO, MapRecord, CodingException, IlluminaReportIO, BinaryPlinkIO)
+    TextPlinkIO, MapRecord, CodingException, IlluminaReportIO, BinaryPlinkIO,
+    AffyPlinkIO)
 
 from ..common import MongoMockMixin, SmarterIDMixin, VariantsMixin
 
@@ -575,6 +576,25 @@ class IlluminaReportIOPed(
 
             # assert two records written
             self.assertEqual(len(list(test.read_pedfile())), 2)
+
+
+class AffyPlinkIOMap(VariantsMixin, MongoMockMixin, unittest.TestCase):
+    # load a custom fixture for this class
+    variant_fixture = "affy_variants.json"
+
+    def setUp(self):
+        super().setUp()
+
+        self.plinkio = AffyPlinkIO(
+            prefix=str(DATA_DIR / "affytest"),
+            species="Sheep")
+
+    def test_read_mapfile(self):
+        self.plinkio.read_mapfile()
+        self.assertIsInstance(self.plinkio.mapdata, list)
+        self.assertEqual(len(self.plinkio.mapdata), 4)
+        for record in self.plinkio.mapdata:
+            self.assertIsInstance(record, MapRecord)
 
 
 if __name__ == '__main__':
