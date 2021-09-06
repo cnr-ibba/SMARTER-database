@@ -101,9 +101,15 @@ def deal_with_affymetrix(file_: str, dataset: Dataset, assembly: str):
 @click.option('--chip_name', type=str, required=True)
 @click.option('--assembly', type=str, required=True)
 @click.option('--create_samples', is_flag=True)
+@click.option(
+    '--sample_field',
+    type=str,
+    default="original_id",
+    help="Search samples using this attribute"
+)
 def main(
         file_, dataset, coding, breed_code, chip_name, assembly,
-        create_samples):
+        create_samples, sample_field):
     """
     Read sample names from map/ped files and updata smarter database (insert
     a record if necessary and define a smarter id for each sample)
@@ -168,7 +174,8 @@ def main(
         dataset=dataset,
         coding=coding,
         fid=breed_code,
-        create_samples=create_samples
+        create_samples=create_samples,
+        sample_field=sample_field
     )
 
     # ok time to convert data in plink binary format

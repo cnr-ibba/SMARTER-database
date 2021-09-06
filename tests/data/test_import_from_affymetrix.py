@@ -15,7 +15,7 @@ from unittest.mock import patch, PropertyMock
 from plinkio import plinkfile
 
 from src.data.import_from_affymetrix import main as import_from_affymetrix
-from src.features.smarterdb import SampleSheep
+from src.features.smarterdb import SampleSheep, Dataset
 
 from ..common import (
     MongoMockMixin, SmarterIDMixin, VariantsMixin, SupportedChipMixin)
@@ -29,6 +29,12 @@ class TestImportFromAffymetrix(
 
     # a different fixture file to load in VariantMixin
     variant_fixture = "affy_variants.json"
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+
+        cls.dataset = Dataset.objects.get(file="test.zip")
 
     @classmethod
     def tearDownClass(cls):
@@ -85,7 +91,10 @@ class TestImportFromAffymetrix(
                     "--coding",
                     "forward",
                     "--breed_code",
-                    "TEX"
+                    "TEX",
+                    "--sample_field",
+                    "alias",
+                    "--create_samples"
                 ]
             )
 
@@ -96,14 +105,14 @@ class TestImportFromAffymetrix(
             for sample in SampleSheep.objects:
                 self.assertEqual(sample.chip_name, self.chip_name)
 
-            plink_path = results_dir / "OAR3" / "plinktest_updated"
+            plink_path = results_dir / "OAR3" / "affytest_updated"
             plink_file = plinkfile.open(str(plink_path))
 
             sample_list = plink_file.get_samples()
             locus_list = plink_file.get_loci()
 
             self.assertEqual(len(sample_list), 2)
-            self.assertEqual(len(locus_list), 3)
+            self.assertEqual(len(locus_list), 2)
 
     @patch('src.features.plinkio.SmarterMixin.fetch_coordinates')
     @patch('src.features.smarterdb.Dataset.result_dir',
@@ -155,7 +164,10 @@ class TestImportFromAffymetrix(
                     "--coding",
                     "forward",
                     "--breed_code",
-                    "TEX"
+                    "TEX",
+                    "--sample_field",
+                    "alias",
+                    "--create_samples"
                 ]
             )
 

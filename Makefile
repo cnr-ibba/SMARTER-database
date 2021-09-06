@@ -103,9 +103,9 @@ data: requirements
 
 	## convert genotypes without inserting samples in database (SHEEP)
 	$(PYTHON_INTERPRETER) src/data/import_from_affymetrix.py --file Affymetrix_data_Plate_652_660/Affymetrix_data_Plate_652/Affymetrix_data_Plate_652 \
-		--dataset Affymetrix_data_Plate_652_660.zip --breed_code CRR --chip_name AffymetrixAxiomOviCan --assembly OAR3
+		--dataset Affymetrix_data_Plate_652_660.zip --breed_code CRR --chip_name AffymetrixAxiomOviCan --assembly OAR3 --sample_field alias
 	$(PYTHON_INTERPRETER) src/data/import_from_affymetrix.py --file Affymetrix_data_Plate_652_660/Affymetrix_data_Plate_660/Affymetrix_data_Plate_660 \
-		--dataset Affymetrix_data_Plate_652_660.zip --breed_code CRR --chip_name AffymetrixAxiomOviCan --assembly OAR3
+		--dataset Affymetrix_data_Plate_652_660.zip --breed_code CRR --chip_name AffymetrixAxiomOviCan --assembly OAR3 --sample_field alias
 
 	## create samples from custom files for GOAT
 	$(PYTHON_INTERPRETER) src/data/import_samples.py --src_dataset ADAPTmap_phenotype_20161201.zip --dst_dataset ADAPTmap_genotypeTOP_20161201.zip \

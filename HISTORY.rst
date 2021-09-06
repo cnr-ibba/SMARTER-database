@@ -24,13 +24,13 @@ TODO
 * Check coordinates with sheep and goat genome projects
 * Release a *smarter* coordinate version with information on every variant defined 
   in database
-* Import from affymetrix dataset
-* Search samples *aliases* while importing genotypes
 * Add `chip_name` in Dataset (database value, not user value)
 
 0.4.1.dev0
 ----------
 
+* Import from affymetrix dataset
+* Search samples *aliases* while importing genotypes
 * Clearly state when creating samples (ignore samples if not defined in database)
 * Track sample aliases for ``original_id``
 * Import samples from file by providing *country* and *breeds* values as parameters

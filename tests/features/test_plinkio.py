@@ -276,7 +276,47 @@ class TextPlinkIOPed(
 
         # calling get_sample again to collect the sample
         reference = self.plinkio.get_sample(
-            line, self.dataset)
+            line,
+            self.dataset
+        )
+
+        # now reference is a sample.
+        self.assertIsInstance(reference, SampleSheep)
+
+        # Check how many samples I have
+        breed.reload()
+        self.assertEqual(breed.n_individuals, 1)
+        self.assertEqual(SampleSheep.objects.count(), 1)
+
+        # check that objects are the same
+        self.assertEqual(reference, test)
+
+    def test_get_sample_by_alias(self):
+        """get a sample without creating item"""
+
+        # get a sample line
+        line = self.lines[0].copy()
+
+        # get a breed
+        breed = Breed.objects(
+            aliases__match={'fid': line[0], 'dataset': self.dataset}).get()
+
+        # call get_or_create to insert this sample in database
+        test = self.plinkio.get_or_create_sample(line, self.dataset, breed)
+
+        # add an alias to this sample
+        test.alias = "alias-1"
+        test.save()
+
+        # replace sample name with alias
+        line[1] = "alias-1"
+
+        # calling get_sample again to collect the sample
+        reference = self.plinkio.get_sample(
+            line,
+            self.dataset,
+            sample_field='alias'
+        )
 
         # now reference is a sample.
         self.assertIsInstance(reference, SampleSheep)

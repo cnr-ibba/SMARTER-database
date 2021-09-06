@@ -188,12 +188,19 @@ class SmarterMixin():
 
         return sex, father_id, mother_id
 
-    def get_sample(self, line: list, dataset: Dataset):
+    def get_sample(
+            self,
+            line: list,
+            dataset: Dataset,
+            sample_field: str = "original_id",
+        ):
         """Get a registered sample from database"""
 
         # search for sample in database
         qs = self.SampleSpecies.objects(
-            original_id=line[1], dataset=dataset)
+            dataset=dataset,
+            **{sample_field: line[1]}
+        )
 
         sex, father_id, mother_id = self._deal_with_relationship(
             line, dataset)
@@ -404,7 +411,8 @@ class SmarterMixin():
             line: list,
             dataset: Dataset,
             coding: str,
-            create_samples: bool):
+            create_samples: bool = False,
+            sample_field: str = "original_id"):
 
         # check genotypes size 2*mapdata (diploidy) + 6 extra columns:
         if len(line) != len(self.mapdata)*2 + 6:
@@ -431,11 +439,12 @@ class SmarterMixin():
             sample = self.get_or_create_sample(line, dataset, breed)
 
         else:
-            sample = self.get_sample(line, dataset)
+            sample = self.get_sample(line, dataset, sample_field)
 
             # if I couldn't find a registered sample (in such case)
             # i can skip such record
-            return None
+            if not sample:
+                return None
 
         # a new line obj
         new_line = line.copy()
@@ -480,6 +489,7 @@ class SmarterMixin():
             dataset: Dataset,
             coding: str,
             create_samples: bool = False,
+            sample_field: str = "original_id",
             *args,
             **kwargs):
         """
@@ -492,6 +502,8 @@ class SmarterMixin():
             coding (str): the source coding (could be 'top', 'ab', 'forward')
             create_samples (bool): create samples if not exist (useful to
                 create samples directly from ped file)
+            sample_field (str): search samples using this attribute (def.
+                'original_id')
         """
 
         with open(outputfile, "w") as target:
@@ -502,7 +514,7 @@ class SmarterMixin():
 
             for line in self.read_genotype_method(*args, **kwargs):
                 new_line = self._process_pedline(
-                    line, dataset, coding, create_samples)
+                    line, dataset, coding, create_samples, sample_field)
 
                 if new_line:
                     # write updated line into updated ped file
