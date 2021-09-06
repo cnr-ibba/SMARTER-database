@@ -58,7 +58,9 @@ class SmarterIDMixin():
                 "plinktest.bim",
                 "plinktest.bed",
                 "snplist.txt",
-                "finalreport.txt"
+                "finalreport.txt",
+                "affytest.map",
+                "affytest.ped"
             ]
         )
         dataset.save()

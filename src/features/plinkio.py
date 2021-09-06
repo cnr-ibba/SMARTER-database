@@ -213,7 +213,7 @@ class SmarterMixin():
                 sample.save()
 
         elif qs.count() == 0:
-            logger.error(f"Sample '{line[1]}' not found in database")
+            logger.warning(f"Sample '{line[1]}' not found in database")
 
         else:
             raise SmarterDBException(
@@ -298,7 +298,7 @@ class SmarterMixin():
                 ).get()
 
             except DoesNotExist as e:
-                logger.error(f"Couldn't find {record.name}: {e}")
+                logger.warning(f"Couldn't find {record.name}: {e}")
 
                 # skip this variant (even in ped)
                 self.filtered.add(idx)
@@ -325,7 +325,7 @@ class SmarterMixin():
                 self.variants_name.append(variant.name)
 
             except SmarterDBException as e:
-                logger.error(f"Discarding {record.name}: {e}")
+                logger.warning(f"Discarding {record.name}: {e}")
 
                 # skip this variant (even in ped)
                 self.filtered.add(idx)
