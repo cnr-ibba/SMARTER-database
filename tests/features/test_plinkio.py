@@ -780,14 +780,33 @@ class AffyPlinkIOPedTest(
 
         # read info from map
         self.plinkio.read_mapfile()
+
+        # need to read the destination coordinates once, to determine which
+        # SNPs don't have a position on the destination assembly
         self.plinkio.fetch_coordinates(
             version="Oar_v3.1",
             imported_from="SNPchiMp v.3",
             search_field='probeset_id'
         )
 
+        # need to track filtered SNPs
+        self.filtered_snps = self.plinkio.filtered
+
+        # now read the original coordinates
+        self.plinkio.fetch_coordinates(
+            version="Oar_v4.0",
+            imported_from="affymetrix",
+            search_field='probeset_id'
+        )
+
+        # then updated the filtered SNPs using the desiderate coordinate sys
+        self.plinkio.filtered.update(self.filtered_snps)
+
         # read ped files
         self.lines = list(self.plinkio.read_pedfile(fid="TEX"))
+
+    def test_assert_filtered(self):
+        self.assertEqual(self.plinkio.filtered, {2, 3})
 
     def test_read_pedfile(self):
         test = self.plinkio.read_pedfile(fid="TEX")
@@ -809,7 +828,7 @@ class AffyPlinkIOPedTest(
         # get a dataset
         dataset = Dataset.objects(file="test.zip").get()
 
-        test = self.plinkio._process_pedline(line, dataset, 'forward', True)
+        test = self.plinkio._process_pedline(line, dataset, 'affymetrix', True)
 
         self.assertEqual(reference, test)
 
@@ -826,7 +845,7 @@ class AffyPlinkIOPedTest(
             self.plinkio.update_pedfile(
                 str(outfile),
                 dataset,
-                'forward',
+                'affymetrix',
                 fid="TEX",
                 create_samples=True)
 

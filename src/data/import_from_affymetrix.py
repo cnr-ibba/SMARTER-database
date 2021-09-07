@@ -87,14 +87,6 @@ def deal_with_affymetrix(file_: str, dataset: Dataset, assembly: str):
     help="The raw dataset file name (zip archive)"
 )
 @click.option(
-    '--coding',
-    type=click.Choice(
-        ['top', 'forward'],
-        case_sensitive=False),
-    default="top", show_default=True,
-    help="Illumina coding format"
-)
-@click.option(
     '--breed_code',
     type=str,
     required=True)
@@ -108,7 +100,7 @@ def deal_with_affymetrix(file_: str, dataset: Dataset, assembly: str):
     help="Search samples using this attribute"
 )
 def main(
-        file_, dataset, coding, breed_code, chip_name, assembly,
+        file_, dataset, breed_code, chip_name, assembly,
         create_samples, sample_field):
     """
     Read sample names from map/ped files and updata smarter database (insert
@@ -168,11 +160,33 @@ def main(
     logger.info("Writing a new map file with updated coordinates")
     plinkio.update_mapfile(str(output_map))
 
-    logger.info("Writing a new ped file with fixed genotype")
+    # now track the filtered SNPs in the destination assemply
+    filtered_snps = plinkio.filtered
+
+    logging.info(
+        f"Track {len(filtered_snps)} to remove from desidered assembly")
+    logging.info(
+        "Reading affymetrix original coordinates to determine"
+        "original genotypes")
+
+    # ok get coordinates again, this time from the original affymetrix system
+    plinkio.fetch_coordinates(
+        version="Oar_v4.0",
+        imported_from="affymetrix",
+        search_field="probeset_id"
+    )
+
+    logging.info("Merging filtered SNPs from both coordinate system")
+
+    # merge the filtered SNPs set with the other set of filtered SNPs of the
+    # desidered assembly
+    plinkio.filtered.update(filtered_snps)
+
+    logger.info("Writing a new ped file with fixed genotype (illumina TOP)")
     plinkio.update_pedfile(
         outputfile=output_ped,
         dataset=dataset,
-        coding=coding,
+        coding="affymetrix",
         fid=breed_code,
         create_samples=create_samples,
         sample_field=sample_field
