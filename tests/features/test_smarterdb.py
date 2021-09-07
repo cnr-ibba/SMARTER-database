@@ -347,7 +347,7 @@ class LocationTestCase(VariantMixin, MongoMockMixin, unittest.TestCase):
         )
 
     def test_is_affy(self):
-        for genotype in ["T/C", "T/T", "C/T", "C/C", "-/-"]:
+        for genotype in ["T/C", "T/T", "C/T", "C/C", "0/0"]:
             genotype = genotype.split("/")
 
             self.assertTrue(
@@ -365,7 +365,7 @@ class LocationTestCase(VariantMixin, MongoMockMixin, unittest.TestCase):
     def test_affy2top(self):
         """Test affymetrix to top conversion"""
 
-        affymetrixs = ["T/C", "T/T", "C/T", "C/C", "-/-"]
+        affymetrixs = ["T/C", "T/T", "C/T", "C/C", "0/0"]
         tops = ["A/G", "A/A", "G/A", "G/G", "0/0"]
 
         for i, genotype in enumerate(affymetrixs):

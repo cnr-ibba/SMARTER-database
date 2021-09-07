@@ -380,7 +380,7 @@ class SmarterMixin():
                 if not location.is_forward(genotype):
                     logger.critical(
                         f"Error for SNP {j}:{self.mapdata[j].name}: "
-                        f"{a1}/{a2} <> {location.illumina_top}"
+                        f"{a1}/{a2} <> {location.illumina_forward}"
                     )
                     raise CodingException("Not illumina forward format")
 
@@ -392,12 +392,24 @@ class SmarterMixin():
                 if not location.is_ab(genotype):
                     logger.critical(
                         f"Error for SNP {j}:{self.mapdata[j].name}: "
-                        f"{a1}/{a2} <> {location.illumina_top}"
+                        f"{a1}/{a2} <> A/B"
                     )
                     raise CodingException("Not illumina ab format")
 
                 # change the allele coding
                 top_genotype = location.ab2top(genotype)
+                new_line[6+j*2], new_line[6+j*2+1] = top_genotype
+
+            elif coding == 'affymetrix':
+                if not location.is_affymetrix(genotype):
+                    logger.critical(
+                        f"Error for SNP {j}:{self.mapdata[j].name}: "
+                        f"{a1}/{a2} <> {location.affymetrix_ab}"
+                    )
+                    raise CodingException("Not affymetrix format")
+
+                # change the allele coding
+                top_genotype = location.affy2top(genotype)
                 new_line[6+j*2], new_line[6+j*2+1] = top_genotype
 
             else:

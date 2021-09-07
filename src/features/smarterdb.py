@@ -685,12 +685,12 @@ class Location(mongoengine.EmbeddedDocument):
 
         return True
 
-    def is_affymetrix(self, genotype: list, missing: str = "-") -> bool:
+    def is_affymetrix(self, genotype: list, missing: str = "0") -> bool:
         """Return True if genotype is compatible with affymetrix coding
 
         Args:
             genotype (list): a list of two alleles (ex ['A','C'])
-            missing (str): missing allele string (def "-")
+            missing (str): missing allele string (def "0")
 
         Returns:
             bool: True if in top coordinates
@@ -760,12 +760,12 @@ class Location(mongoengine.EmbeddedDocument):
 
         return result
 
-    def affy2top(self, genotype: list, missing: str = "-") -> list:
+    def affy2top(self, genotype: list, missing: str = "0") -> list:
         """Convert an affymetrix SNP in a illumina top snp
 
         Args:
             genotype (list): a list of two alleles (ex ['A','C'])
-            missing (str): missing allele string (def "-")
+            missing (str): missing allele string (def "0")
 
         Returns:
             list: The genotype in top format
