@@ -192,8 +192,7 @@ class SmarterMixin():
             self,
             line: list,
             dataset: Dataset,
-            sample_field: str = "original_id",
-        ):
+            sample_field: str = "original_id"):
         """Get a registered sample from database"""
 
         # search for sample in database
@@ -372,7 +371,7 @@ class SmarterMixin():
             if coding == 'top':
                 if not location.is_top(genotype):
                     logger.critical(
-                        f"Error for {self.mapdata[j].name}: "
+                        f"Error for SNP {j}:{self.mapdata[j].name}: "
                         f"{a1}/{a2} <> {location.illumina_top}"
                     )
                     raise CodingException("Not illumina top format")
@@ -380,7 +379,7 @@ class SmarterMixin():
             elif coding == 'forward':
                 if not location.is_forward(genotype):
                     logger.critical(
-                        f"Error for {self.mapdata[j].name}: "
+                        f"Error for SNP {j}:{self.mapdata[j].name}: "
                         f"{a1}/{a2} <> {location.illumina_top}"
                     )
                     raise CodingException("Not illumina forward format")
@@ -392,7 +391,7 @@ class SmarterMixin():
             elif coding == 'ab':
                 if not location.is_ab(genotype):
                     logger.critical(
-                        f"Error for {self.mapdata[j].name}: "
+                        f"Error for SNP {j}:{self.mapdata[j].name}: "
                         f"{a1}/{a2} <> {location.illumina_top}"
                     )
                     raise CodingException("Not illumina ab format")

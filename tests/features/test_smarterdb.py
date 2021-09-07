@@ -116,8 +116,11 @@ class BreedTestCase(MongoMockMixin, unittest.TestCase):
 class VariantMixin():
     @classmethod
     def setUpClass(cls):
-        with open(DATA_DIR / "variants.json") as handle:
+        with open(DATA_DIR / "affy_variants.json") as handle:
             cls.data = json.load(handle)[0]
+
+        with open(DATA_DIR / "affy_variants.json") as handle:
+            cls.affy_data = json.load(handle)[2]
 
         super().setUpClass()
 
@@ -126,6 +129,9 @@ class LocationTestCase(VariantMixin, MongoMockMixin, unittest.TestCase):
     def setUp(self):
         location = self.data["locations"][1]
         self.location = Location.from_json(json.dumps(location))
+
+        affy_location = self.affy_data["locations"][2]
+        self.affy_location = Location.from_json(json.dumps(affy_location))
 
     def test_illumina_top(self):
         self.assertEqual(self.location.illumina_top, "A/G")
@@ -337,6 +343,44 @@ class LocationTestCase(VariantMixin, MongoMockMixin, unittest.TestCase):
             SmarterDBException,
             "is not in ab coding",
             self.location.ab2top,
+            ["A", "T"]
+        )
+
+    def test_is_affy(self):
+        for genotype in ["T/C", "T/T", "C/T", "C/C", "-/-"]:
+            genotype = genotype.split("/")
+
+            self.assertTrue(
+                self.affy_location.is_affymetrix(genotype),
+                msg=f"{genotype} is not in affymetrix coordinates!"
+            )
+
+        # is not in not if contains an allele not in top format
+        for genotype in ["A/A", "A/G", "G/A", "G/G"]:
+            self.assertFalse(
+                self.location.is_forward(genotype),
+                msg=f"{genotype} is in affymetrix coordinates!"
+            )
+
+    def test_affy2top(self):
+        """Test affymetrix to top conversion"""
+
+        affymetrixs = ["T/C", "T/T", "C/T", "C/C", "-/-"]
+        tops = ["A/G", "A/A", "G/A", "G/G", "0/0"]
+
+        for i, genotype in enumerate(affymetrixs):
+            reference = tops[i].split("/")
+            genotype = genotype.split("/")
+
+            test = self.affy_location.affy2top(genotype)
+            self.assertEqual(reference, test)
+
+    def test_affy2top_error(self):
+        """Test exception with an allele not in affymetrix coding"""
+        self.assertRaisesRegex(
+            SmarterDBException,
+            "is not in affymetrix coding",
+            self.affy_location.affy2top,
             ["A", "T"]
         )
 
