@@ -10,7 +10,6 @@ TODO
   illumina_top shouldn't change within the same SNP, indipendently from data source
 * Check chromosomes in *Variants locations*: mind to **scaffold**, **null**, and
   **non-autosomal** chromosomes for *Goat* and *Sheep*
-* Skip ``null`` fields when importing datasets
 * Import foreground genotypes
   - import french sheep data
   - import greece goat data
@@ -24,7 +23,7 @@ TODO
   (ex: ``VariantSheep.objects.fields(elemMatch__locations={"imported_from": "SNPchiMp v.3", "version": "Oar_v4.0"})``)
 * Check coordinates with sheep and goat genome projects
 * Release a *smarter* coordinate version with information on every variant defined 
-  in database
+  in database (which will be used as reference)
 * Add `chip_name` in Dataset (database value, not user value)
 
 0.4.1.dev0
@@ -33,6 +32,7 @@ TODO
 Features
 ^^^^^^^^
 
+* Skip ``null`` fields when importing datasets
 * Import uruguay sheep affymetrix data
 * Import from affymetrix dataset
 * Rely on original affymetrix coordinate system to determine illumina top alleles

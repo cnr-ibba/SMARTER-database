@@ -188,3 +188,7 @@ class UpdateManifestTest(
         self.assertEqual(location.chrom, "0")
         self.assertEqual(location.position, 0)
         self.assertEqual(location.illumina_top, "A/G")
+
+
+if __name__ == '__main__':
+    unittest.main()
