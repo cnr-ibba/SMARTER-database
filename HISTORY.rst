@@ -25,13 +25,13 @@ TODO
 * Release a *smarter* coordinate version with information on every variant defined 
   in database (which will be used as reference)
 
-0.4.1.dev0
-----------
+0.4.1 (2021-09-08)
+------------------
 
 Features
 ^^^^^^^^
 
-* Add `chip_name` in Dataset (database value, not user value)
+* Add ``chip_name`` in Dataset (database value, not user value)
 * Skip ``null`` fields when importing datasets
 * Import uruguay sheep affymetrix data
 * Import from affymetrix dataset
