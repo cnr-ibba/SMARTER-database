@@ -19,10 +19,9 @@ import logging
 import subprocess
 
 from pathlib import Path
-from click_option_group import optgroup, RequiredMutuallyExclusiveOptionGroup
 
 from src.features.plinkio import (
-    TextPlinkIO, BinaryPlinkIO, plink_binary_exists)
+    AffyPlinkIO, plink_binary_exists)
 from src.features.smarterdb import Dataset, global_connection, SupportedChip
 from src.data.common import WORKING_ASSEMBLIES, PLINK_SPECIES_OPT
 
@@ -47,7 +46,7 @@ def get_output_files(prefix: str, working_dir: Path, assembly: str):
     return output_dir, output_map, output_ped
 
 
-def deal_with_text_plink(file_: str, dataset: Dataset, assembly: str):
+def deal_with_affymetrix(file_: str, dataset: Dataset, assembly: str):
     mapfile = file_ + ".map"
     pedfile = file_ + ".ped"
 
@@ -68,7 +67,7 @@ def deal_with_text_plink(file_: str, dataset: Dataset, assembly: str):
     pedpath = working_dir / pedfile
 
     # instantiating a TextPlinkIO object
-    plinkio = TextPlinkIO(
+    plinkio = AffyPlinkIO(
         mapfile=str(mappath),
         pedfile=str(pedpath),
         species=dataset.species
@@ -81,64 +80,30 @@ def deal_with_text_plink(file_: str, dataset: Dataset, assembly: str):
     return plinkio, output_dir, output_map, output_ped
 
 
-def deal_with_binary_plink(bfile: str, dataset: Dataset, assembly: str):
-    bedfile = bfile + ".bed"
-    bimfile = bfile + ".bim"
-    famfile = bfile + ".fam"
-
-    all_files = set([bedfile, bimfile, famfile])
-
-    if not all_files.issubset(set(dataset.contents)):
-        raise Exception(
-            "Couldn't find files in dataset: check for "
-            f"'{all_files}' in '{dataset}'")
-
-    # check for working directory
-    working_dir = dataset.working_dir
-
-    if not working_dir.exists():
-        raise Exception(f"Could find dataset directory {working_dir}")
-
-    # determine full file paths
-    bfilepath = working_dir / bfile
-
-    # instantiating a BinaryPlinkIO object
-    plinkio = BinaryPlinkIO(
-        prefix=str(bfilepath),
-        species=dataset.species
-    )
-
-    # determine output files
-    output_dir, output_map, output_ped = get_output_files(
-        bfile, working_dir, assembly)
-
-    return plinkio, output_dir, output_map, output_ped
-
-
 @click.command()
-@optgroup.group(
-    'Plink input parameters',
-    cls=RequiredMutuallyExclusiveOptionGroup
-)
-@optgroup.option('--file', 'file_', type=str)
-@optgroup.option('--bfile', type=str)
+@click.option('--file', 'file_', type=str)
 @click.option(
     '--dataset', type=str, required=True,
     help="The raw dataset file name (zip archive)"
 )
 @click.option(
-    '--coding',
-    type=click.Choice(
-        ['top', 'forward'],
-        case_sensitive=False),
-    default="top", show_default=True,
-    help="Illumina coding format"
-)
+    '--breed_code',
+    type=str,
+    required=True)
 @click.option('--chip_name', type=str, required=True)
 @click.option('--assembly', type=str, required=True)
 @click.option('--create_samples', is_flag=True)
-def main(file_, bfile, dataset, coding, chip_name, assembly, create_samples):
-    """Read sample names from map/ped files and updata smarter database (insert
+@click.option(
+    '--sample_field',
+    type=str,
+    default="original_id",
+    help="Search samples using this attribute"
+)
+def main(
+        file_, dataset, breed_code, chip_name, assembly,
+        create_samples, sample_field):
+    """
+    Read sample names from map/ped files and updata smarter database (insert
     a record if necessary and define a smarter id for each sample)
     """
 
@@ -155,13 +120,8 @@ def main(file_, bfile, dataset, coding, chip_name, assembly, create_samples):
 
     logger.debug(f"Found {dataset}")
 
-    if file_:
-        plinkio, output_dir, output_map, output_ped = deal_with_text_plink(
-            file_, dataset, assembly)
-
-    elif bfile:
-        plinkio, output_dir, output_map, output_ped = deal_with_binary_plink(
-            bfile, dataset, assembly)
+    plinkio, output_dir, output_map, output_ped = deal_with_affymetrix(
+        file_, dataset, assembly)
 
     # check chip_name
     illumina_chip = SupportedChip.objects(name=chip_name).get()
@@ -190,17 +150,47 @@ def main(file_, bfile, dataset, coding, chip_name, assembly, create_samples):
     # read mapdata and read updated coordinates from db
     plinkio.read_mapfile()
 
-    # fetch coordinates relying assembly configuration
+    # fetch coordinates relying assembly configuration. Mind affy probeset_id
     plinkio.fetch_coordinates(
         version=assembly_conf.version,
-        imported_from=assembly_conf.imported_from
+        imported_from=assembly_conf.imported_from,
+        search_field="probeset_id"
     )
 
     logger.info("Writing a new map file with updated coordinates")
     plinkio.update_mapfile(str(output_map))
 
-    logger.info("Writing a new ped file with fixed genotype")
-    plinkio.update_pedfile(output_ped, dataset, coding, create_samples)
+    # now track the filtered SNPs in the destination assemply
+    filtered_snps = plinkio.filtered
+
+    logging.info(
+        f"Track {len(filtered_snps)} to remove from desidered assembly")
+    logging.info(
+        "Reading affymetrix original coordinates to determine"
+        "original genotypes")
+
+    # ok get coordinates again, this time from the original affymetrix system
+    plinkio.fetch_coordinates(
+        version="Oar_v4.0",
+        imported_from="affymetrix",
+        search_field="probeset_id"
+    )
+
+    logging.info("Merging filtered SNPs from both coordinate system")
+
+    # merge the filtered SNPs set with the other set of filtered SNPs of the
+    # desidered assembly
+    plinkio.filtered.update(filtered_snps)
+
+    logger.info("Writing a new ped file with fixed genotype (illumina TOP)")
+    plinkio.update_pedfile(
+        outputfile=output_ped,
+        dataset=dataset,
+        coding="affymetrix",
+        fid=breed_code,
+        create_samples=create_samples,
+        sample_field=sample_field
+    )
 
     # ok time to convert data in plink binary format
     cmd = ["plink"] + PLINK_SPECIES_OPT[dataset.species] + [

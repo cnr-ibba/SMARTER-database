@@ -88,7 +88,8 @@ class TestImportFromPlink(
                     "--chip_name",
                     self.chip_name,
                     "--assembly",
-                    "OAR3"
+                    "OAR3",
+                    "--create_samples"
                 ]
             )
 
@@ -135,7 +136,8 @@ class TestImportFromPlink(
                     "--chip_name",
                     self.chip_name,
                     "--assembly",
-                    "OAR3"
+                    "OAR3",
+                    "--create_samples"
                 ]
             )
 
@@ -184,7 +186,8 @@ class TestImportFromPlink(
                     "--bfile",
                     "plinktest"
                     "--assembly",
-                    "OAR3"
+                    "OAR3",
+                    "--create_samples"
                 ]
             )
 
@@ -233,7 +236,8 @@ class TestImportFromPlink(
                     "--chip_name",
                     self.chip_name,
                     "--assembly",
-                    "OAR3"
+                    "OAR3",
+                    "--create_samples"
                 ]
             )
 

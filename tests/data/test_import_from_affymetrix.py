@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Wed Apr 14 17:33:22 2021
+Created on Mon Sep  6 14:27:19 2021
 
 @author: Paolo Cozzi <paolo.cozzi@ibba.cnr.it>
 """
@@ -14,8 +14,8 @@ from click.testing import CliRunner
 from unittest.mock import patch, PropertyMock
 from plinkio import plinkfile
 
-from src.data.import_from_illumina import main as import_from_illumina
-from src.features.smarterdb import SampleSheep
+from src.data.import_from_affymetrix import main as import_from_affymetrix
+from src.features.smarterdb import SampleSheep, Dataset
 
 from ..common import (
     MongoMockMixin, SmarterIDMixin, VariantsMixin, SupportedChipMixin)
@@ -23,9 +23,18 @@ from ..common import (
 DATA_DIR = pathlib.Path(__file__).parents[1] / "features/data"
 
 
-class TestImportFromIllumina(
+class TestImportFromAffymetrix(
         VariantsMixin, SmarterIDMixin, SupportedChipMixin, MongoMockMixin,
         unittest.TestCase):
+
+    # a different fixture file to load in VariantMixin
+    variant_fixture = "affy_variants.json"
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+
+        cls.dataset = Dataset.objects.get(file="test.zip")
 
     @classmethod
     def tearDownClass(cls):
@@ -36,18 +45,18 @@ class TestImportFromIllumina(
 
     def setUp(self):
         self.runner = CliRunner()
-        self.snpfile = DATA_DIR / "snplist.txt"
-        self.report = DATA_DIR / "finalreport.txt"
+        self.mapfile = DATA_DIR / "affytest.map"
+        self.pedfile = DATA_DIR / "affytest.ped"
 
     def link_files(self, working_dir):
-        snpfile = working_dir / "snplist.txt"
-        report = working_dir / "finalreport.txt"
+        mapfile = working_dir / "affytest.map"
+        pedfile = working_dir / "affytest.ped"
 
-        snpfile.symlink_to(self.snpfile)
-        report.symlink_to(self.report)
+        mapfile.symlink_to(self.mapfile)
+        pedfile.symlink_to(self.pedfile)
 
     def test_help(self):
-        result = self.runner.invoke(import_from_illumina, ["--help"])
+        result = self.runner.invoke(import_from_affymetrix, ["--help"])
         self.assertEqual(0, result.exit_code)
         self.assertIn('Usage: main', result.output)
 
@@ -55,7 +64,7 @@ class TestImportFromIllumina(
            new_callable=PropertyMock)
     @patch('src.features.smarterdb.Dataset.working_dir',
            new_callable=PropertyMock)
-    def test_import_from_illumina(self, my_working_dir, my_result_dir):
+    def test_import_from_affymetrix(self, my_working_dir, my_result_dir):
         # create a temporary directory using the context manager
         with tempfile.TemporaryDirectory() as tmpdirname:
             working_dir = pathlib.Path(tmpdirname)
@@ -69,20 +78,20 @@ class TestImportFromIllumina(
             self.link_files(working_dir)
 
             result = self.runner.invoke(
-                import_from_illumina,
+                import_from_affymetrix,
                 [
                     "--dataset",
                     "test.zip",
-                    "--snpfile",
-                    "snplist.txt",
-                    "--report",
-                    "finalreport.txt",
-                    "--breed_code",
-                    "TEX",
+                    "--file",
+                    "affytest",
                     "--chip_name",
                     self.chip_name,
                     "--assembly",
                     "OAR3",
+                    "--breed_code",
+                    "TEX",
+                    "--sample_field",
+                    "alias",
                     "--create_samples"
                 ]
             )
@@ -94,7 +103,7 @@ class TestImportFromIllumina(
             for sample in SampleSheep.objects:
                 self.assertEqual(sample.chip_name, self.chip_name)
 
-            plink_path = results_dir / "OAR3" / "finalreport_updated"
+            plink_path = results_dir / "OAR3" / "affytest_updated"
             plink_file = plinkfile.open(str(plink_path))
 
             sample_list = plink_file.get_samples()
@@ -109,6 +118,8 @@ class TestImportFromIllumina(
     @patch('src.features.smarterdb.Dataset.working_dir',
            new_callable=PropertyMock)
     def test_import_skip(self, my_working_dir, my_result_dir, my_fetch):
+        """test no import if output files exist"""
+
         # create a temporary directory using the context manager
         with tempfile.TemporaryDirectory() as tmpdirname:
             working_dir = pathlib.Path(tmpdirname)
@@ -124,31 +135,34 @@ class TestImportFromIllumina(
             # link espected output files in results dir
             plink_path = results_dir / "OAR3"
             plink_path.mkdir(parents=True, exist_ok=True)
-            plink_prefix = plink_path / "finalreport_updated"
+
+            # this should be the input filename with _updated suffix
+            plink_prefix = plink_path / "affytest_updated"
 
             bedfile = plink_prefix.with_suffix(".bed")
             bimfile = plink_prefix.with_suffix(".bim")
             famfile = plink_prefix.with_suffix(".fam")
 
+            # link some binary plink files to symulate an output
             bedfile.symlink_to(DATA_DIR / "plinktest.bed")
             bimfile.symlink_to(DATA_DIR / "plinktest.bim")
             famfile.symlink_to(DATA_DIR / "plinktest.fam")
 
             result = self.runner.invoke(
-                import_from_illumina,
+                import_from_affymetrix,
                 [
                     "--dataset",
                     "test.zip",
-                    "--snpfile",
-                    "snplist.txt",
-                    "--report",
-                    "finalreport.txt",
-                    "--breed_code",
-                    "TEX",
+                    "--file",
+                    "affytest",
                     "--chip_name",
                     self.chip_name,
                     "--assembly",
                     "OAR3",
+                    "--breed_code",
+                    "TEX",
+                    "--sample_field",
+                    "alias",
                     "--create_samples"
                 ]
             )

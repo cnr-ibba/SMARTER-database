@@ -24,15 +24,22 @@ TODO
 * Check coordinates with sheep and goat genome projects
 * Release a *smarter* coordinate version with information on every variant defined 
   in database
+* Add `chip_name` in Dataset (database value, not user value)
 
 0.4.1.dev0
 ----------
 
-* Security updates
-* Fix github Workflow
-
 Features
 ^^^^^^^^
+
+* Import from affymetrix dataset
+* Rely on original affymetrix coordinate system to determine illumina top alleles
+* Search samples *aliases* while importing genotypes
+* Clearly state when creating samples (ignore samples if not defined in database)
+* Track sample aliases for ``original_id``
+* Import samples from file by providing *country* and *breeds* values as parameters
+* Security updates
+* Fix github Workflow
 
 0.4.0 (2021-06-18)
 ------------------
