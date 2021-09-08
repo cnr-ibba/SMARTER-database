@@ -5,8 +5,8 @@ History
 TODO
 ^^^^
 
-* ``alleles`` and ``illumina_top`` attributes should be referred to variants, while
-  in ``locations`` should be stored the read value from data source. Alleles and
+* ``illumina_top`` attribute should be referred to variants, while
+  in ``locations`` should be stored the read value from data source. 
   illumina_top shouldn't change within the same SNP, indipendently from data source
 * Check chromosomes in *Variants locations*: mind to **scaffold**, **null**, and
   **non-autosomal** chromosomes for *Goat* and *Sheep*
@@ -14,7 +14,8 @@ TODO
 * Import foreground genotypes
   - import french sheep data
   - import greece goat data
-  - import grece sheep data (20210407 and 20200731)
+  - import greece sheep data (20210407 and 20200731)
+  - import sweden goat data
 * Enable continuous integration
   - ReadTheDocs
 * Rename objects (use names in a consistent way)
@@ -32,6 +33,7 @@ TODO
 Features
 ^^^^^^^^
 
+* Import uruguay sheep affymetrix data
 * Import from affymetrix dataset
 * Rely on original affymetrix coordinate system to determine illumina top alleles
 * Search samples *aliases* while importing genotypes
