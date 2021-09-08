@@ -23,7 +23,7 @@ from plinkio import plinkfile
 from .snpchimp import clean_chrom
 from .smarterdb import (
     VariantSheep, SampleSheep, Breed, Dataset, SmarterDBException, SEX,
-    VariantGoat, SampleGoat)
+    VariantGoat, SampleGoat, Location)
 from .utils import TqdmToLogger
 from .illumina import read_snpList, read_illuminaRow
 
@@ -33,6 +33,10 @@ logger = logging.getLogger(__name__)
 
 
 class CodingException(Exception):
+    pass
+
+
+class PlinkIOException(Exception):
     pass
 
 
@@ -344,76 +348,157 @@ class SmarterMixin():
         logger.debug(
             f"collected {len(self.locations)} in '{version}' coordinates")
 
+    def _to_top(
+            self, index: int, genotype: list, coding: str,
+            location: Location) -> list:
+        """
+        Check genotype with coding and returns illumina_top alleles
+
+        Parameters
+        ----------
+        index: int
+            The i-th SNP received
+        genotype : list
+            The genotype as a list (ex: ['T', 'C'])
+        coding : str
+            The coding input type ('top', 'forward', ...)
+        location : Location
+            A smarterdb location used to check input genotype and coding and
+            to return the corresponing illumina top genotype (ex ['A', 'G'])
+
+        Raises
+        ------
+        CodingException
+            Raised when input genotype hasn't a match in the smarter database
+            with the provided coding
+        NotImplementedError
+            A coding format not yet supported (implemented)
+
+        Returns
+        -------
+        list
+            The illumina top genotype as a list (ex ['A', 'G'])
+        """
+
+        # for semplicity
+        a1, a2 = genotype
+
+        # the returned value
+        top_genotype = []
+
+        # TODO: coding need to be a dataset attribute
+        if coding == 'top':
+            if not location.is_top(genotype):
+                logger.critical(
+                    f"Error for SNP {index}:{self.mapdata[index].name}: "
+                    f"{a1}/{a2} <> {location.illumina_top}"
+                )
+                raise CodingException("Not illumina top format")
+
+            # allele coding is the same received as input
+            top_genotype = genotype
+
+        elif coding == 'forward':
+            if not location.is_forward(genotype):
+                logger.critical(
+                    f"Error for SNP {index}:{self.mapdata[index].name}: "
+                    f"{a1}/{a2} <> {location.illumina_forward}"
+                )
+                raise CodingException("Not illumina forward format")
+
+            # change the allele coding
+            top_genotype = location.forward2top(genotype)
+
+        elif coding == 'ab':
+            if not location.is_ab(genotype):
+                logger.critical(
+                    f"Error for SNP {index}:{self.mapdata[index].name}: "
+                    f"{a1}/{a2} <> A/B"
+                )
+                raise CodingException("Not illumina ab format")
+
+            # change the allele coding
+            top_genotype = location.ab2top(genotype)
+
+        elif coding == 'affymetrix':
+            if not location.is_affymetrix(genotype):
+                logger.critical(
+                    f"Error for SNP {index}:{self.mapdata[index].name}: "
+                    f"{a1}/{a2} <> {location.affymetrix_ab}"
+                )
+                raise CodingException("Not affymetrix format")
+
+            # change the allele coding
+            top_genotype = location.affy2top(genotype)
+
+        else:
+            raise NotImplementedError(f"Coding '{coding}' not supported")
+
+        return top_genotype
+
     def _process_genotypes(self, line: list, coding: str):
         new_line = line.copy()
 
         # ok now is time to update genotypes
-        for j in range(len(self.mapdata)):
+        for i in range(len(self.mapdata)):
             # replacing the i-th genotypes. Skip 6 columns
-            a1 = new_line[6+j*2]
-            a2 = new_line[6+j*2+1]
+            a1 = new_line[6+i*2]
+            a2 = new_line[6+i*2+1]
 
             genotype = [a1, a2]
 
             # is this snp filtered out
-            if j in self.filtered:
+            if i in self.filtered:
                 logger.debug(
-                    f"Skipping {self.mapdata[j].name}:[{a1}/{a2}] "
+                    f"Skipping {self.mapdata[i].name}:[{a1}/{a2}] "
                     "not in database!"
                 )
 
                 continue
 
             # get the proper position
-            location = self.locations[j]
+            location = self.locations[i]
 
-            # TODO: coding need to be a dataset attribute
-            if coding == 'top':
-                if not location.is_top(genotype):
-                    logger.critical(
-                        f"Error for SNP {j}:{self.mapdata[j].name}: "
-                        f"{a1}/{a2} <> {location.illumina_top}"
-                    )
-                    raise CodingException("Not illumina top format")
+            # check and return illumina top genotype
+            top_genotype = self._to_top(i, genotype, coding, location)
 
-            elif coding == 'forward':
-                if not location.is_forward(genotype):
-                    logger.critical(
-                        f"Error for SNP {j}:{self.mapdata[j].name}: "
-                        f"{a1}/{a2} <> {location.illumina_forward}"
-                    )
-                    raise CodingException("Not illumina forward format")
+            # replace alleles in ped lines only if necessary
+            new_line[6+i*2], new_line[6+i*2+1] = top_genotype
 
-                # change the allele coding
-                top_genotype = location.forward2top(genotype)
-                new_line[6+j*2], new_line[6+j*2+1] = top_genotype
+        return new_line
 
-            elif coding == 'ab':
-                if not location.is_ab(genotype):
-                    logger.critical(
-                        f"Error for SNP {j}:{self.mapdata[j].name}: "
-                        f"{a1}/{a2} <> A/B"
-                    )
-                    raise CodingException("Not illumina ab format")
+    def _check_file_sizes(self, line):
+        # check genotypes size 2*mapdata (diploidy) + 6 extra columns:
+        if len(line) != len(self.mapdata)*2 + 6:
+            logger.critical(
+                f"SNPs sizes don't match in '{self.mapfile}' "
+                "and '{self.pedfile}'")
+            logger.critical("Please check file contents")
 
-                # change the allele coding
-                top_genotype = location.ab2top(genotype)
-                new_line[6+j*2], new_line[6+j*2+1] = top_genotype
+            raise PlinkIOException(".ped line size doens't match .map size")
 
-            elif coding == 'affymetrix':
-                if not location.is_affymetrix(genotype):
-                    logger.critical(
-                        f"Error for SNP {j}:{self.mapdata[j].name}: "
-                        f"{a1}/{a2} <> {location.affymetrix_ab}"
-                    )
-                    raise CodingException("Not affymetrix format")
+    def _process_relationship(self, line, sample):
+        # create a copy of the original object
+        new_line = line.copy()
 
-                # change the allele coding
-                top_genotype = location.affy2top(genotype)
-                new_line[6+j*2], new_line[6+j*2+1] = top_genotype
+        # add father or mather to ped line (if I can)
+        if str(line[2]) != '0':
+            if sample.father_id:
+                new_line[2] = sample.father_id.smarter_id
 
             else:
-                raise NotImplementedError(f"Coding '{coding}' not supported")
+                logger.warning(
+                    f"Cannot resolve relationship for father {line[2]}")
+                new_line[2] = '0'
+
+        if str(line[3]) != '0':
+            if sample.mother_id:
+                new_line[3] = sample.mother_id.smarter_id
+
+            else:
+                logger.warning(
+                    f"Cannot resolve relationship for mother {line[3]}")
+                new_line[3] = '0'
 
         return new_line
 
@@ -425,13 +510,7 @@ class SmarterMixin():
             create_samples: bool = False,
             sample_field: str = "original_id"):
 
-        # check genotypes size 2*mapdata (diploidy) + 6 extra columns:
-        if len(line) != len(self.mapdata)*2 + 6:
-            logger.critical(
-                f"SNPs sizes don't match in '{self.mapfile}' "
-                "and '{self.pedfile}'")
-            logger.critical("Please check file contents")
-            return
+        self._check_file_sizes(line)
 
         logger.debug(f"Processing {line[:10]+ ['...']}")
 
@@ -464,24 +543,8 @@ class SmarterMixin():
         new_line[0] = breed.code
         new_line[1] = sample.smarter_id
 
-        # add father or mather to ped line (if I can)
-        if str(line[2]) != '0':
-            if sample.father_id:
-                new_line[2] = sample.father_id.smarter_id
-
-            else:
-                logger.warning(
-                    f"Cannot resolve relationship for father {line[2]}")
-                new_line[2] = '0'
-
-        if str(line[3]) != '0':
-            if sample.mother_id:
-                new_line[3] = sample.mother_id.smarter_id
-
-            else:
-                logger.warning(
-                    f"Cannot resolve relationship for mother {line[3]}")
-                new_line[3] = '0'
+        # replace relationship if possible
+        new_line = self._process_relationship(new_line, sample)
 
         # check and fix genotypes if necessary
         new_line = self._process_genotypes(new_line, coding)
