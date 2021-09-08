@@ -15,7 +15,9 @@ import collections
 from pathlib import Path
 
 from src.features.smarterdb import global_connection, Dataset
-from src.features.utils import sanitize
+from src.features.utils import sanitize, get_raw_dir
+
+logger = logging.getLogger(__name__)
 
 
 @click.command()
@@ -31,10 +33,10 @@ def main(input_filepath, output_filepath, types):
         cleaned data ready to be analyzed (saved in ../processed).
     """
 
-    logger = logging.getLogger(__name__)
+    logger.info(f"{Path(__file__).name} started")
 
-    # connect to database
-    global_connection()
+    # where to find raw data in SMARTER-database project
+    raw_dir = get_raw_dir()
 
     with open(input_filepath) as handle:
         reader = csv.reader(handle, delimiter=";")
@@ -56,14 +58,14 @@ def main(input_filepath, output_filepath, types):
             # remove id from record
             del(line[0])
 
-            # remove empty string
+            # remove empty values
             line = [col if col != '' else None for col in line]
 
             record = Record._make(line)
             logger.debug(record)
 
             # search for the archive file
-            archive = next(project_dir.rglob(record.file))
+            archive = next(raw_dir.rglob(record.file))
             logger.info(f"Found {archive} as archive")
 
             archive = zipfile.ZipFile(archive)
@@ -72,16 +74,32 @@ def main(input_filepath, output_filepath, types):
             contents = archive.namelist()
             logger.debug(contents)
 
-            # insert or update with a mongodb method
-            dataset = Dataset.objects(file=record.file).upsert_one(
-                **record._asdict(),
-                type_=types,
-                contents=contents)
+            # add or create dataset (file is a unique key)
+            qs = Dataset.objects(file=record.file)
+
+            if qs.count() == 0:
+                # create a new object
+                dataset = Dataset(
+                    **record._asdict(),
+                    type_=types,
+                    contents=contents)
+
+            elif qs.count() == 1:
+                # update object
+                dataset = qs.get()
+
+                for k, v in record._asdict().items():
+                    setattr(dataset, k, v)
+
+                dataset.type_ = types
+                dataset.contents = contents
+
+            dataset.save()
 
             # ok extract content to working directory
             # TODO: don't work with plain text files, try to work with
             # compressed data
-            working_dir = project_dir / f"data/interim/{dataset.id}"
+            working_dir = dataset.working_dir
             working_dir.mkdir(exist_ok=True)
 
             for member in contents:
@@ -99,12 +117,14 @@ def main(input_filepath, output_filepath, types):
 
     logger.info(f"Data written into database and in {output_filepath}")
 
+    logger.info(f"{Path(__file__).name} ended")
+
 
 if __name__ == '__main__':
     log_fmt = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     logging.basicConfig(level=logging.DEBUG, format=log_fmt)
 
-    # this is the root of SMARTER-database project
-    project_dir = Path(__file__).resolve().parents[2]
+    # connect to database
+    global_connection()
 
     main()

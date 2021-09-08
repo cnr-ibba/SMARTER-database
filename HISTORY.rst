@@ -5,20 +5,43 @@ History
 TODO
 ^^^^
 
-* ``alleles`` and ``illumina_top`` attributes should be referred to variants, while
-  in ``locations`` should be stored the read value from data source. Alleles and
+* ``illumina_top`` attribute should be referred to variants, while
+  in ``locations`` should be stored the read value from data source. 
   illumina_top shouldn't change within the same SNP, indipendently from data source
 * Check chromosomes in *Variants locations*: mind to **scaffold**, **null**, and
   **non-autosomal** chromosomes for *Goat* and *Sheep*
-* Skip ``null`` fields when importing datasets
 * Import foreground genotypes
   - import french sheep data
   - import greece goat data
-  - import grece sheep data (20210407 and 20200731)
+  - import greece sheep data (20210407 and 20200731)
+  - import sweden goat data
 * Enable continuous integration
   - ReadTheDocs
 * Rename objects (use names in a consistent way)
 * Generate output files for *OARV4* and *CHIR1*
+* Use ``elemMatch`` in projection in ``plinkio.SmarterMixin.fetch_coordinates``
+  (ex: ``VariantSheep.objects.fields(elemMatch__locations={"imported_from": "SNPchiMp v.3", "version": "Oar_v4.0"})``)
+* Check coordinates with sheep and goat genome projects
+* Release a *smarter* coordinate version with information on every variant defined 
+  in database (which will be used as reference)
+
+0.4.1.dev0
+----------
+
+Features
+^^^^^^^^
+
+* Add `chip_name` in Dataset (database value, not user value)
+* Skip ``null`` fields when importing datasets
+* Import uruguay sheep affymetrix data
+* Import from affymetrix dataset
+* Rely on original affymetrix coordinate system to determine illumina top alleles
+* Search samples *aliases* while importing genotypes
+* Clearly state when creating samples (ignore samples if not defined in database)
+* Track sample aliases for ``original_id``
+* Import samples from file by providing *country* and *breeds* values as parameters
+* Security updates
+* Fix github Workflow
 
 0.4.0 (2021-06-18)
 ------------------
