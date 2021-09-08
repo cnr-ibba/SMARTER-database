@@ -24,7 +24,6 @@ TODO
 * Check coordinates with sheep and goat genome projects
 * Release a *smarter* coordinate version with information on every variant defined 
   in database (which will be used as reference)
-* Add `chip_name` in Dataset (database value, not user value)
 
 0.4.1.dev0
 ----------
@@ -32,6 +31,7 @@ TODO
 Features
 ^^^^^^^^
 
+* Add `chip_name` in Dataset (database value, not user value)
 * Skip ``null`` fields when importing datasets
 * Import uruguay sheep affymetrix data
 * Import from affymetrix dataset

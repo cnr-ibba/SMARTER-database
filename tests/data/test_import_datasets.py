@@ -74,6 +74,9 @@ class ImportDatasetsTest(MongoMockMixin, unittest.TestCase):
             self.assertIsNone(dataset.uploader)
             self.assertIsNone(dataset.partner)
 
+            # assert chip name imported
+            self.assertEqual(dataset.chip_name, "IlluminaOvineSNP50")
+
     @patch('src.features.smarterdb.Dataset.working_dir',
            new_callable=PropertyMock)
     @patch('src.data.import_datasets.get_raw_dir')
@@ -121,9 +124,6 @@ class ImportDatasetsTest(MongoMockMixin, unittest.TestCase):
                 ]
             )
 
-            print(result.output)
-            print(result.exc_info)
-
             self.assertEqual(0, result.exit_code, msg=result.exception)
             self.assertEqual(Dataset.objects.count(), 1)
 
@@ -133,6 +133,9 @@ class ImportDatasetsTest(MongoMockMixin, unittest.TestCase):
             # assert empty fields
             self.assertIsNone(dataset.uploader)
             self.assertIsNone(dataset.partner)
+
+            # assert chip name imported
+            self.assertEqual(dataset.chip_name, "IlluminaOvineSNP50")
 
 
 if __name__ == '__main__':
