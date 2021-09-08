@@ -58,7 +58,9 @@ class SmarterIDMixin():
                 "plinktest.bim",
                 "plinktest.bed",
                 "snplist.txt",
-                "finalreport.txt"
+                "finalreport.txt",
+                "affytest.map",
+                "affytest.ped"
             ]
         )
         dataset.save()
@@ -151,13 +153,16 @@ def sanitize_list(record: list):
 
 
 class VariantsMixin():
+    # This will be the default fixture loaded by this class
+    variant_fixture = "variants.json"
+
     @classmethod
     def setUpClass(cls):
         # initialize the mongomock instance
         super().setUpClass()
 
         # load database variants into mock database
-        with open(FIXTURES_DIR / "variants.json") as handle:
+        with open(FIXTURES_DIR / cls.variant_fixture) as handle:
             cls.data = json.load(handle)
 
         # I can't track data with from_json like mongoengine does. I need

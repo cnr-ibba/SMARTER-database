@@ -1,0 +1,242 @@
+[
+  {
+    "_id": {
+      "$oid": "606ebdcde8a99d4b7be85c6a"
+    },
+    "chip_name": [
+      "IlluminaOvineSNP50"
+    ],
+    "name": "250506CS3900065000002_1238.1",
+    "sequence": {
+      "illumina": "NNNNNNNNNNNNNNNNCTGCTTCCGTATTTGGGTCTTCTCTCAACTTCTCTTCTTCTCCC[T/C]TGCTGAGGAGGAGGCACTTTCAGATGTATTATGTTAATGGAGAGAAAAAGCATAATATTG"
+    },
+    "locations": [
+      {
+        "version": "Oar_v3.1",
+        "chrom": "15",
+        "position": 5870057,
+        "illumina": "A/G",
+        "illumina_strand": "TOP",
+        "strand": "BOT",
+        "imported_from": "manifest",
+        "date": {
+          "$date": "2009-01-07T00:00:00Z"
+        },
+        "consequences": []
+      },
+      {
+        "ss_id": "ss836318713",
+        "version": "Oar_v3.1",
+        "chrom": "15",
+        "position": 5870057,
+        "alleles": "C/T",
+        "illumina": "T/C",
+        "illumina_forward": "T/C",
+        "illumina_strand": "bottom",
+        "strand": "forward",
+        "imported_from": "SNPchiMp v.3",
+        "consequences": []
+      }
+    ],
+    "sender": "AGR_BS",
+    "rs_id": "rs55630613"
+  },
+  {
+    "_id": {
+      "$oid": "606ebdcde8a99d4b7be85c6b"
+    },
+    "chip_name": [
+      "IlluminaOvineSNP50",
+      "IlluminaOvineHDSNP"
+    ],
+    "name": "250506CS3900140500001_312.1",
+    "sequence": {
+      "illumina": "TATGCATGTACATTTTCTTGCCCTTTCCGGGCTTGCACTGTGTGCTTCTCACACCTTCTG[T/C]TTGAAAACTTATGTTACTTGGTATGCTCTGGAAGAGTATGTGAGGGAGTCAGGGATTGTG"
+    },
+    "locations": [
+      {
+        "version": "Oar_v3.1",
+        "chrom": "23",
+        "position": 26298017,
+        "illumina": "A/G",
+        "illumina_strand": "TOP",
+        "strand": "BOT",
+        "imported_from": "manifest",
+        "date": {
+          "$date": "2009-01-07T00:00:00Z"
+        },
+        "consequences": []
+      },
+      {
+        "ss_id": "ss836318714",
+        "version": "Oar_v3.1",
+        "chrom": "23",
+        "position": 26298017,
+        "alleles": "C/T",
+        "illumina": "T/C",
+        "illumina_forward": "T/C",
+        "illumina_strand": "bottom",
+        "strand": "forward",
+        "imported_from": "SNPchiMp v.3",
+        "consequences": []
+      }
+    ],
+    "sender": "AGR_BS",
+    "rs_id": "rs55630642"
+  },
+  {
+    "_id": {
+      "$oid": "606ebdcde8a99d4b7be85c6c"
+    },
+    "chip_name": [
+      "IlluminaOvineSNP50",
+      "IlluminaOvineHDSNP",
+      "AffymetrixAxiomOviCan"
+    ],
+    "name": "250506CS3900176800001_906.1",
+    "sequence": {
+      "illumina": "ACCTTAGTGTTAAAGGATTAACATAAGGAAACTGCAGCAGTATAGAAAAGACAAGACATT[T/C]TCTATTTAGATTGAACCCATTAAAATAATGACATTACAGGTGTAAAACCAAGACAATACT",
+      "affymetrix": "AGGAAACTGCAGCAGTATAGAAAAGACAAGACATT[C/T]TCTATTTAGATTGAACCCATTAAAATAATGACATT"
+    },
+    "locations": [
+      {
+        "version": "Oar_v3.1",
+        "chrom": "7",
+        "position": 81648528,
+        "illumina": "T/C",
+        "illumina_strand": "BOT",
+        "strand": "BOT",
+        "imported_from": "manifest",
+        "date": {
+          "$date": "2009-01-07T00:00:00Z"
+        },
+        "consequences": []
+      },
+      {
+        "ss_id": "ss836318715",
+        "version": "Oar_v3.1",
+        "chrom": "7",
+        "position": 81648528,
+        "alleles": "C/T",
+        "illumina": "T/C",
+        "illumina_forward": "T/C",
+        "illumina_strand": "bottom",
+        "strand": "forward",
+        "imported_from": "SNPchiMp v.3",
+        "consequences": []
+      },
+      {
+        "version": "Oar_v4.0",
+        "chrom": "7",
+        "position": 81590897,
+        "alleles": "C/T",
+        "illumina": "A/G",
+        "illumina_strand": "TOP",
+        "affymetrix_ab": "T/C",
+        "strand": "+",
+        "imported_from": "affymetrix",
+        "date": {
+          "$date": "2019-01-17T00:00:00Z"
+        },
+        "consequences": []
+      }
+    ],
+    "sender": "AGR_BS",
+    "rs_id": "rs55630654",
+    "probeset_id": [
+      "AX-124359447"
+    ],
+    "affy_snp_id": "Affx-122835222",
+    "cust_id": "250506CS3900176800001_906_01"
+  },
+  {
+    "_id": {
+      "$oid": "60c8c3a8334e2c735342ebca"
+    },
+    "chip_name": [                                                                                                                                              
+      "IlluminaOvineSNP50",                                                                                                                                     
+      "AffymetrixAxiomOviCan"                                                                                                                                   
+    ],
+    "name": "250506CS3900435700001_1658.1",
+    "sequence": {
+      "manifest": "GTGCCAGCGTGCAGGGAGGAGAATCAGGTTAATGAGGTACAGGCTTTTCGGGTATTCCCG[A/G]AGCTTTTCTTTGGGTAAGGGCCACATCGCCAGTTCCCTCCAATTAATAAATTGTCAGGAG",
+      "affymetrix": "AGGTTAATGAGGTACAGGCTTTTCGGGTATTCCCG[A/G]AGCTTTTCTTTGGGTAAGGGCCACATCGCCAGTTC"
+    },
+    "locations": [
+      {
+        "version": "Oar_v3.1",
+        "chrom": "12",
+        "position": 45221821,
+        "illumina": "T/C",
+        "illumina_strand": "BOT",
+        "strand": "TOP",
+        "imported_from": "manifest",
+        "date": {
+          "$date": "2009-01-07T00:00:00Z"
+        },
+        "consequences": []
+      },
+      {
+        "version": "Oar_v3.1",
+        "chrom": "0",
+        "position": 0,
+        "illumina": "A/G",
+        "illumina_forward": "A/G",
+        "imported_from": "SNPchiMp v.3",
+        "consequences": []
+      },
+      {
+        "version": "Oar_v4.0",
+        "chrom": "0",
+        "position": 0,
+        "illumina": "A/G",
+        "illumina_strand": "TOP",
+        "affymetrix_ab": "A/G",
+        "strand": "+",
+        "imported_from": "affymetrix",
+        "date": {
+          "$date": "2019-01-17T00:00:00Z"
+        },
+        "consequences": []
+      }
+    ],
+    "sender": "AGR_BS",
+    "probeset_id": [
+      "AX-124372958"
+    ],
+    "affy_snp_id": "Affx-122818990",
+    "cust_id": "250506CS3900435700001_1658_01"
+  },
+  {
+    "_id": {
+      "$oid": "60ca4bcfe76d3c2e9c109aa8"
+    },
+    "chip_name": [
+      "AffymetrixAxiomOviCan"
+    ],
+    "name": "Affx-139959201",
+    "sequence": {
+      "affymetrix": "CCAATAAGTAGCTATCATGGAACCTGGGCCCCTGC[A/G]TTGGTGATGGACTATCTGCCCATTGTCATCCCTTG"
+    },
+    "locations": [
+      {
+        "version": "Oar_v4.0",
+        "chrom": "0",
+        "position": 0,
+        "illumina": "A/G",
+        "illumina_strand": "TOP",
+        "affymetrix_ab": "A/G",
+        "strand": "+",
+        "imported_from": "affymetrix",
+        "date": {
+          "$date": "2019-01-17T00:00:00Z"
+        },
+        "consequences": []
+      }
+    ],
+    "probeset_id": [
+      "AX-106736140"
+    ],
+    "affy_snp_id": "Affx-139959201"
+  }
+]

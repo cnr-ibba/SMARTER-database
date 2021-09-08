@@ -375,6 +375,10 @@ class SampleSpecies(mongoengine.Document):
     breed = mongoengine.StringField(required=True)
     breed_code = mongoengine.StringField(min_length=3)
 
+    # this will be a original_id alias (a different sample name in original
+    # data file)
+    alias = mongoengine.StringField()
+
     # required to search a sample relying only on original ID
     dataset = mongoengine.ReferenceField(
         Dataset,
@@ -475,7 +479,8 @@ def get_or_create_sample(
         breed: Breed,
         country: str,
         chip_name: str = None,
-        sex: SEX = None) -> Union[SampleGoat, SampleSheep]:
+        sex: SEX = None,
+        alias: str = None) -> Union[SampleGoat, SampleSheep]:
     """Get or create a sample providing attributes (search for original_id in
     provided dataset
 
@@ -488,6 +493,7 @@ def get_or_create_sample(
         country (str): Country as a string
         chip_name (str): the chip name
         sex (SEX): A SEX instance
+        alias (str): an original_id alias
 
     Returns:
         Union[SampleGoat, SampleSheep]: a SampleSpecies instance
@@ -514,7 +520,8 @@ def get_or_create_sample(
             breed_code=breed.code,
             dataset=dataset,
             chip_name=chip_name,
-            sex=sex
+            sex=sex,
+            alias=alias
         )
         sample.save()
 
@@ -665,7 +672,7 @@ class Location(mongoengine.EmbeddedDocument):
 
         Args:
             genotype (list): a list of two alleles (ex ['A','B'])
-            missing (str): missing allele string (def "0")
+            missing (str): missing allele string (def "-")
 
         Returns:
             bool: True if in top coordinates
@@ -677,6 +684,19 @@ class Location(mongoengine.EmbeddedDocument):
                 return False
 
         return True
+
+    def is_affymetrix(self, genotype: list, missing: str = "0") -> bool:
+        """Return True if genotype is compatible with affymetrix coding
+
+        Args:
+            genotype (list): a list of two alleles (ex ['A','C'])
+            missing (str): missing allele string (def "0")
+
+        Returns:
+            bool: True if in top coordinates
+        """
+
+        return self.__check_coding(genotype, "affymetrix_ab", missing)
 
     def forward2top(self, genotype: list, missing: str = "0") -> list:
         """Convert an illumina forward SNP in a illumina top snp
@@ -702,7 +722,7 @@ class Location(mongoengine.EmbeddedDocument):
 
             elif allele not in forward:
                 raise SmarterDBException(
-                    "{genotype} is not in forward coding")
+                    f"{genotype} is not in forward coding")
 
             else:
                 result.append(top[forward.index(allele)])
@@ -733,10 +753,41 @@ class Location(mongoengine.EmbeddedDocument):
 
             elif allele not in ["A", "B"]:
                 raise SmarterDBException(
-                    "{genotype} is not in ab coding")
+                    f"{genotype} is not in ab coding")
 
             else:
                 result.append(top[allele])
+
+        return result
+
+    def affy2top(self, genotype: list, missing: str = "0") -> list:
+        """Convert an affymetrix SNP in a illumina top snp
+
+        Args:
+            genotype (list): a list of two alleles (ex ['A','C'])
+            missing (str): missing allele string (def "0")
+
+        Returns:
+            list: The genotype in top format
+        """
+
+        # get illumina data as an array
+        affymetrix = self.affymetrix_ab.split("/")
+        top = self.illumina_top.split("/")
+
+        result = []
+
+        for allele in genotype:
+            # mind to missing values
+            if allele == missing:
+                result.append("0")
+
+            elif allele not in affymetrix:
+                raise SmarterDBException(
+                    f"{genotype} is not in affymetrix coding")
+
+            else:
+                result.append(top[affymetrix.index(allele)])
 
         return result
 

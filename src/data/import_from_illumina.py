@@ -63,7 +63,11 @@ def get_output_files(reportpath: str, working_dir: Path, assembly: str):
     required=True)
 @click.option('--chip_name', type=str, required=True)
 @click.option('--assembly', type=str, required=True)
-def main(dataset, snpfile, report, coding, breed_code, chip_name, assembly):
+@click.option('--create_samples', is_flag=True)
+def main(
+        dataset, snpfile, report, coding, breed_code, chip_name, assembly,
+        create_samples):
+
     logger.info(f"{Path(__file__).name} started")
 
     # find assembly configuration
@@ -123,7 +127,13 @@ def main(dataset, snpfile, report, coding, breed_code, chip_name, assembly):
     report.update_mapfile(str(output_map))
 
     # creating ped file for writing updated genotypes
-    report.update_pedfile(output_ped, dataset, coding, fid=breed_code)
+    report.update_pedfile(
+        output_ped,
+        dataset,
+        coding,
+        fid=breed_code,
+        create_samples=create_samples
+    )
 
     # ok time to convert data in plink binary format
     cmd = ["plink"] + PLINK_SPECIES_OPT[dataset.species] + [

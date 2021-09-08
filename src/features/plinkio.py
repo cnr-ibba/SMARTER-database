@@ -9,6 +9,7 @@ Try to model data operations on plink files
 """
 
 import io
+import re
 import csv
 import logging
 
@@ -22,7 +23,7 @@ from plinkio import plinkfile
 from .snpchimp import clean_chrom
 from .smarterdb import (
     VariantSheep, SampleSheep, Breed, Dataset, SmarterDBException, SEX,
-    VariantGoat, SampleGoat)
+    VariantGoat, SampleGoat, Location)
 from .utils import TqdmToLogger
 from .illumina import read_snpList, read_illuminaRow
 
@@ -32,6 +33,10 @@ logger = logging.getLogger(__name__)
 
 
 class CodingException(Exception):
+    pass
+
+
+class PlinkIOException(Exception):
     pass
 
 
@@ -148,10 +153,13 @@ class SmarterMixin():
                 # get a location relying on indexes
                 location = self.locations[idx]
 
+                # get the tracked variant name relying on indexes
+                variant_name = self.variants_name[idx]
+
                 # a new record in mapfile
                 writer.writerow([
                     clean_chrom(location.chrom),
-                    record.name,
+                    variant_name,
                     get_cM(record),
                     location.position
                 ])
@@ -184,7 +192,48 @@ class SmarterMixin():
 
         return sex, father_id, mother_id
 
+    def get_sample(
+            self,
+            line: list,
+            dataset: Dataset,
+            sample_field: str = "original_id"):
+        """Get a registered sample from database"""
+
+        # search for sample in database
+        qs = self.SampleSpecies.objects(
+            dataset=dataset,
+            **{sample_field: line[1]}
+        )
+
+        sex, father_id, mother_id = self._deal_with_relationship(
+            line, dataset)
+
+        # this will be the sample I will return
+        sample = None
+
+        if qs.count() == 1:
+            logger.debug(f"Sample '{line[1]}' found in database")
+            sample = qs.get()
+
+            # update records if necessary
+            if sample.father_id != father_id or sample.mother_id != mother_id:
+                logger.warning(f"Update relationships for sample '{line[1]}'")
+                sample.father_id = father_id
+                sample.mother_id = mother_id
+                sample.save()
+
+        elif qs.count() == 0:
+            logger.warning(f"Sample '{line[1]}' not found in database")
+
+        else:
+            raise SmarterDBException(
+                f"Got {qs.count()} results for '{line[1]}'")
+
+        return sample
+
     def get_or_create_sample(self, line: list, dataset: Dataset, breed: Breed):
+        """Get a sample from database or create a new one"""
+
         # search for sample in database
         qs = self.SampleSpecies.objects(
             original_id=line[1], dataset=dataset)
@@ -233,139 +282,204 @@ class SmarterMixin():
 
         return sample
 
-    def fetch_coordinates(self, version: str, imported_from: str):
+    def fetch_coordinates(
+            self, version: str, imported_from: str,
+            search_field: str = "name"):
         """Search for variants in smarter database
 
         Args:
             version (str): the Location.version attribute
             imported_from (str): the Location.imported_from attribute
+            search_field (str): search variant by field (def. "name")
         """
 
         # reset meta informations
         self.locations = list()
         self.filtered = set()
+        self.variants_name = list()
 
         tqdm_out = TqdmToLogger(logger, level=logging.INFO)
 
         for idx, record in enumerate(tqdm(
                 self.mapdata, file=tqdm_out, mininterval=1)):
             try:
-                variant = self.VariantSpecies.objects(name=record.name).get()
+                variant = self.VariantSpecies.objects(
+                    **{search_field: record.name}
+                ).get()
 
             except DoesNotExist as e:
-                logger.error(f"Couldn't find {record.name}: {e}")
+                logger.warning(f"Couldn't find {record.name}: {e}")
 
                 # skip this variant (even in ped)
                 self.filtered.add(idx)
 
                 # need to add an empty value in locations (or my indexes
-                # won't work properly)
+                # won't work properly). The same for variants name
                 self.locations.append(None)
+                self.variants_name.append(None)
 
+                # don't check location for missing SNP
                 continue
 
             # get location using provided parameters
-            location = variant.get_location(
-                version=version,
-                imported_from=imported_from)
+            try:
+                location = variant.get_location(
+                    version=version,
+                    imported_from=imported_from)
 
-            # track data for this location
-            self.locations.append(location)
+                # track data for this location
+                self.locations.append(location)
+
+                # track variant.name read from database (useful when searching
+                # using probeset_id)
+                self.variants_name.append(variant.name)
+
+            except SmarterDBException as e:
+                logger.warning(f"Discarding {record.name}: {e}")
+
+                # skip this variant (even in ped)
+                self.filtered.add(idx)
+
+                # need to add an empty value in locations (or my indexes
+                # won't work properly). The same for variants name
+                self.locations.append(None)
+                self.variants_name.append(None)
 
         logger.debug(
             f"collected {len(self.locations)} in '{version}' coordinates")
+
+    def _to_top(
+            self, index: int, genotype: list, coding: str,
+            location: Location) -> list:
+        """
+        Check genotype with coding and returns illumina_top alleles
+
+        Parameters
+        ----------
+        index: int
+            The i-th SNP received
+        genotype : list
+            The genotype as a list (ex: ['T', 'C'])
+        coding : str
+            The coding input type ('top', 'forward', ...)
+        location : Location
+            A smarterdb location used to check input genotype and coding and
+            to return the corresponing illumina top genotype (ex ['A', 'G'])
+
+        Raises
+        ------
+        CodingException
+            Raised when input genotype hasn't a match in the smarter database
+            with the provided coding
+        NotImplementedError
+            A coding format not yet supported (implemented)
+
+        Returns
+        -------
+        list
+            The illumina top genotype as a list (ex ['A', 'G'])
+        """
+
+        # for semplicity
+        a1, a2 = genotype
+
+        # the returned value
+        top_genotype = []
+
+        # TODO: coding need to be a dataset attribute
+        if coding == 'top':
+            if not location.is_top(genotype):
+                logger.critical(
+                    f"Error for SNP {index}:{self.mapdata[index].name}: "
+                    f"{a1}/{a2} <> {location.illumina_top}"
+                )
+                raise CodingException("Not illumina top format")
+
+            # allele coding is the same received as input
+            top_genotype = genotype
+
+        elif coding == 'forward':
+            if not location.is_forward(genotype):
+                logger.critical(
+                    f"Error for SNP {index}:{self.mapdata[index].name}: "
+                    f"{a1}/{a2} <> {location.illumina_forward}"
+                )
+                raise CodingException("Not illumina forward format")
+
+            # change the allele coding
+            top_genotype = location.forward2top(genotype)
+
+        elif coding == 'ab':
+            if not location.is_ab(genotype):
+                logger.critical(
+                    f"Error for SNP {index}:{self.mapdata[index].name}: "
+                    f"{a1}/{a2} <> A/B"
+                )
+                raise CodingException("Not illumina ab format")
+
+            # change the allele coding
+            top_genotype = location.ab2top(genotype)
+
+        elif coding == 'affymetrix':
+            if not location.is_affymetrix(genotype):
+                logger.critical(
+                    f"Error for SNP {index}:{self.mapdata[index].name}: "
+                    f"{a1}/{a2} <> {location.affymetrix_ab}"
+                )
+                raise CodingException("Not affymetrix format")
+
+            # change the allele coding
+            top_genotype = location.affy2top(genotype)
+
+        else:
+            raise NotImplementedError(f"Coding '{coding}' not supported")
+
+        return top_genotype
 
     def _process_genotypes(self, line: list, coding: str):
         new_line = line.copy()
 
         # ok now is time to update genotypes
-        for j in range(len(self.mapdata)):
+        for i in range(len(self.mapdata)):
             # replacing the i-th genotypes. Skip 6 columns
-            a1 = new_line[6+j*2]
-            a2 = new_line[6+j*2+1]
+            a1 = new_line[6+i*2]
+            a2 = new_line[6+i*2+1]
 
             genotype = [a1, a2]
 
             # is this snp filtered out
-            if j in self.filtered:
+            if i in self.filtered:
                 logger.debug(
-                    f"Skipping {self.mapdata[j].name}:[{a1}/{a2}] "
+                    f"Skipping {self.mapdata[i].name}:[{a1}/{a2}] "
                     "not in database!"
                 )
 
                 continue
 
             # get the proper position
-            location = self.locations[j]
+            location = self.locations[i]
 
-            # TODO: coding need to be a dataset attribute
-            if coding == 'top':
-                if not location.is_top(genotype):
-                    logger.critical(
-                        f"Error for {self.mapdata[j].name}: "
-                        f"{a1}/{a2} <> {location.illumina_top}"
-                    )
-                    raise CodingException("Not illumina top format")
+            # check and return illumina top genotype
+            top_genotype = self._to_top(i, genotype, coding, location)
 
-            elif coding == 'forward':
-                if not location.is_forward(genotype):
-                    logger.critical(
-                        f"Error for {self.mapdata[j].name}: "
-                        f"{a1}/{a2} <> {location.illumina_top}"
-                    )
-                    raise CodingException("Not illumina forward format")
-
-                # change the allele coding
-                top_genotype = location.forward2top(genotype)
-                new_line[6+j*2], new_line[6+j*2+1] = top_genotype
-
-            elif coding == 'ab':
-                if not location.is_ab(genotype):
-                    logger.critical(
-                        f"Error for {self.mapdata[j].name}: "
-                        f"{a1}/{a2} <> {location.illumina_top}"
-                    )
-                    raise CodingException("Not illumina ab format")
-
-                # change the allele coding
-                top_genotype = location.ab2top(genotype)
-                new_line[6+j*2], new_line[6+j*2+1] = top_genotype
-
-            else:
-                raise NotImplementedError(f"Coding '{coding}' not supported")
+            # replace alleles in ped lines only if necessary
+            new_line[6+i*2], new_line[6+i*2+1] = top_genotype
 
         return new_line
 
-    def _process_pedline(self, line: list, dataset: Dataset, coding: str):
+    def _check_file_sizes(self, line):
         # check genotypes size 2*mapdata (diploidy) + 6 extra columns:
         if len(line) != len(self.mapdata)*2 + 6:
             logger.critical(
                 f"SNPs sizes don't match in '{self.mapfile}' "
                 "and '{self.pedfile}'")
             logger.critical("Please check file contents")
-            return
 
-        logger.debug(f"Processing {line[:10]+ ['...']}")
+            raise PlinkIOException(".ped line size doens't match .map size")
 
-        # check for breed in database reling on fid.
-        try:
-            breed = self.get_breed(fid=line[0], dataset=dataset)
-
-        except DoesNotExist as e:
-            logger.error(e)
-            raise SmarterDBException(
-                f"Couldn't find fid '{line[0]}': {line[:10]+ ['...']}"
-            )
-
-        # check for sample in database
-        sample = self.get_or_create_sample(line, dataset, breed)
-
-        # a new line obj
+    def _process_relationship(self, line, sample):
+        # create a copy of the original object
         new_line = line.copy()
-
-        # updating ped line with smarter ids
-        new_line[0] = breed.code
-        new_line[1] = sample.smarter_id
 
         # add father or mather to ped line (if I can)
         if str(line[2]) != '0':
@@ -386,6 +500,52 @@ class SmarterMixin():
                     f"Cannot resolve relationship for mother {line[3]}")
                 new_line[3] = '0'
 
+        return new_line
+
+    def _process_pedline(
+            self,
+            line: list,
+            dataset: Dataset,
+            coding: str,
+            create_samples: bool = False,
+            sample_field: str = "original_id"):
+
+        self._check_file_sizes(line)
+
+        logger.debug(f"Processing {line[:10]+ ['...']}")
+
+        # check for breed in database reling on fid.
+        try:
+            breed = self.get_breed(fid=line[0], dataset=dataset)
+
+        except DoesNotExist as e:
+            logger.error(e)
+            raise SmarterDBException(
+                f"Couldn't find fid '{line[0]}': {line[:10]+ ['...']}"
+            )
+
+        # check for sample in database
+        if create_samples:
+            sample = self.get_or_create_sample(line, dataset, breed)
+
+        else:
+            sample = self.get_sample(line, dataset, sample_field)
+
+            # if I couldn't find a registered sample (in such case)
+            # i can skip such record
+            if not sample:
+                return None
+
+        # a new line obj
+        new_line = line.copy()
+
+        # updating ped line with smarter ids
+        new_line[0] = breed.code
+        new_line[1] = sample.smarter_id
+
+        # replace relationship if possible
+        new_line = self._process_relationship(new_line, sample)
+
         # check and fix genotypes if necessary
         new_line = self._process_genotypes(new_line, coding)
 
@@ -398,25 +558,54 @@ class SmarterMixin():
         return new_line
 
     def update_pedfile(
-            self, outputfile: str, dataset: Dataset, coding: str,
-            *args, **kwargs):
-        """Update ped contents"""
+            self,
+            outputfile: str,
+            dataset: Dataset,
+            coding: str,
+            create_samples: bool = False,
+            sample_field: str = "original_id",
+            *args,
+            **kwargs):
+        """
+        Write a new pedfile relying on illumina_top genotypes and coordinates
+        stored in smarter database
+
+        Args:
+            outputfile (str): write ped to this path (overwrite if exists)
+            dataset (Dataset): the dataset we are converting
+            coding (str): the source coding (could be 'top', 'ab', 'forward')
+            create_samples (bool): create samples if not exist (useful to
+                create samples directly from ped file)
+            sample_field (str): search samples using this attribute (def.
+                'original_id')
+        """
 
         with open(outputfile, "w") as target:
             writer = csv.writer(
                 target, delimiter=' ', lineterminator="\n")
 
-            for i, line in enumerate(
-                    self.read_genotype_method(*args, **kwargs)):
-                new_line = self._process_pedline(line, dataset, coding)
+            processed = 0
 
-                # write updated line into updated ped file
-                logger.info(
-                    f"Writing: {new_line[:10]+ ['...']} "
-                    f"({int((len(new_line)-6)/2)} SNPs)")
-                writer.writerow(new_line)
+            for line in self.read_genotype_method(*args, **kwargs):
+                new_line = self._process_pedline(
+                    line, dataset, coding, create_samples, sample_field)
 
-            logger.info(f"Processed {i+1} individuals")
+                if new_line:
+                    # write updated line into updated ped file
+                    logger.info(
+                        f"Writing: {new_line[:10]+ ['...']} "
+                        f"({int((len(new_line)-6)/2)} SNPs)")
+                    writer.writerow(new_line)
+
+                    processed += 1
+
+                else:
+                    logger.warning(
+                        f"Skipping: {line[:10]+ ['...']} "
+                        f"({int((len(line)-6)/2)} SNPs)"
+                    )
+
+            logger.info(f"Processed {processed} individuals")
 
             # output file block
 
@@ -466,6 +655,56 @@ class TextPlinkIO(SmarterMixin):
         with open(self.pedfile) as handle:
             reader = get_reader(handle)
             for line in reader:
+                yield line
+
+
+# a new class for affymetrix plink files, which are slightly different from
+# plink text files
+class AffyPlinkIO(TextPlinkIO):
+    def read_mapfile(self):
+        """Read map data and track informations in memory. Useful to process
+        data files"""
+
+        self.mapdata = []
+
+        with open(self.mapfile) as handle:
+            # affy files has both " " and "\t" in their files
+            for line in handle:
+                record = re.split('[ \t]+', line.strip())
+
+                # affy data may have comments in files
+                if not record[0].startswith("#"):
+                    self.mapdata.append(MapRecord(*record))
+
+    def get_breed(self, fid, *args, **kwargs):
+        """Override the default get_breed method"""
+
+        breed = Breed.objects(code=fid, species=self.species).get()
+
+        logger.debug(f"Found breed {breed}")
+
+        return breed
+
+    def read_pedfile(self, fid: str):
+        """Open pedfile for reading return iterator"""
+
+        with open(self.pedfile) as handle:
+            # affy files has both " " and "\t" in their files
+            for record in handle:
+                # affy data may have comments in files
+                if record.startswith("#"):
+                    logger.info(f"Skipping {record}")
+                    continue
+
+                line = re.split('[ \t]+', record.strip())
+
+                # affy ped lacks of plink columns. add such value to line
+                line.insert(0, fid)  # FID
+                line.insert(2, '0')  # father
+                line.insert(3, '0')  # mother
+                line.insert(4, '0')  # SEX
+                line.insert(5, -9)  # phenotype
+
                 yield line
 
 
@@ -591,8 +830,9 @@ class IlluminaReportIO(SmarterMixin):
             self.chip_name = chip_name
 
     def get_breed(self, fid, *args, **kwargs):
-        # this is a $elemMatch query
-        breed = Breed.objects(code=fid).get()
+        """Override the default get_breed method"""
+
+        breed = Breed.objects(code=fid, species=self.species).get()
 
         logger.debug(f"Found breed {breed}")
 
