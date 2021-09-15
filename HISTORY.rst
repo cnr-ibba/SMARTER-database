@@ -13,7 +13,7 @@ TODO
 * Import foreground genotypes
   - import french sheep data
   - import greece goat data
-  - import greece sheep data (20210407 and 20200731)
+  - import greece sheep data (3 datasets)
   - import sweden goat data
 * Enable continuous integration
   - ReadTheDocs
@@ -25,11 +25,14 @@ TODO
 * Release a *smarter* coordinate version with information on every variant defined 
   in database (which will be used as reference)
 
+0.4.2.dev0
+----------
+
+* Skip SNPchimp indels when importing from SNPchimp
+* Skip illumina indels when reading from manifest
+
 0.4.1 (2021-09-08)
 ------------------
-
-Features
-^^^^^^^^
 
 * Add ``chip_name`` in Dataset (database value, not user value)
 * Skip ``null`` fields when importing datasets
@@ -45,9 +48,6 @@ Features
 
 0.4.0 (2021-06-18)
 ------------------
-
-Features
-^^^^^^^^
 
 * ``dbSNP`` feature library refactor
 * fix linter issues
@@ -69,9 +69,6 @@ Features
 0.3.1 (2021-06-11)
 ------------------
 
-Features
-^^^^^^^^
-
 * Upgrade dependencies
 * Enable continuous integration
   - Github Workflow
@@ -79,9 +76,6 @@ Features
 
 0.3.0 (2021-05-19)
 ------------------
-
-Features
-^^^^^^^^
 
 * Deal with multi-sheets ``.xlsx`` documents
 * Import phenotypes (from a *source* dataset to a *destination* dataset)
@@ -102,18 +96,12 @@ Features
 0.2.3 (2021-05-03)
 ------------------
 
-Features
-^^^^^^^^
-
 * Unset ped columns if relationship can't be derived from data (ex. *brazilian BSI*)
 * Deal with geographical coordinates
 * Add features to samples (relying on metadata file)
 
 0.2.2 (2021-04-29)
 ------------------
-
-Features
-^^^^^^^^
 
 * Breed name should be a unique key within species
 * make rule to clean-up ``interim`` data
@@ -125,9 +113,6 @@ Features
 0.2.1 (2021-04-22)
 ------------------
 
-Features
-^^^^^^^^
-
 * Track ``chip_name`` with samples
 * Deal with binary plink files
 * Search breed by *aliases* used in ``dataset``:
@@ -137,9 +122,6 @@ Features
 
 0.2.0 (2021-04-15)
 ------------------
-
-Features
-^^^^^^^^
 
 * Merge multiple files per dataset
 * Import from an *illumina report* file
@@ -155,9 +137,6 @@ Features
 
 0.1.0 (2021-03-29)
 ------------------
-
-Features
-^^^^^^^^
 
 * Start with project documentation
 * Explore background datasets
