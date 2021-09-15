@@ -11,10 +11,9 @@ TODO
 * Check chromosomes in *Variants locations*: mind to **scaffold**, **null**, and
   **non-autosomal** chromosomes for *Goat* and *Sheep*
 * Import foreground genotypes
-  - import french sheep data
+  - import sweden goat data
   - import greece goat data
   - import greece sheep data (3 datasets)
-  - import sweden goat data
 * Enable continuous integration
   - ReadTheDocs
 * Rename objects (use names in a consistent way)
@@ -26,6 +25,7 @@ TODO
 0.4.2.dev0
 ----------
 
+* Import french foreground sheep dataset
 * Use ``elemMatch`` in projection in ``plinkio.SmarterMixin.fetch_coordinates``
   (ex: ``VariantSheep.objects.fields(elemMatch__locations={"imported_from": "SNPchiMp v.3", "version": "Oar_v4.0"})``)
 * Use ``elemMatch`` to search a SNP within the wanted coordinate systems in ``plinkio.SmarterMixin.fetch_coordinates``
