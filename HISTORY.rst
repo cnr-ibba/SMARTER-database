@@ -25,6 +25,8 @@ TODO
 0.4.2.dev0
 ----------
 
+* Update *ADAPTmap* breed names and phenotypes import
+* Check that breed exists while inserting phenotype data
 * Import french foreground sheep dataset
 * Use ``elemMatch`` in projection in ``plinkio.SmarterMixin.fetch_coordinates``
   (ex: ``VariantSheep.objects.fields(elemMatch__locations={"imported_from": "SNPchiMp v.3", "version": "Oar_v4.0"})``)

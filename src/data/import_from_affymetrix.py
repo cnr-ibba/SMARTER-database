@@ -164,7 +164,7 @@ def main(
     filtered_snps = plinkio.filtered
 
     logging.info(
-        f"Track {len(filtered_snps)} to remove from desidered assembly")
+        f"Track {len(filtered_snps)} SNPs to remove from desidered assembly")
     logging.info(
         "Reading affymetrix original coordinates to determine"
         "original genotypes")

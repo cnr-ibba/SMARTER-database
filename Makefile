@@ -148,15 +148,15 @@ data: requirements
 	## add phenotypes to samples
 	$(PYTHON_INTERPRETER) src/data/import_phenotypes.py --src_dataset ADAPTmap_phenotype_20161201.zip \
 		--dst_dataset ADAPTmap_genotypeTOP_20161201.zip \
-		--datafile ADAPTmap_phenotype_20161201/adaptmap_phenotypes_by_breed.xlsx --breed_column "Breed name" \
+		--datafile ADAPTmap_phenotype_20161201/adaptmap_phenotypes_by_breed_fix.xlsx --breed_column "Breed name" \
 		--sheet_name "Purpose" --purpose_column Purpose
 	$(PYTHON_INTERPRETER) src/data/import_phenotypes.py --src_dataset ADAPTmap_phenotype_20161201.zip \
 		--dst_dataset ADAPTmap_genotypeTOP_20161201.zip \
-		--datafile ADAPTmap_phenotype_20161201/adaptmap_phenotypes_by_breed.xlsx --breed_column "Breed name" \
+		--datafile ADAPTmap_phenotype_20161201/adaptmap_phenotypes_by_breed_fix.xlsx --breed_column "Breed name" \
 		--sheet_name "Coat color" --additional_column "Coat color"
 	$(PYTHON_INTERPRETER) src/data/import_phenotypes.py --src_dataset ADAPTmap_phenotype_20161201.zip \
 		--dst_dataset ADAPTmap_genotypeTOP_20161201.zip \
-		--datafile ADAPTmap_phenotype_20161201/adaptmap_phenotypes_by_breed.xlsx --breed_column "Breed name" \
+		--datafile ADAPTmap_phenotype_20161201/adaptmap_phenotypes_by_breed_fix.xlsx --breed_column "Breed name" \
 		--sheet_name "Köppen" --additional_column "Köppen group"
 	$(PYTHON_INTERPRETER) src/data/import_phenotypes.py --src_dataset ADAPTmap_phenotype_20161201.zip \
 		--dst_dataset ADAPTmap_genotypeTOP_20161201.zip \
