@@ -11,7 +11,6 @@ TODO
 * Check chromosomes in *Variants locations*: mind to **scaffold**, **null**, and
   **non-autosomal** chromosomes for *Goat* and *Sheep*
 * Import foreground genotypes
-  - import sweden goat data
   - import greece goat data
   - import greece sheep data (3 datasets)
 * Enable continuous integration
@@ -25,6 +24,7 @@ TODO
 0.4.2.dev0
 ----------
 
+* Import sweden foreground goat dataset
 * Update *ADAPTmap* breed names and phenotypes import
 * Check that breed exists while inserting phenotype data
 * Import french foreground sheep dataset
