@@ -57,8 +57,12 @@ initialize: test_environment
 ## Make Dataset
 data: requirements
 	## upload datasets into database and unpack archives in interim folder
+	## background data
 	$(PYTHON_INTERPRETER) src/data/import_datasets.py --types genotypes background data/raw/genotypes-bg.csv data/processed/genotypes-bg.json
 	$(PYTHON_INTERPRETER) src/data/import_datasets.py --types phenotypes background data/raw/phenotypes-bg.csv data/processed/phenotypes-bg.json
+
+	## foreground data
+	$(PYTHON_INTERPRETER) src/data/import_datasets.py --types genotypes foreground data/raw/genotypes-fg.csv data/processed/genotypes-fg.json
 
 	## upload breeds into database and update aliases
 	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Texel --code TEX --alias TEXEL_UY --dataset TEXEL_INIA_UY.zip
@@ -68,6 +72,10 @@ data: requirements
 	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Creole --code CRL --alias CRL --dataset CREOLE_INIA_UY.zip
 	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name "Mérinos d'Arles" --code ARL --alias MER --dataset="High density genotypes of French Sheep populations.zip"
 	$(PYTHON_INTERPRETER) src/data/add_breed.py --species Goat --name Sahel --code SAH --alias SHL --dataset ADAPTmap_genotypeTOP_20161201.zip
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Bizet --code BIZ --alias BIZ --dataset SMARTER_OVIS_FRANCE.zip
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name "Manech Tête Noire" --code MTN --alias MTN --dataset SMARTER_OVIS_FRANCE.zip
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Solognote --code SOL --alias SOL --dataset SMARTER_OVIS_FRANCE.zip
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name "Rouge du Roussillon" --code RDR --alias RDR --dataset SMARTER_OVIS_FRANCE.zip
 
 	## load breeds into database relying on dataset
 	$(PYTHON_INTERPRETER) src/data/import_breeds.py --species Sheep --dataset="High density genotypes of French Sheep populations.zip" \
@@ -101,7 +109,11 @@ data: requirements
 		--datafile Affymetrix_data_Plate_652_660/Uruguay_Corriedale_ID_GenotypedAnimals_fix.xlsx --code_all CRR --id_column "Sample Name" \
 		--chip_name AffymetrixAxiomOviCan --country_all Uruguay --alias_column "Sample Filename"
 
-	## convert genotypes without inserting samples in database (SHEEP)
+	## more create samples (should be after others sample created or smarter IDS will be not consistent)
+	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --bfile SMARTER_OVIS_FRANCE \
+		--dataset "SMARTER_OVIS_FRANCE.zip" --chip_name IlluminaOvineHDSNP --assembly OAR3 --create_samples
+
+	## convert genotypes without creating samples in database (SHEEP)
 	$(PYTHON_INTERPRETER) src/data/import_from_affymetrix.py --file Affymetrix_data_Plate_652_660/Affymetrix_data_Plate_652/Affymetrix_data_Plate_652 \
 		--dataset Affymetrix_data_Plate_652_660.zip --breed_code CRR --chip_name AffymetrixAxiomOviCan --assembly OAR3 --sample_field alias
 	$(PYTHON_INTERPRETER) src/data/import_from_affymetrix.py --file Affymetrix_data_Plate_652_660/Affymetrix_data_Plate_660/Affymetrix_data_Plate_660 \
@@ -112,7 +124,7 @@ data: requirements
 		--datafile ADAPTmap_phenotype_20161201/ADAPTmap_InfoSample_20161201_fix.xlsx --code_column Breed_code --id_column ADAPTmap_code \
 		--chip_name IlluminaGoatSNP50 --country_column Sampling_Country --sex_column SEX
 
-	## convert genotypes without inserting samples in database (GOAT)
+	## convert genotypes without creating samples in database (GOAT)
 	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --bfile ADAPTmap_genotypeTOP_20161201/binary_fileset/ADAPTmap_genotypeTOP_20161201 \
 		--dataset "ADAPTmap_genotypeTOP_20161201.zip" --chip_name IlluminaGoatSNP50 --assembly ARS1
 

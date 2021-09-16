@@ -298,17 +298,33 @@ class SmarterMixin():
         self.filtered = set()
         self.variants_name = list()
 
+        # this is required to search with the desidered coordinate system
+        # relying on mongodb elemMatch and projection
+        coordinate_system = {
+            "imported_from": imported_from,
+            "version": version
+        }
+
         tqdm_out = TqdmToLogger(logger, level=logging.INFO)
 
         for idx, record in enumerate(tqdm(
                 self.mapdata, file=tqdm_out, mininterval=1)):
             try:
+                # TODO: remember to project illumina_top if it become
+                # a VariantSpecies attribute
                 variant = self.VariantSpecies.objects(
+                    locations__match=coordinate_system,
                     **{search_field: record.name}
+                ).fields(
+                    elemMatch__locations=coordinate_system,
+                    name=1,
+                    rs_id=1
                 ).get()
 
             except DoesNotExist as e:
-                logger.warning(f"Couldn't find {record.name}: {e}")
+                logger.warning(
+                    f"Couldn't find {record.name} in {coordinate_system}"
+                    f" assembly: {e}")
 
                 # skip this variant (even in ped)
                 self.filtered.add(idx)
@@ -321,29 +337,16 @@ class SmarterMixin():
                 # don't check location for missing SNP
                 continue
 
-            # get location using provided parameters
-            try:
-                location = variant.get_location(
-                    version=version,
-                    imported_from=imported_from)
+            # using projection I will have only one location if I could
+            # find a SNP
+            location = variant.locations[0]
 
-                # track data for this location
-                self.locations.append(location)
+            # track data for this location
+            self.locations.append(location)
 
-                # track variant.name read from database (useful when searching
-                # using probeset_id)
-                self.variants_name.append(variant.name)
-
-            except SmarterDBException as e:
-                logger.warning(f"Discarding {record.name}: {e}")
-
-                # skip this variant (even in ped)
-                self.filtered.add(idx)
-
-                # need to add an empty value in locations (or my indexes
-                # won't work properly). The same for variants name
-                self.locations.append(None)
-                self.variants_name.append(None)
+            # track variant.name read from database (useful when searching
+            # using probeset_id)
+            self.variants_name.append(variant.name)
 
         logger.debug(
             f"collected {len(self.locations)} in '{version}' coordinates")
