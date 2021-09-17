@@ -30,7 +30,7 @@ TODO
 * Import french foreground sheep dataset
 * Use ``elemMatch`` in projection in ``plinkio.SmarterMixin.fetch_coordinates``
   (ex: ``VariantSheep.objects.fields(elemMatch__locations={"imported_from": "SNPchiMp v.3", "version": "Oar_v4.0"})``)
-* Use ``elemMatch`` to search a SNP within the wanted coordinate systems in ``plinkio.SmarterMixin.fetch_coordinates``
+* Use ``elemMatch`` to search a SNP within the desidered coordinate systems in ``plinkio.SmarterMixin.fetch_coordinates``
 * Skip SNPchimp indels when importing from SNPchimp
 * Skip illumina indels when reading from manifest
 
