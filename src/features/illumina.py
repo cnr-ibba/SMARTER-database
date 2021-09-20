@@ -22,6 +22,9 @@ from src.features.utils import sanitize, text_or_gzip_open
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
 
+# the desidered SNP pattern
+SNP_PATTERN = re.compile(r"\[([acgt]/[acgt])\]", re.IGNORECASE)
+
 
 class IlluSNPException(Exception):
     """Base exception class for IlluSNP"""
@@ -184,13 +187,13 @@ def read_Manifest(path: str, size=2048, skip=0, delimiter=None):
 
         # add records to data
         for record in reader:
-            # add date to record
-            record.append(date)
-
             # break after assay section
             if record[0] == '[Controls]':
                 logger.debug("[Assay] section processed")
                 break
+
+            # add date to record
+            record.append(date)
 
             # forcing data types
             try:
@@ -200,6 +203,19 @@ def read_Manifest(path: str, size=2048, skip=0, delimiter=None):
             except ValueError as e:
                 logging.warning(
                     "Cannot parse %s:%s" % (record, str(e)))
+
+            # check that record is not an indel
+            sequence = record[header.index('sourceseq')]
+            match = re.search(SNP_PATTERN, sequence)
+
+            if match is None:
+                logger.error(
+                    "Can't find a SNP in %s. No indels and only 2 "
+                    "allelic SNPs are supported" % (sequence))
+
+                # in this case, skip this record
+                logger.warning(f"Skipping {record[header.index('name')]}")
+                continue
 
             # drop brakets from SNP [A/G] -> A/G
             record[header.index('snp')] = re.sub(
@@ -439,9 +455,7 @@ class IlluSNP():
 
         logger.debug(f"Got '{sequence}' as sequence")
 
-        pattern = re.compile(r"\[([acgt]/[acgt])\]", re.IGNORECASE)
-
-        match = re.search(pattern, sequence)
+        match = re.search(SNP_PATTERN, sequence)
 
         if match is None:
             raise IlluSNPException(

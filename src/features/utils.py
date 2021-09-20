@@ -95,6 +95,16 @@ def get_project_dir() -> pathlib.PosixPath:
     return pathlib.Path(__file__).parents[2]
 
 
+def get_raw_dir() -> pathlib.PosixPath:
+    """Return smarter data raw dir
+
+    Returns:
+        pathlib.PosixPath: the smarter data raw directory
+    """
+
+    return get_project_dir() / "data/raw"
+
+
 def get_interim_dir() -> pathlib.PosixPath:
     """Return smarter data temporary dir
 

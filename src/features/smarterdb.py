@@ -214,6 +214,9 @@ class Dataset(mongoengine.Document):
     # file contents
     contents = mongoengine.ListField(mongoengine.StringField())
 
+    # track the original chip_name with dataset
+    chip_name = mongoengine.StringField()
+
     meta = {
         'db_alias': DB_ALIAS,
         'collection': 'dataset'

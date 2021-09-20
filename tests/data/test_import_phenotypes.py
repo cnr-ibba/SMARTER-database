@@ -293,6 +293,60 @@ class TestImportPhenotypeByBreeds(PhenotypeMixin, unittest.TestCase):
             self.assertEqual(reference, self.sample.phenotype)
 
 
+class TestImportPhenotypeByBreedsNotExists(PhenotypeMixin, unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+
+        # override value (set a breed which notx exist in database)
+        cls.sheet.cell(row=2, column=1, value="MER")
+        cls.sheet.cell(row=2, column=2, value="Merino")
+
+    @patch('src.features.smarterdb.Dataset.working_dir',
+           new_callable=PropertyMock)
+    def test_import_phenotype_raise_exc(self, my_working_dir):
+        # create a temporary directory using the context manager
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            working_dir = pathlib.Path(tmpdirname)
+            my_working_dir.return_value = working_dir
+
+            # save worksheet in temporary folder
+            self.workbook.save(f"{working_dir}/phenotypes.xlsx")
+
+            # got first sample from database
+            self.assertEqual(SampleSheep.objects.count(), 1)
+
+            result = self.runner.invoke(
+                import_phenotypes,
+                [
+                    "--src_dataset",
+                    "test2.zip",
+                    "--dst_dataset",
+                    "test.zip",
+                    "--datafile",
+                    "phenotypes.xlsx",
+                    "--breed_column",
+                    "Name",
+                    "--purpose_column",
+                    "Purpose",
+                    "--chest_girth_column",
+                    "ChestGirth",
+                    "--height_column",
+                    "Height",
+                    "--length_column",
+                    "Length",
+                    "--additional_column",
+                    "FAMACHA",
+                    "--additional_column",
+                    "WidthOfPinBones"
+                ]
+            )
+
+            self.assertEqual(1, result.exit_code, msg=result.exception)
+            self.sample.reload()
+            self.assertIsNone(self.sample.phenotype)
+
+
 class TestImportPhenotypeBySamples(PhenotypeMixin, unittest.TestCase):
     @patch('src.features.smarterdb.Dataset.working_dir',
            new_callable=PropertyMock)

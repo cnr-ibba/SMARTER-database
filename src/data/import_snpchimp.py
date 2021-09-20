@@ -9,6 +9,8 @@ Created on Tue Mar  2 10:38:05 2021
 import click
 import logging
 
+from mongoengine.errors import DoesNotExist
+
 from src.features.snpchimp import read_snpChimp
 from src.features.smarterdb import (
     Location, global_connection)
@@ -31,35 +33,41 @@ def main(species, snpchimp, version):
     for i, snpchimp in enumerate(read_snpChimp(snpchimp)):
         # get a variant from database (I suppose to have a variant for
         # each snpchimp record)
-        variant = VariantSpecie.objects.get(name=snpchimp.snp_name)
+        try:
+            variant = VariantSpecie.objects.get(name=snpchimp.snp_name)
 
-        # read location from SnpChimp data
-        location = Location(
-            ss_id=snpchimp.ss,
-            version=version,
-            chrom=snpchimp.chromosome,
-            position=snpchimp.position,
-            illumina_top=snpchimp.alleles_a_b_top,
-            illumina_forward=snpchimp.alleles_a_b_forward,
-            illumina_strand=snpchimp.strand,
-            strand=snpchimp.orient,
-            alleles=snpchimp.alleles,
-            imported_from="SNPchiMp v.3"
-        )
+        except DoesNotExist as exc:
+            logger.warning(f"Skipping {snpchimp}: {exc}")
 
-        # Should I update a location or not?
-        variant, updated = update_location(location, variant)
+        else:
+            # read location from SnpChimp data
+            location = Location(
+                ss_id=snpchimp.ss,
+                version=version,
+                chrom=snpchimp.chromosome,
+                position=snpchimp.position,
+                illumina_top=snpchimp.alleles_a_b_top,
+                illumina_forward=snpchimp.alleles_a_b_forward,
+                illumina_strand=snpchimp.strand,
+                strand=snpchimp.orient,
+                alleles=snpchimp.alleles,
+                imported_from="SNPchiMp v.3"
+            )
 
-        if snpchimp.rs and snpchimp.rs != variant.rs_id:
-            variant.rs_id = snpchimp.rs
-            updated = True
+            # Should I update a location or not?
+            variant, updated = update_location(location, variant)
 
-        if updated:
-            # update variant with snpchimp data
-            variant.save()
+            if snpchimp.rs and snpchimp.rs != variant.rs_id:
+                variant.rs_id = snpchimp.rs
+                updated = True
 
-        if (i+1) % 5000 == 0:
-            logger.info(f"{i+1} variants processed")
+            if updated:
+                # update variant with snpchimp data
+                variant.save()
+
+        finally:
+            if (i+1) % 5000 == 0:
+                logger.info(f"{i+1} variants processed")
 
     logger.info(f"{i+1} variants processed")
 
