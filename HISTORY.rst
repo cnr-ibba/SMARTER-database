@@ -12,7 +12,7 @@ TODO
   **non-autosomal** chromosomes for *Goat* and *Sheep*
 * Import foreground genotypes
   - import greece goat data
-  - import greece sheep data (3 datasets)
+  - import greece sheep data (2 datasets)
 * Enable continuous integration
   - ReadTheDocs
 * Rename objects (use names in a consistent way)
@@ -20,10 +20,15 @@ TODO
 * Check coordinates with sheep and goat genome projects
 * Release a *smarter* coordinate version with information on every variant defined 
   in database (which will be used as reference)
+* Have an ``update_breed`` script to add an alias to an existent breed
+* if ``src_dataset`` and ``dst_dataset`` are equals, provide only ``dst_dataset``
+  both in *import_samples* and *import_metadata* scripts
+* define a collection for all available *purpose* phenotypes
 
 0.4.2.dev0
 ----------
 
+* Import greek *frizarta-chios* sheep dataset
 * Import sweden foreground goat dataset
 * Update *ADAPTmap* breed names and phenotypes import
 * Check that breed exists while inserting phenotype data
