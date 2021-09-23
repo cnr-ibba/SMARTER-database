@@ -657,6 +657,27 @@ class IlluminaReportIOPed(
         test = list(test)
         self.assertEqual(len(test), 2)
 
+    def test_read_reportfile_no_fid(self):
+        """Try to determine fid from database"""
+
+        # create two fake samples to colled fid relying on database
+        for i in range(2):
+            sample = SampleSheep(
+                original_id=f"{i+1}",
+                country="Italy",
+                breed="Texel",
+                breed_code="TEX",
+                species="Sheep"
+            )
+            sample.save()
+
+        test = self.plinkio.read_reportfile()
+        self.assertIsInstance(test, types.GeneratorType)
+
+        # consume data and count rows
+        test = list(test)
+        self.assertEqual(len(test), 2)
+
     def test_process_pedline(self):
         # define reference
         reference = [

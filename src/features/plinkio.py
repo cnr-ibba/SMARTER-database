@@ -102,13 +102,7 @@ class SmarterMixin():
 
         self._species = species
 
-    def get_breed(self, fid, *args, **kwargs):
-        if len(args) > 0:
-            dataset = args[0]
-
-        if 'dataset' in kwargs:
-            dataset = kwargs['dataset']
-
+    def get_breed(self, fid, dataset, *args, **kwargs):
         # this is a $elemMatch query
         breed = Breed.objects(
             aliases__match={'fid': fid, 'dataset': dataset}).get()
@@ -524,7 +518,7 @@ class SmarterMixin():
         except DoesNotExist as e:
             logger.error(e)
             raise SmarterDBException(
-                f"Couldn't find fid '{line[0]}': {line[:10]+ ['...']}"
+                f"Couldn't find breed_code '{line[0]}': {line[:10]+ ['...']}"
             )
 
         # check for sample in database
@@ -589,7 +583,10 @@ class SmarterMixin():
 
             processed = 0
 
-            for line in self.read_genotype_method(*args, **kwargs):
+            for line in self.read_genotype_method(
+                    dataset=dataset, *args, **kwargs):
+
+                # covert the ped line with the desidered format
                 new_line = self._process_pedline(
                     line, dataset, coding, create_samples, sample_field)
 
@@ -652,7 +649,7 @@ class TextPlinkIO(SmarterMixin):
             reader = get_reader(handle)
             self.mapdata = [MapRecord(*record) for record in reader]
 
-    def read_pedfile(self):
+    def read_pedfile(self, *args, **kwargs):
         """Open pedfile for reading return iterator"""
 
         with open(self.pedfile) as handle:
@@ -688,7 +685,7 @@ class AffyPlinkIO(TextPlinkIO):
 
         return breed
 
-    def read_pedfile(self, fid: str):
+    def read_pedfile(self, fid: str, *args, **kwargs):
         """Open pedfile for reading return iterator"""
 
         with open(self.pedfile) as handle:
@@ -757,7 +754,7 @@ class BinaryPlinkIO(SmarterMixin):
             )
             self.mapdata.append(record)
 
-    def read_pedfile(self):
+    def read_pedfile(self, *args, **kwargs):
         """Open pedfile for reading return iterator"""
 
         sample_list = self.plink_file.get_samples()
@@ -847,7 +844,9 @@ class IlluminaReportIO(SmarterMixin):
 
         self.mapdata = list(read_snpList(self.snpfile))
 
-    def read_reportfile(self, fid: str):
+    # this will be called when calling read_genotype_method()
+    def read_reportfile(
+            self, fid: str = None, dataset: Dataset = None, *args, **kwargs):
         """Open illumina report returns iterator"""
 
         # determine genotype length
@@ -869,11 +868,22 @@ class IlluminaReportIO(SmarterMixin):
         for row in read_illuminaRow(self.report):
             if row.sample_id != last_sample:
                 logger.debug(f"Reading sample {row.sample_id}")
+
+                # this is not returned if I'm processing the first sample
                 if last_sample:
                     yield line
 
                 # initialize an empty array
                 line = ["0"] * size
+
+                # TODO: determine fid from sample, if not received as argument
+                if not fid:
+                    sample = self.SampleSpecies(
+                        original_id=row.sample_id,
+                        dataset=dataset
+                    )
+
+                    fid = sample.breed_code
 
                 # set values. I need to set a breed code in order to get a
                 # proper ped line
