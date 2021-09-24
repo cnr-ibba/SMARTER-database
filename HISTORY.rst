@@ -28,6 +28,8 @@ TODO
 0.4.2.dev0
 ----------
 
+* Use sample data to deal with multi breeds illumina row files
+* Determine fid from database with IlluminaReportIO
 * Import greek *frizarta-chios-pelagonia* sheep dataset
 * Import greek *frizarta-chios* sheep dataset
 * Import sweden foreground goat dataset
