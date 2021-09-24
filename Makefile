@@ -83,6 +83,9 @@ data: requirements
 	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Pelagonia --code PEL --alias PEL --dataset AUTH_OVN50KV2_CHIOS_FRIZARTA_PELAGONIA.zip
 	$(PYTHON_INTERPRETER) src/data/add_breed.py --species Goat --name Eghoria --code EGH --alias EGH --dataset AUTH_GOAT53KV1_EGHORIA_SKOPELOS.zip
 	$(PYTHON_INTERPRETER) src/data/add_breed.py --species Goat --name Skopelos --code SKO --alias SKO --dataset AUTH_GOAT53KV1_EGHORIA_SKOPELOS.zip
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Chios --code CHI --alias CHI --dataset AUTH_OVN50KV2_CHIOS_MYTILINI_BOUTSKO.zip
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Mytilini --code MYT --alias MYT --dataset AUTH_OVN50KV2_CHIOS_MYTILINI_BOUTSKO.zip
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Boutsko --code BOU --alias BOU --dataset AUTH_OVN50KV2_CHIOS_MYTILINI_BOUTSKO.zip
 
 	## load breeds into database relying on dataset
 	$(PYTHON_INTERPRETER) src/data/import_breeds.py --species Sheep --dataset="High density genotypes of French Sheep populations.zip" \
@@ -124,6 +127,10 @@ data: requirements
 		--dst_dataset AUTH_OVN50KV2_CHIOS_FRIZARTA_PELAGONIA.zip \
 		--datafile AUTH_OVN50KV2_CHIOS_FRIZARTA_PELAGONIA/AUTH_OVN50KV2_CHIOS_FRIZARTA_PELAGONIA.xlsx \
 		--code_column breed_code --id_column sample_name --chip_name IlluminaOvineSNP50 --country_column Country
+	$(PYTHON_INTERPRETER) src/data/import_samples.py --src_dataset AUTH_OVN50KV2_CHIOS_MYTILINI_BOUTSKO.zip \
+		--dst_dataset AUTH_OVN50KV2_CHIOS_MYTILINI_BOUTSKO.zip \
+		--datafile AUTH_OVN50KV2_CHIOS_MYTILINI_BOUTSKO/AUTH_OVN50KV2_CHIOS_MYTILINI_BOUTSKO.xlsx \
+		--code_column breed_code --id_column sample_name --chip_name IlluminaOvineSNP50 --country_column Country
 
 	## convert genotypes without creating samples in database (SHEEP)
 	$(PYTHON_INTERPRETER) src/data/import_from_affymetrix.py --file Affymetrix_data_Plate_652_660/Affymetrix_data_Plate_652/Affymetrix_data_Plate_652 \
@@ -134,6 +141,9 @@ data: requirements
 		--dataset AUTH_OVN50KV2_CHIOS_FRIZARTA.zip --coding forward --chip_name IlluminaOvineSNP50 --assembly OAR3
 	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --bfile AUTH_OVN50KV2_CHIOS_FRIZARTA_PELAGONIA/AUTH_OVN50KV2_CHIOS_FRIZARTA_PELAGONIA \
 		--dataset AUTH_OVN50KV2_CHIOS_FRIZARTA_PELAGONIA.zip --coding forward --chip_name IlluminaOvineSNP50 --assembly OAR3
+	$(PYTHON_INTERPRETER) src/data/import_from_illumina.py --report AUTH_OVN50KV2_CHIOS_MYTILINI_BOUTSKO/Aristotle_University_OVN50KV02_20210720_FinalReport.txt \
+		--snpfile AUTH_OVN50KV2_CHIOS_MYTILINI_BOUTSKO/SNP_Map.txt --dataset AUTH_OVN50KV2_CHIOS_MYTILINI_BOUTSKO.zip \
+		--chip_name IlluminaOvineSNP50 --assembly OAR3
 
 	## create samples from custom files or genotypes for GOAT
 	$(PYTHON_INTERPRETER) src/data/import_samples.py --src_dataset ADAPTmap_phenotype_20161201.zip --dst_dataset ADAPTmap_genotypeTOP_20161201.zip \
@@ -184,6 +194,11 @@ data: requirements
 		--datafile AUTH_GOAT53KV1_EGHORIA_SKOPELOS/AUTH_GOAT53KV1_EGHORIA_SKOPELOS.xlsx --id_column sample_name \
 		--latitude_column Latitude --longitude_column Longitude --metadata_column Region \
 		--metadata_column "Farm Coding"
+	$(PYTHON_INTERPRETER) src/data/import_metadata.py --src_dataset AUTH_OVN50KV2_CHIOS_MYTILINI_BOUTSKO.zip \
+		--dst_dataset AUTH_OVN50KV2_CHIOS_MYTILINI_BOUTSKO.zip \
+		--datafile AUTH_OVN50KV2_CHIOS_MYTILINI_BOUTSKO/AUTH_OVN50KV2_CHIOS_MYTILINI_BOUTSKO.xlsx --id_column sample_name \
+		--latitude_column Latitude --longitude_column Longitude --metadata_column Region \
+		--metadata_column "Farm Coding"
 
 	## add phenotypes to samples
 	$(PYTHON_INTERPRETER) src/data/import_phenotypes.py --src_dataset ADAPTmap_phenotype_20161201.zip \
@@ -214,6 +229,10 @@ data: requirements
 	$(PYTHON_INTERPRETER) src/data/import_phenotypes.py --src_dataset AUTH_GOAT53KV1_EGHORIA_SKOPELOS.zip \
 		--dst_dataset AUTH_GOAT53KV1_EGHORIA_SKOPELOS.zip \
 		--datafile AUTH_GOAT53KV1_EGHORIA_SKOPELOS/AUTH_GOAT53KV1_EGHORIA_SKOPELOS.xlsx --id_column sample_name \
+		--purpose_column Purpose
+	$(PYTHON_INTERPRETER) src/data/import_phenotypes.py --src_dataset AUTH_OVN50KV2_CHIOS_MYTILINI_BOUTSKO.zip \
+		--dst_dataset AUTH_OVN50KV2_CHIOS_MYTILINI_BOUTSKO.zip \
+		--datafile AUTH_OVN50KV2_CHIOS_MYTILINI_BOUTSKO/AUTH_OVN50KV2_CHIOS_MYTILINI_BOUTSKO.xlsx --id_column sample_name \
 		--purpose_column Purpose
 
 	## merge SNPs into 1 file

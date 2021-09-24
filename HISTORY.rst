@@ -27,6 +27,8 @@ TODO
 0.4.2.dev0
 ----------
 
+* Import greek *chios-mytilini-boutsko* sheep dataset
+* Track multiple location for sample (deal with transhumant breeds )
 * Import greek *skopelios-eghoria* goat dataset
 * Use sample data to deal with multi breeds illumina row files
 * Determine fid from database with IlluminaReportIO
