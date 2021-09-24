@@ -11,7 +11,6 @@ TODO
 * Check chromosomes in *Variants locations*: mind to **scaffold**, **null**, and
   **non-autosomal** chromosomes for *Goat* and *Sheep*
 * Import foreground genotypes
-  - import greece goat data
   - import greece sheep data (1 datasets)
 * Enable continuous integration
   - ReadTheDocs
@@ -28,6 +27,7 @@ TODO
 0.4.2.dev0
 ----------
 
+* Import greek *skopelios-eghoria* goat dataset
 * Use sample data to deal with multi breeds illumina row files
 * Determine fid from database with IlluminaReportIO
 * Import greek *frizarta-chios-pelagonia* sheep dataset
