@@ -397,7 +397,7 @@ class SampleSpecies(mongoengine.Document):
 
     # GPS location
     # NOTE: X, Y where X is longitude, Y latitude
-    location = mongoengine.PointField()
+    locations = mongoengine.ListField(mongoengine.PointField())
 
     # additional (not modelled) metadata
     metadata = mongoengine.DictField(default=None)
