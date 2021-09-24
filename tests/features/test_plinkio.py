@@ -18,7 +18,8 @@ from src.features.plinkio import (
     TextPlinkIO, MapRecord, CodingException, IlluminaReportIO, BinaryPlinkIO,
     AffyPlinkIO)
 
-from ..common import MongoMockMixin, SmarterIDMixin, VariantsMixin
+from ..common import (
+    MongoMockMixin, SmarterIDMixin, VariantsMixin, SupportedChipMixin)
 
 # set data dir
 DATA_DIR = pathlib.Path(__file__).parent / "data"
@@ -631,10 +632,13 @@ class IlluminaReportIOMap(VariantsMixin, MongoMockMixin, unittest.TestCase):
 
 
 class IlluminaReportIOPed(
-        VariantsMixin, SmarterIDMixin, MongoMockMixin, unittest.TestCase):
+        VariantsMixin, SmarterIDMixin, SupportedChipMixin, MongoMockMixin,
+        unittest.TestCase):
 
     def setUp(self):
         super().setUp()
+
+        self.dataset = Dataset.objects.get(file="test.zip")
 
         self.plinkio = IlluminaReportIO(
             snpfile=str(DATA_DIR / "snplist.txt"),
@@ -667,11 +671,13 @@ class IlluminaReportIOPed(
                 country="Italy",
                 breed="Texel",
                 breed_code="TEX",
-                species="Sheep"
+                species="Sheep",
+                dataset=self.dataset,
+                chip_name=self.chip_name
             )
             sample.save()
 
-        test = self.plinkio.read_reportfile()
+        test = self.plinkio.read_reportfile(dataset=self.dataset)
         self.assertIsInstance(test, types.GeneratorType)
 
         # consume data and count rows

@@ -876,14 +876,17 @@ class IlluminaReportIO(SmarterMixin):
                 # initialize an empty array
                 line = ["0"] * size
 
-                # TODO: determine fid from sample, if not received as argument
+                logger.debug(f"Searching fid for sample '{row.sample_id}'")
+
+                # determine fid from sample, if not received as argument
                 if not fid:
-                    sample = self.SampleSpecies(
+                    sample = self.SampleSpecies.objects.get(
                         original_id=row.sample_id,
                         dataset=dataset
                     )
 
                     fid = sample.breed_code
+                    logger.debug(f"Found breed {fid} from {row.sample_id}")
 
                 # set values. I need to set a breed code in order to get a
                 # proper ped line
