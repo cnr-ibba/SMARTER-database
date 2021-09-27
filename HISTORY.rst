@@ -22,8 +22,8 @@ TODO
   both in *import_samples* and *import_metadata* scripts
 * define a collection for all available *purpose* phenotypes
 
-0.4.2.dev0
-----------
+0.4.2 (2021-08-27)
+------------------
 
 * Set nullable ``ListField`` for sample *locations* and variant *consequences*
 * Capitalize phenotype values (ie *milk* -> *Milk*)
