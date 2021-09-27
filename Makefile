@@ -25,7 +25,7 @@ requirements: test_environment
 	$(PYTHON_INTERPRETER) -m pip install -r requirements.txt
 
 ## Initialize database by loading stuff
-initialize: test_environment
+initialize: requirements
 	# import chip names
 	$(PYTHON_INTERPRETER) src/data/import_snpchips.py --chip_file data/raw/chip_names.json
 

@@ -10,8 +10,6 @@ TODO
   illumina_top shouldn't change within the same SNP, indipendently from data source
 * Check chromosomes in *Variants locations*: mind to **scaffold**, **null**, and
   **non-autosomal** chromosomes for *Goat* and *Sheep*
-* Import foreground genotypes
-  - import greece sheep data (1 datasets)
 * Enable continuous integration
   - ReadTheDocs
 * Rename objects (use names in a consistent way)
@@ -27,6 +25,7 @@ TODO
 0.4.2.dev0
 ----------
 
+* Capitalize phenotype values (ie *milk* -> *Milk*)
 * Import greek *chios-mytilini-boutsko* sheep dataset
 * Track multiple location for sample (deal with transhumant breeds )
 * Import greek *skopelios-eghoria* goat dataset

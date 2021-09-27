@@ -65,7 +65,7 @@ class PhenotypeMixin(SmarterIDMixin, SupportedChipMixin, MongoMockMixin):
         cls.sheet.cell(row=2, column=7, value=69.5)
         cls.sheet.cell(row=2, column=8, value=16)
         cls.sheet.cell(row=2, column=9, value="D")
-        cls.sheet.cell(row=2, column=10, value="Milk")
+        cls.sheet.cell(row=2, column=10, value="milk")
 
     @classmethod
     def tearDownClass(cls):
@@ -287,7 +287,7 @@ class TestImportPhenotypeByBreeds(PhenotypeMixin, unittest.TestCase):
             reference = Phenotype(
                 purpose="Milk",
                 chest_girth=99.9999,
-                coat_color="white"
+                coat_color="White"
             )
 
             self.assertEqual(reference, self.sample.phenotype)
