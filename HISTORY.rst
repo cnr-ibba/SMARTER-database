@@ -25,6 +25,7 @@ TODO
 0.4.2.dev0
 ----------
 
+* Set nullable ``ListField`` for sample *locations* and variant *consequences*
 * Capitalize phenotype values (ie *milk* -> *Milk*)
 * Import greek *chios-mytilini-boutsko* sheep dataset
 * Track multiple location for sample (deal with transhumant breeds )

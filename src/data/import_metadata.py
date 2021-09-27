@@ -42,7 +42,7 @@ def strip_multiple_values(value: str):
 
 
 def get_locations(row: pd.Series, columns: dict, label: str):
-    locations = []
+    locations = None
 
     if columns["latitude_column"] and columns["longitude_column"]:
         latitude = row.get(columns["latitude_column"])

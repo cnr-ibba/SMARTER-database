@@ -161,8 +161,7 @@ class LocationTestCase(VariantMixin, MongoMockMixin, unittest.TestCase):
                 "illumina_forward": "T/C",
                 "illumina_strand": "top",
                 "strand": "reverse",
-                "imported_from": "SNPchiMp v.3",
-                "consequences": []
+                "imported_from": "SNPchiMp v.3"
             })
         )
 

@@ -397,7 +397,7 @@ class SampleSpecies(mongoengine.Document):
 
     # GPS location
     # NOTE: X, Y where X is longitude, Y latitude
-    locations = mongoengine.ListField(mongoengine.PointField())
+    locations = mongoengine.ListField(mongoengine.PointField(), default=None)
 
     # additional (not modelled) metadata
     metadata = mongoengine.DictField(default=None)
@@ -562,7 +562,7 @@ class Location(mongoengine.EmbeddedDocument):
     date = mongoengine.DateTimeField()
 
     consequences = mongoengine.ListField(
-        mongoengine.EmbeddedDocumentField(Consequence))
+        mongoengine.EmbeddedDocumentField(Consequence), default=None)
 
     def __init__(self, *args, **kwargs):
         illumina_top = None

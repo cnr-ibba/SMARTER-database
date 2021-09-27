@@ -404,7 +404,7 @@ class TestImportMetadataBySamplesNA(MetaDataMixin, unittest.TestCase):
             self.assertEqual(0, result.exit_code, msg=result.exception)
 
             self.sample1.reload()
-            self.assertListEqual(self.sample1.locations, [])
+            self.assertIsNone(self.sample1.locations)
 
             self.check_sample2_locations()
 
