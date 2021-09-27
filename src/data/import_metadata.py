@@ -12,6 +12,7 @@ each sample
 
 import click
 import logging
+import itertools
 
 from click_option_group import optgroup, RequiredMutuallyExclusiveOptionGroup
 from pathlib import Path
@@ -25,19 +26,37 @@ from src.features.utils import sanitize
 logger = logging.getLogger(__name__)
 
 
+def strip_multiple_values(value: str):
+    results = []
+
+    logger.debug(f"Received: '{value}'")
+
+    if isinstance(value, str):
+        tmp = sanitize(value, chars=["-", "/"])
+        results = [float(val) for val in tmp.split("_")]
+
+    else:
+        results = [value]
+
+    return results
+
+
 def get_locations(row: pd.Series, columns: dict, label: str):
-    location = None
+    locations = None
 
     if columns["latitude_column"] and columns["longitude_column"]:
         latitude = row.get(columns["latitude_column"])
         longitude = row.get(columns["longitude_column"])
 
         if pd.notna(latitude) and pd.notna(longitude):
-            location = (longitude, latitude)
+            latitude = strip_multiple_values(latitude)
+            longitude = strip_multiple_values(longitude)
 
-        logger.debug(f"Got location '{location}' for '{label}'")
+            locations = list(itertools.zip_longest(longitude, latitude))
 
-    return location
+        logger.debug(f"Got locations '{locations}' for '{label}'")
+
+    return locations
 
 
 def get_metadata(row: pd.Series, columns: dict, label: str):
@@ -66,7 +85,7 @@ def add_metadata_by_breed(
         breed = row.get(columns["breed_column"])
 
         # get additional columns for breed
-        location = get_locations(row, columns, breed)
+        locations = get_locations(row, columns, breed)
         metadata = get_metadata(row, columns, breed)
 
         # ok iterate over all samples of this dataset
@@ -75,8 +94,8 @@ def add_metadata_by_breed(
 
             logger.info(f"Updating '{sample}'")
 
-            # set location features
-            sample.location = location
+            # set locations features
+            sample.locations = locations
 
             # set metadata if necessary
             if metadata:
@@ -99,7 +118,7 @@ def add_metadata_by_sample(
         original_id = row.get(columns["id_column"])
 
         # get additional columns for original_id
-        location = get_locations(row, columns, original_id)
+        locations = get_locations(row, columns, original_id)
         metadata = get_metadata(row, columns, original_id)
 
         # ok iterate over all samples of this dataset
@@ -108,8 +127,8 @@ def add_metadata_by_sample(
 
             logger.info(f"Updating '{sample}'")
 
-            # set location features
-            sample.location = location
+            # set locations features
+            sample.locations = locations
 
             # set metadata if necessary
             if metadata:

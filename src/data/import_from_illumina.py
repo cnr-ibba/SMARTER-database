@@ -60,7 +60,7 @@ def get_output_files(reportpath: str, working_dir: Path, assembly: str):
 @click.option(
     '--breed_code',
     type=str,
-    required=True)
+    help="Assign this FID to every sample in illumina report")
 @click.option('--chip_name', type=str, required=True)
 @click.option('--assembly', type=str, required=True)
 @click.option('--create_samples', is_flag=True)

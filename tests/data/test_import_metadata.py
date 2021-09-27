@@ -63,6 +63,15 @@ class MetaDataMixin(SmarterIDMixin, SupportedChipMixin, MongoMockMixin):
         cls.sheet.cell(row=2, column=7, value="Val2")
         cls.sheet.cell(row=2, column=8, value="test-1")
 
+        cls.sheet.cell(row=3, column=1, value="MER")
+        cls.sheet.cell(row=3, column=2, value="Merino")
+        cls.sheet.cell(row=3, column=3, value="Italy")
+        cls.sheet.cell(row=3, column=4, value="45.46427/46.46427")
+        cls.sheet.cell(row=3, column=5, value="9.18951/10.18951")
+        cls.sheet.cell(row=3, column=6, value="Val3")
+        cls.sheet.cell(row=3, column=7, value="Val4")
+        cls.sheet.cell(row=3, column=8, value="test-2")
+
     @classmethod
     def tearDownClass(cls):
         Dataset.objects.delete()
@@ -74,7 +83,7 @@ class MetaDataMixin(SmarterIDMixin, SupportedChipMixin, MongoMockMixin):
         self.runner = CliRunner()
 
         # need also a sample
-        self.sample = SampleSheep(
+        self.sample1 = SampleSheep(
             original_id="test-1",
             smarter_id="ITOA-TEX-000000001",
             country="Italy",
@@ -84,12 +93,72 @@ class MetaDataMixin(SmarterIDMixin, SupportedChipMixin, MongoMockMixin):
             dataset=self.dst_dataset,
             chip_name=self.chip_name,
         )
-        self.sample.save()
+        self.sample1.save()
+
+        self.sample2 = SampleSheep(
+            original_id="test-2",
+            smarter_id="ITOA-MER-000000002",
+            country="Italy",
+            species="Sheep",
+            breed="Merino",
+            breed_code="MER",
+            dataset=self.dst_dataset,
+            chip_name=self.chip_name,
+        )
+        self.sample2.save()
 
     def tearDown(self):
         SampleSheep.objects.delete()
 
         super().tearDown()
+
+    def check_sample1_locations(self):
+        self.sample1.reload()
+        self.assertListEqual(
+            self.sample1.locations,
+            [
+                {
+                    'type': 'Point',
+                    'coordinates': [9.18951, 45.46427]
+                }
+            ]
+        )
+
+    def check_sample2_locations(self):
+        self.sample2.reload()
+        self.assertListEqual(
+            self.sample2.locations,
+            [
+                {
+                    'type': 'Point',
+                    'coordinates': [9.18951, 45.46427]
+                },
+                {
+                    'type': 'Point',
+                    'coordinates': [10.18951, 46.46427]
+                },
+            ]
+        )
+
+    def check_sample1_metadata(self):
+        self.sample1.reload()
+        self.assertEqual(
+            self.sample1.metadata,
+            {
+                'col1': 'Val1',
+                'col_2': 'Val2'
+            }
+        )
+
+    def check_sample2_metadata(self):
+        self.sample2.reload()
+        self.assertEqual(
+            self.sample2.metadata,
+            {
+                'col1': 'Val3',
+                'col_2': 'Val4'
+            }
+        )
 
 
 class TestImportMetadataCLI(MetaDataMixin, unittest.TestCase):
@@ -141,7 +210,7 @@ class TestImportMetadataByBreeds(MetaDataMixin, unittest.TestCase):
             self.workbook.save(f"{working_dir}/metadata.xlsx")
 
             # got first sample from database
-            self.assertEqual(SampleSheep.objects.count(), 1)
+            self.assertEqual(SampleSheep.objects.count(), 2)
 
             result = self.runner.invoke(
                 import_metadata,
@@ -163,14 +232,9 @@ class TestImportMetadataByBreeds(MetaDataMixin, unittest.TestCase):
 
             self.assertEqual(0, result.exit_code, msg=result.exception)
 
-            self.sample.reload()
-            self.assertEqual(
-                self.sample.location,
-                {
-                    'type': 'Point',
-                    'coordinates': [9.18951, 45.46427]
-                }
-            )
+            # check locations
+            self.check_sample1_locations()
+            self.check_sample2_locations()
 
     @patch('src.features.smarterdb.Dataset.working_dir',
            new_callable=PropertyMock)
@@ -184,7 +248,7 @@ class TestImportMetadataByBreeds(MetaDataMixin, unittest.TestCase):
             self.workbook.save(f"{working_dir}/metadata.xlsx")
 
             # got first sample from database
-            self.assertEqual(SampleSheep.objects.count(), 1)
+            self.assertEqual(SampleSheep.objects.count(), 2)
 
             result = self.runner.invoke(
                 import_metadata,
@@ -206,14 +270,9 @@ class TestImportMetadataByBreeds(MetaDataMixin, unittest.TestCase):
 
             self.assertEqual(0, result.exit_code, msg=result.exception)
 
-            self.sample.reload()
-            self.assertEqual(
-                self.sample.metadata,
-                {
-                    'col1': 'Val1',
-                    'col_2': 'Val2'
-                }
-            )
+            # check metadata
+            self.check_sample1_metadata()
+            self.check_sample2_metadata()
 
 
 class TestImportMetadataBySamples(MetaDataMixin, unittest.TestCase):
@@ -229,7 +288,7 @@ class TestImportMetadataBySamples(MetaDataMixin, unittest.TestCase):
             self.workbook.save(f"{working_dir}/metadata.xlsx")
 
             # got first sample from database
-            self.assertEqual(SampleSheep.objects.count(), 1)
+            self.assertEqual(SampleSheep.objects.count(), 2)
 
             result = self.runner.invoke(
                 import_metadata,
@@ -251,14 +310,9 @@ class TestImportMetadataBySamples(MetaDataMixin, unittest.TestCase):
 
             self.assertEqual(0, result.exit_code, msg=result.exception)
 
-            self.sample.reload()
-            self.assertEqual(
-                self.sample.location,
-                {
-                    'type': 'Point',
-                    'coordinates': [9.18951, 45.46427]
-                }
-            )
+            # check locationss
+            self.check_sample1_locations()
+            self.check_sample2_locations()
 
     @patch('src.features.smarterdb.Dataset.working_dir',
            new_callable=PropertyMock)
@@ -272,7 +326,7 @@ class TestImportMetadataBySamples(MetaDataMixin, unittest.TestCase):
             self.workbook.save(f"{working_dir}/metadata.xlsx")
 
             # got first sample from database
-            self.assertEqual(SampleSheep.objects.count(), 1)
+            self.assertEqual(SampleSheep.objects.count(), 2)
 
             result = self.runner.invoke(
                 import_metadata,
@@ -294,14 +348,9 @@ class TestImportMetadataBySamples(MetaDataMixin, unittest.TestCase):
 
             self.assertEqual(0, result.exit_code, msg=result.exception)
 
-            self.sample.reload()
-            self.assertEqual(
-                self.sample.metadata,
-                {
-                    'col1': 'Val1',
-                    'col_2': 'Val2'
-                }
-            )
+            # check metadata
+            self.check_sample1_metadata()
+            self.check_sample2_metadata()
 
 
 class TestImportMetadataBySamplesNA(MetaDataMixin, unittest.TestCase):
@@ -330,7 +379,7 @@ class TestImportMetadataBySamplesNA(MetaDataMixin, unittest.TestCase):
             self.workbook.save(f"{working_dir}/metadata.xlsx")
 
             # got first sample from database
-            self.assertEqual(SampleSheep.objects.count(), 1)
+            self.assertEqual(SampleSheep.objects.count(), 2)
 
             result = self.runner.invoke(
                 import_metadata,
@@ -354,8 +403,10 @@ class TestImportMetadataBySamplesNA(MetaDataMixin, unittest.TestCase):
 
             self.assertEqual(0, result.exit_code, msg=result.exception)
 
-            self.sample.reload()
-            self.assertIsNone(self.sample.location)
+            self.sample1.reload()
+            self.assertIsNone(self.sample1.locations)
+
+            self.check_sample2_locations()
 
 
 if __name__ == '__main__':

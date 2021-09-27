@@ -21,8 +21,7 @@
         "imported_from": "manifest",
         "date": {
           "$date": "2009-01-07T00:00:00Z"
-        },
-        "consequences": []
+        }
       },
       {
         "ss_id": "ss836318713",
@@ -34,8 +33,7 @@
         "illumina_forward": "T/C",
         "illumina_strand": "bottom",
         "strand": "forward",
-        "imported_from": "SNPchiMp v.3",
-        "consequences": []
+        "imported_from": "SNPchiMp v.3"
       }
     ],
     "sender": "AGR_BS",
@@ -64,8 +62,7 @@
         "imported_from": "manifest",
         "date": {
           "$date": "2009-01-07T00:00:00Z"
-        },
-        "consequences": []
+        }
       },
       {
         "ss_id": "ss836318714",
@@ -77,8 +74,7 @@
         "illumina_forward": "T/C",
         "illumina_strand": "bottom",
         "strand": "forward",
-        "imported_from": "SNPchiMp v.3",
-        "consequences": []
+        "imported_from": "SNPchiMp v.3"
       }
     ],
     "sender": "AGR_BS",
@@ -109,8 +105,7 @@
         "imported_from": "manifest",
         "date": {
           "$date": "2009-01-07T00:00:00Z"
-        },
-        "consequences": []
+        }
       },
       {
         "ss_id": "ss836318715",
@@ -122,8 +117,7 @@
         "illumina_forward": "T/C",
         "illumina_strand": "bottom",
         "strand": "forward",
-        "imported_from": "SNPchiMp v.3",
-        "consequences": []
+        "imported_from": "SNPchiMp v.3"
       },
       {
         "version": "Oar_v4.0",
@@ -137,8 +131,7 @@
         "imported_from": "affymetrix",
         "date": {
           "$date": "2019-01-17T00:00:00Z"
-        },
-        "consequences": []
+        }
       }
     ],
     "sender": "AGR_BS",
@@ -173,8 +166,7 @@
         "imported_from": "manifest",
         "date": {
           "$date": "2009-01-07T00:00:00Z"
-        },
-        "consequences": []
+        }
       },
       {
         "version": "Oar_v3.1",
@@ -182,8 +174,7 @@
         "position": 0,
         "illumina": "A/G",
         "illumina_forward": "A/G",
-        "imported_from": "SNPchiMp v.3",
-        "consequences": []
+        "imported_from": "SNPchiMp v.3"
       },
       {
         "version": "Oar_v4.0",
@@ -196,8 +187,7 @@
         "imported_from": "affymetrix",
         "date": {
           "$date": "2019-01-17T00:00:00Z"
-        },
-        "consequences": []
+        }
       }
     ],
     "sender": "AGR_BS",
@@ -230,8 +220,7 @@
         "imported_from": "affymetrix",
         "date": {
           "$date": "2019-01-17T00:00:00Z"
-        },
-        "consequences": []
+        }
       }
     ],
     "probeset_id": [

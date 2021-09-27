@@ -111,7 +111,7 @@ class ReadManifest(IlluminaMixin, unittest.TestCase):
     skip_lines = 7
 
     def read_func(self, *args, **kwargs):
-        return read_Manifest(*args, **kwargs)
+        return read_Manifest(*args, **kwargs, size=2026)
 
 
 class ReadSnpListTest(IlluminaMixin, unittest.TestCase):

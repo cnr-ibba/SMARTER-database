@@ -13,7 +13,7 @@ from click_option_group import optgroup, RequiredMutuallyExclusiveOptionGroup
 from pathlib import Path
 import pandas as pd
 
-from src.features.smarterdb import global_connection, Dataset, Phenotype
+from src.features.smarterdb import global_connection, Dataset, Phenotype, Breed
 from src.data.common import (
     fetch_and_check_dataset, pandas_open, get_sample_species)
 from src.features.utils import sanitize
@@ -72,13 +72,20 @@ def create_or_update_phenotype(
         logger.debug(f"Create a new phenotype for {sample}")
         sample.phenotype = Phenotype()
 
+    def update_value(value):
+        # capitalize only if is a string
+        if isinstance(value, str):
+            value = value.capitalize()
+
+        return value
+
     for key, value in named_columns.items():
-        setattr(sample.phenotype, key, value)
+        setattr(sample.phenotype, key, update_value(value))
 
     # set all the other not managed phenotypes colums
     if additional_column:
         for key, value in additional_column.items():
-            setattr(sample.phenotype, key, value)
+            setattr(sample.phenotype, key, update_value(value))
 
     logger.info(
         f"Updating '{sample}' phenotype with '{sample.phenotype}'")
@@ -101,6 +108,12 @@ def add_phenotype_by_breed(
     for index, row in data.iterrows():
         logger.debug(f"{index}, {row}")
         breed = row.get(columns["breed_column"])
+
+        # check that this breed exists
+        qs = Breed.objects.filter(name=breed, species=dst_dataset.species)
+
+        if qs.count() != 1:
+            raise Exception(f"Breed '{breed}' not found in database!")
 
         # get columns modelled in smarter database
         named_columns = get_named_columns(row, columns, breed)

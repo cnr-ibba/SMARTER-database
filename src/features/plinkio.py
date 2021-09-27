@@ -102,13 +102,7 @@ class SmarterMixin():
 
         self._species = species
 
-    def get_breed(self, fid, *args, **kwargs):
-        if len(args) > 0:
-            dataset = args[0]
-
-        if 'dataset' in kwargs:
-            dataset = kwargs['dataset']
-
+    def get_breed(self, fid, dataset, *args, **kwargs):
         # this is a $elemMatch query
         breed = Breed.objects(
             aliases__match={'fid': fid, 'dataset': dataset}).get()
@@ -298,17 +292,33 @@ class SmarterMixin():
         self.filtered = set()
         self.variants_name = list()
 
+        # this is required to search with the desidered coordinate system
+        # relying on mongodb elemMatch and projection
+        coordinate_system = {
+            "imported_from": imported_from,
+            "version": version
+        }
+
         tqdm_out = TqdmToLogger(logger, level=logging.INFO)
 
         for idx, record in enumerate(tqdm(
                 self.mapdata, file=tqdm_out, mininterval=1)):
             try:
+                # TODO: remember to project illumina_top if it become
+                # a VariantSpecies attribute
                 variant = self.VariantSpecies.objects(
+                    locations__match=coordinate_system,
                     **{search_field: record.name}
+                ).fields(
+                    elemMatch__locations=coordinate_system,
+                    name=1,
+                    rs_id=1
                 ).get()
 
             except DoesNotExist as e:
-                logger.warning(f"Couldn't find {record.name}: {e}")
+                logger.warning(
+                    f"Couldn't find {record.name} in {coordinate_system}"
+                    f" assembly: {e}")
 
                 # skip this variant (even in ped)
                 self.filtered.add(idx)
@@ -321,29 +331,16 @@ class SmarterMixin():
                 # don't check location for missing SNP
                 continue
 
-            # get location using provided parameters
-            try:
-                location = variant.get_location(
-                    version=version,
-                    imported_from=imported_from)
+            # using projection I will have only one location if I could
+            # find a SNP
+            location = variant.locations[0]
 
-                # track data for this location
-                self.locations.append(location)
+            # track data for this location
+            self.locations.append(location)
 
-                # track variant.name read from database (useful when searching
-                # using probeset_id)
-                self.variants_name.append(variant.name)
-
-            except SmarterDBException as e:
-                logger.warning(f"Discarding {record.name}: {e}")
-
-                # skip this variant (even in ped)
-                self.filtered.add(idx)
-
-                # need to add an empty value in locations (or my indexes
-                # won't work properly). The same for variants name
-                self.locations.append(None)
-                self.variants_name.append(None)
+            # track variant.name read from database (useful when searching
+            # using probeset_id)
+            self.variants_name.append(variant.name)
 
         logger.debug(
             f"collected {len(self.locations)} in '{version}' coordinates")
@@ -521,7 +518,7 @@ class SmarterMixin():
         except DoesNotExist as e:
             logger.error(e)
             raise SmarterDBException(
-                f"Couldn't find fid '{line[0]}': {line[:10]+ ['...']}"
+                f"Couldn't find breed_code '{line[0]}': {line[:10]+ ['...']}"
             )
 
         # check for sample in database
@@ -586,7 +583,10 @@ class SmarterMixin():
 
             processed = 0
 
-            for line in self.read_genotype_method(*args, **kwargs):
+            for line in self.read_genotype_method(
+                    dataset=dataset, *args, **kwargs):
+
+                # covert the ped line with the desidered format
                 new_line = self._process_pedline(
                     line, dataset, coding, create_samples, sample_field)
 
@@ -649,7 +649,7 @@ class TextPlinkIO(SmarterMixin):
             reader = get_reader(handle)
             self.mapdata = [MapRecord(*record) for record in reader]
 
-    def read_pedfile(self):
+    def read_pedfile(self, *args, **kwargs):
         """Open pedfile for reading return iterator"""
 
         with open(self.pedfile) as handle:
@@ -685,7 +685,7 @@ class AffyPlinkIO(TextPlinkIO):
 
         return breed
 
-    def read_pedfile(self, fid: str):
+    def read_pedfile(self, fid: str, *args, **kwargs):
         """Open pedfile for reading return iterator"""
 
         with open(self.pedfile) as handle:
@@ -754,7 +754,7 @@ class BinaryPlinkIO(SmarterMixin):
             )
             self.mapdata.append(record)
 
-    def read_pedfile(self):
+    def read_pedfile(self, *args, **kwargs):
         """Open pedfile for reading return iterator"""
 
         sample_list = self.plink_file.get_samples()
@@ -844,7 +844,9 @@ class IlluminaReportIO(SmarterMixin):
 
         self.mapdata = list(read_snpList(self.snpfile))
 
-    def read_reportfile(self, fid: str):
+    # this will be called when calling read_genotype_method()
+    def read_reportfile(
+            self, fid: str = None, dataset: Dataset = None, *args, **kwargs):
         """Open illumina report returns iterator"""
 
         # determine genotype length
@@ -866,11 +868,25 @@ class IlluminaReportIO(SmarterMixin):
         for row in read_illuminaRow(self.report):
             if row.sample_id != last_sample:
                 logger.debug(f"Reading sample {row.sample_id}")
+
+                # this is not returned if I'm processing the first sample
                 if last_sample:
                     yield line
 
                 # initialize an empty array
                 line = ["0"] * size
+
+                logger.debug(f"Searching fid for sample '{row.sample_id}'")
+
+                # determine fid from sample, if not received as argument
+                if not fid:
+                    sample = self.SampleSpecies.objects.get(
+                        original_id=row.sample_id,
+                        dataset=dataset
+                    )
+
+                    fid = sample.breed_code
+                    logger.debug(f"Found breed {fid} from {row.sample_id}")
 
                 # set values. I need to set a breed code in order to get a
                 # proper ped line
