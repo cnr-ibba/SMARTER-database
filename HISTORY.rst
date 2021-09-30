@@ -22,6 +22,11 @@ TODO
   both in *import_samples* and *import_metadata* scripts
 * define a collection for all available *purpose* phenotypes
 
+0.4.3.dev0
+----------
+
+* Bug fixed in importing multibreed reportfile (setting FID properly in output)
+
 0.4.2 (2021-08-27)
 ------------------
 
