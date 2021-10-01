@@ -885,12 +885,15 @@ class IlluminaReportIO(SmarterMixin):
                         dataset=dataset
                     )
 
-                    fid = sample.breed_code
-                    logger.debug(f"Found breed {fid} from {row.sample_id}")
+                    breed = sample.breed_code
+                    logger.debug(f"Found breed {breed} from {row.sample_id}")
+
+                else:
+                    breed = fid
 
                 # set values. I need to set a breed code in order to get a
                 # proper ped line
-                line[0], line[1], line[5] = fid, row.sample_id, -9
+                line[0], line[1], line[5] = breed, row.sample_id, -9
 
                 # track last sample
                 last_sample = row.sample_id
