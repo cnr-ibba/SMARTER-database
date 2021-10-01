@@ -1,0 +1,81 @@
+
+SMARTER Genotype FTP Repository
+===============================
+
+Welcome to SMARTER Genotype FTP repository! This repository collects the processed 
+genoypes for the SMARTER project created using the https://github.com/cnr-ibba/SMARTER-database
+software.
+
+Folder structure
+----------------
+
+All genoypes are processed in a unique PLINK binary file and divided by species
+and by the most common assemblies. This repository is structured like this:
+
+.
+├── GOAT
+│   ├── ARS1
+│   │   └── archive
+│   └── CHI1
+│       └── archive
+└── SHEEP
+    ├── OAR3
+    │   └── archive
+    └── OAR4
+        └── archive
+
+where GOAT and SHEEP folder collect data for Goat and Sheep respectively, and all 
+genotypes are collected and processed within their mayor assemblies. For example, 
+if you need to retrieve the Goat genoypes in the latest assembly version, you 
+need to go under the GOAT/ARS1 folder. All samples and variants imported are 
+present in a unique dataset for specie / assembly. 
+
+NOTE: CHI1 and OAR4 will be available soon
+
+File naming convention
+----------------------
+
+Files names convention relies the following schema:
+
+    SMARTER-<genere/specie initials>-<assembly>-top-<version>.<ext>
+
+So the plink file prefix SMARTER-OA-OAR3-top-0.4.2 stands for SMARTER Sheep (Ovis Aries)
+OAR3 release v0.4.2. There will be always 6 different extension which corresponds
+to the plink binary files (.bed, .bim, .fam, .hh, .log, .sex). For more informations,
+see the PLINK documentation (https://www.cog-genomics.org/plink/1.9/formats)
+
+Datasets releases
+----------------- 
+
+Datasets are released using the same versioning system used by https://github.com/cnr-ibba/SMARTER-database
+project, since datasets are generated using the correponding software version. 
+Such versions could introduce new samples, new variants or updates/fix in genotype 
+positions. To have detailed information on changes within a new version, please refer to 
+https://github.com/cnr-ibba/SMARTER-database/blob/master/HISTORY.rst. When a older
+dataset version is replaced by a new dataset version, the older dataset version is 
+moved inside the archive folder inside the Species/Assembly folder. This happens
+when there are any changes in genotypes between two version (and not changes in 
+metadata or SMARTER-database software). You can retrieve an older SMARTER dataset 
+version if there are any changes in genoypes between the old and the new releases.
+
+Stable and latest releases 
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Datasets with a version like 0.4.2 are stable version and were generated using 
+the same stable version (aka tag) of https://github.com/cnr-ibba/SMARTER-database
+project. Version with a dev suffix like 0.4.3.dev0 are not intended to be stable, 
+could have the latest information of fixes but there's no guarantee that such file 
+will be not updated again later or that such file is generated with the latest 
+SMARTER-database software. When SMARTER-database software is released, a new 
+stable dataset version will replace the unstable dataset. Once a dataset is stable, 
+new changes and fix will be released using a newer version.
+
+Accessing metadata and subsetting dataset
+-----------------------------------------
+
+Datasets is composed by all samples imported with SMARTER project. However there 
+are additional metadata that could be used to subset the dataset according user's 
+need. Those data are made available to SMARTER Data Portal (https://webserver.ibba.cnr.it/smarter/)
+and SMARTER API (https://webserver.ibba.cnr.it/smarter/). Samples ID and breed code 
+available through these interface are the same used in the genoypes dataset and 
+could be used to subset data accordinag user needs.

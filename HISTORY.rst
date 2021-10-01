@@ -25,6 +25,7 @@ TODO
 0.4.3.dev0
 ----------
 
+* Add the README.txt.ftp
 * Bug fixed in importing multibreed reportfile (setting FID properly in output)
 
 0.4.2 (2021-08-27)
