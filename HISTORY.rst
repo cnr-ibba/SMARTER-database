@@ -10,9 +10,6 @@ TODO
   illumina_top shouldn't change within the same SNP, indipendently from data source
 * Check chromosomes in *Variants locations*: mind to **scaffold**, **null**, and
   **non-autosomal** chromosomes for *Goat* and *Sheep*
-* Import foreground genotypes
-  - import greece goat data
-  - import greece sheep data (3 datasets)
 * Enable continuous integration
   - ReadTheDocs
 * Rename objects (use names in a consistent way)
@@ -21,10 +18,29 @@ TODO
 * Release a *smarter* coordinate version with information on every variant defined 
   in database (which will be used as reference)
 * Map affymetrix snps in OARV3 coordinates
+* Have an ``update_breed`` script to add an alias to an existent breed
+* if ``src_dataset`` and ``dst_dataset`` are equals, provide only ``dst_dataset``
+  both in *import_samples* and *import_metadata* scripts
+* define a collection for all available *purpose* phenotypes
 
-0.4.2.dev0
+0.4.3.dev0
 ----------
 
+* Add the README.txt.ftp
+* Bug fixed in importing multibreed reportfile (setting FID properly in output)
+
+0.4.2 (2021-08-27)
+------------------
+
+* Set nullable ``ListField`` for sample *locations* and variant *consequences*
+* Capitalize phenotype values (ie *milk* -> *Milk*)
+* Import greek *chios-mytilini-boutsko* sheep dataset
+* Track multiple location for sample (deal with transhumant breeds )
+* Import greek *skopelios-eghoria* goat dataset
+* Use sample data to deal with multi breeds illumina row files
+* Determine fid from database with IlluminaReportIO
+* Import greek *frizarta-chios-pelagonia* sheep dataset
+* Import greek *frizarta-chios* sheep dataset
 * Import sweden foreground goat dataset
 * Update *ADAPTmap* breed names and phenotypes import
 * Check that breed exists while inserting phenotype data

@@ -72,13 +72,20 @@ def create_or_update_phenotype(
         logger.debug(f"Create a new phenotype for {sample}")
         sample.phenotype = Phenotype()
 
+    def update_value(value):
+        # capitalize only if is a string
+        if isinstance(value, str):
+            value = value.capitalize()
+
+        return value
+
     for key, value in named_columns.items():
-        setattr(sample.phenotype, key, value)
+        setattr(sample.phenotype, key, update_value(value))
 
     # set all the other not managed phenotypes colums
     if additional_column:
         for key, value in additional_column.items():
-            setattr(sample.phenotype, key, value)
+            setattr(sample.phenotype, key, update_value(value))
 
     logger.info(
         f"Updating '{sample}' phenotype with '{sample.phenotype}'")
