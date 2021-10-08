@@ -444,6 +444,16 @@ class SmarterMixin():
 
             genotype = [a1, a2]
 
+            # xor condition: https://stackoverflow.com/a/433161/4385116
+            if (a1 in ["0", "-"]) != (a2 in ["0", "-"]):
+                logger.warning(
+                    f"Found half-missing SNP in {new_line[1]}: {i*2}: "
+                    f"[{a1}/{a2}]. Forcing SNP to be MISSING")
+
+                new_line[6+i*2], new_line[6+i*2+1] = ["0", "0"]
+
+                continue
+
             # is this snp filtered out
             if i in self.filtered:
                 logger.debug(

@@ -25,6 +25,7 @@ TODO
 0.4.3.dev0
 ----------
 
+* Force *half-missing* SNPs to be MISSING
 * Add the README.txt.ftp
 * Bug fixed in importing multibreed reportfile (setting FID properly in output)
 
