@@ -243,6 +243,26 @@ data: requirements
 		--dst_dataset AUTH_OVN50KV2_CHIOS_MYTILINI_BOUTSKO.zip \
 		--datafile AUTH_OVN50KV2_CHIOS_MYTILINI_BOUTSKO/AUTH_OVN50KV2_CHIOS_MYTILINI_BOUTSKO.xlsx --id_column sample_name \
 		--purpose_column Purpose
+	$(PYTHON_INTERPRETER) src/data/import_phenotypes.py --src_dataset SMARTER-metadata-Uruguay_Metadata.zip \
+		--dst_dataset CREOLE_INIA_UY.zip --sheet_name samples \
+		--datafile SMARTER-metadata-Uruguay_Metadata.xlsx --id_column original_id \
+		--purpose_column purpose
+	$(PYTHON_INTERPRETER) src/data/import_phenotypes.py --src_dataset SMARTER-metadata-Uruguay_Metadata.zip \
+		--dst_dataset CORRIEDALE_INIA_UY.zip --sheet_name samples \
+		--datafile SMARTER-metadata-Uruguay_Metadata.xlsx --id_column original_id \
+		--purpose_column purpose
+	$(PYTHON_INTERPRETER) src/data/import_phenotypes.py --src_dataset SMARTER-metadata-Uruguay_Metadata.zip \
+		--dst_dataset MERINO_INIA_UY.zip --sheet_name samples \
+		--datafile SMARTER-metadata-Uruguay_Metadata.xlsx --id_column original_id \
+		--purpose_column purpose
+	$(PYTHON_INTERPRETER) src/data/import_phenotypes.py --src_dataset SMARTER-metadata-Uruguay_Metadata.zip \
+		--dst_dataset TEXEL_INIA_UY.zip --sheet_name samples \
+		--datafile SMARTER-metadata-Uruguay_Metadata.xlsx --id_column original_id \
+		--purpose_column purpose
+	$(PYTHON_INTERPRETER) src/data/import_phenotypes.py --src_dataset SMARTER-metadata-Uruguay_Metadata.zip \
+		--dst_dataset Affymetrix_data_Plate_652_660.zip --sheet_name samples \
+		--datafile SMARTER-metadata-Uruguay_Metadata.xlsx --alias_column original_id \
+		--purpose_column purpose
 
 	## merge SNPs into 1 file
 	$(PYTHON_INTERPRETER) src/data/merge_datasets.py --species sheep --assembly OAR3
