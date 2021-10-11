@@ -25,6 +25,7 @@ TODO
 0.4.3.dev0
 ----------
 
+* Allow phenotypes for ambigous sex animals
 * Import french goat foreground dataset
 * Pin ``plinkio`` to support *extra-chroms* in plink binary files
 * Import 5 Sweden Sheep background genotypes

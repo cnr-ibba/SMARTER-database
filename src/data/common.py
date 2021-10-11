@@ -36,8 +36,9 @@ WORKING_ASSEMBLIES = {
 }
 
 PLINK_SPECIES_OPT = {
-    # got this one from documentation
-    'Sheep': ['--chr-set', '26', 'no-xy', 'no-mt'],
+    # got this one from documentation + allow-no-sex, since I have
+    # phenotypes with ambigous sex
+    'Sheep': ['--chr-set', '26', 'no-xy', 'no-mt', '--allow-no-sex'],
     # this let to model 29 chromosome, X, Y, MT and contigs
     'Goat': ['--chr-set', '29', '--allow-extra-chr']
 }
