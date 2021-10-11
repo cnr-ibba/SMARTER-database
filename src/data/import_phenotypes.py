@@ -142,7 +142,7 @@ def add_phenotype_by_sample(
 
     for index, row in data.iterrows():
         logger.debug(f"{index}, {row}")
-        original_id = row.get(columns["id_column"])
+        original_id = str(row.get(columns["id_column"]))
 
         # get columns modelled in smarter database
         named_columns = get_named_columns(row, columns, original_id)
@@ -153,6 +153,35 @@ def add_phenotype_by_sample(
         # ok iterate over all samples of this dataset
         for sample in SampleSpecie.objects.filter(
                 dataset=dst_dataset, original_id=original_id):
+
+            create_or_update_phenotype(
+                sample, named_columns, additional_column)
+
+
+def add_phenotype_by_alias(
+        data: pd.DataFrame,
+        dst_dataset: Dataset,
+        columns: dict):
+    """Add metadata relying on alias (column)"""
+
+    logger.debug(f"Received columns: {columns}")
+
+    # mind dataset species
+    SampleSpecie = get_sample_species(dst_dataset.species)
+
+    for index, row in data.iterrows():
+        logger.debug(f"{index}, {row}")
+        original_id = str(row.get(columns["alias_column"]))
+
+        # get columns modelled in smarter database
+        named_columns = get_named_columns(row, columns, original_id)
+
+        # get additional columns for breed
+        additional_column = get_additional_column(row, columns, original_id)
+
+        # ok iterate over all samples of this dataset
+        for sample in SampleSpecie.objects.filter(
+                dataset=dst_dataset, alias=original_id):
 
             create_or_update_phenotype(
                 sample, named_columns, additional_column)
@@ -177,6 +206,7 @@ def add_phenotype_by_sample(
 )
 @optgroup.option('--breed_column', type=str, help="The breed column")
 @optgroup.option('--id_column', type=str, help="The original_id column")
+@optgroup.option('--alias_column', type=str, help="An alias for original_id")
 @click.option('--purpose_column', type=str)
 @click.option('--chest_girth_column', type=str)
 @click.option('--height_column', type=str)
@@ -185,8 +215,8 @@ def add_phenotype_by_sample(
     "Additional column to track. Could be specified multiple times"))
 @click.option('--na_values', type=str, help="pandas NA values")
 def main(src_dataset, dst_dataset, datafile, sheet_name, breed_column,
-         id_column, purpose_column, chest_girth_column, height_column,
-         length_column, additional_column, na_values):
+         id_column, alias_column, purpose_column, chest_girth_column,
+         height_column, length_column, additional_column, na_values):
     logger.info(f"{Path(__file__).name} started")
 
     if additional_column:
@@ -214,6 +244,7 @@ def main(src_dataset, dst_dataset, datafile, sheet_name, breed_column,
     columns = {
         'breed_column': breed_column,
         'id_column': id_column,
+        'alias_column': alias_column,
         'purpose_column': purpose_column,
         'chest_girth_column': chest_girth_column,
         'height_column': height_column,
@@ -226,6 +257,9 @@ def main(src_dataset, dst_dataset, datafile, sheet_name, breed_column,
 
     elif id_column:
         add_phenotype_by_sample(data, dst_dataset, columns)
+
+    elif alias_column:
+        add_phenotype_by_alias(data, dst_dataset, columns)
 
     logger.info(f"{Path(__file__).name} ended")
 

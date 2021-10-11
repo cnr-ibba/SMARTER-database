@@ -54,6 +54,7 @@ class PhenotypeMixin(SmarterIDMixin, SupportedChipMixin, MongoMockMixin):
         cls.sheet.cell(row=1, column=8, value="WidthOfPinBones")
         cls.sheet.cell(row=1, column=9, value="FAMACHA")
         cls.sheet.cell(row=1, column=10, value="Purpose")
+        cls.sheet.cell(row=1, column=11, value="Alias")
 
         # adding values
         cls.sheet.cell(row=2, column=1, value="TEX")
@@ -66,6 +67,7 @@ class PhenotypeMixin(SmarterIDMixin, SupportedChipMixin, MongoMockMixin):
         cls.sheet.cell(row=2, column=8, value=16)
         cls.sheet.cell(row=2, column=9, value="D")
         cls.sheet.cell(row=2, column=10, value="milk")
+        cls.sheet.cell(row=2, column=11, value="alias-1")
 
     @classmethod
     def tearDownClass(cls):
@@ -87,6 +89,7 @@ class PhenotypeMixin(SmarterIDMixin, SupportedChipMixin, MongoMockMixin):
             breed_code="TEX",
             dataset=self.dst_dataset,
             chip_name=self.chip_name,
+            alias="alias-1",
         )
         self.sample.save()
 
@@ -373,6 +376,63 @@ class TestImportPhenotypeBySamples(PhenotypeMixin, unittest.TestCase):
                     "phenotypes.xlsx",
                     "--id_column",
                     "Id",
+                    "--purpose_column",
+                    "Purpose",
+                    "--chest_girth_column",
+                    "ChestGirth",
+                    "--height_column",
+                    "Height",
+                    "--length_column",
+                    "Length",
+                    "--additional_column",
+                    "FAMACHA",
+                    "--additional_column",
+                    "WidthOfPinBones"
+                ]
+            )
+
+            self.assertEqual(0, result.exit_code, msg=result.exception)
+            self.sample.reload()
+            self.assertIsInstance(self.sample.phenotype, Phenotype)
+
+            reference = Phenotype(
+                purpose="Milk",
+                chest_girth=77.5,
+                height=60.5,
+                length=69.5,
+                widthofpinbones=16,
+                famacha="D"
+            )
+
+            self.assertEqual(reference, self.sample.phenotype)
+
+
+class TestImportPhenotypeByAlias(PhenotypeMixin, unittest.TestCase):
+    @patch('src.features.smarterdb.Dataset.working_dir',
+           new_callable=PropertyMock)
+    def test_import_phenotype(self, my_working_dir):
+        # create a temporary directory using the context manager
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            working_dir = pathlib.Path(tmpdirname)
+            my_working_dir.return_value = working_dir
+
+            # save worksheet in temporary folder
+            self.workbook.save(f"{working_dir}/phenotypes.xlsx")
+
+            # got first sample from database
+            self.assertEqual(SampleSheep.objects.count(), 1)
+
+            result = self.runner.invoke(
+                import_phenotypes,
+                [
+                    "--src_dataset",
+                    "test2.zip",
+                    "--dst_dataset",
+                    "test.zip",
+                    "--datafile",
+                    "phenotypes.xlsx",
+                    "--alias_column",
+                    "Alias",
                     "--purpose_column",
                     "Purpose",
                     "--chest_girth_column",
