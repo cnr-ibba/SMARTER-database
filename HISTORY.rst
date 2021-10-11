@@ -25,6 +25,7 @@ TODO
 0.4.3.dev0
 ----------
 
+* Pin ``plinkio`` to support *extra-chroms* in plink binary files
 * Import 5 Sweden Sheep background genotypes
 * Force *half-missing* SNPs to be MISSING
 * Add the README.txt.ftp
