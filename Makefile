@@ -91,6 +91,8 @@ data: requirements
 	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Gotland --code GOT --alias GOT --dataset five_sweden_sheeps.zip
 	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Gute --code GUT --alias GUT --dataset five_sweden_sheeps.zip
 	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Klövsjö --code KLO --alias KLO --dataset five_sweden_sheeps.zip
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species Goat --name Fosses --code FSS --alias FOS --dataset SMARTER_CHFR.zip
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species Goat --name Provencale --code PVC --alias PVC --dataset SMARTER_CHFR.zip
 
 	## load breeds into database relying on dataset
 	$(PYTHON_INTERPRETER) src/data/import_breeds.py --species Sheep --dataset="High density genotypes of French Sheep populations.zip" \
@@ -160,6 +162,8 @@ data: requirements
 	$(PYTHON_INTERPRETER) src/data/import_samples.py --src_dataset AUTH_GOAT53KV1_EGHORIA_SKOPELOS.zip --dst_dataset AUTH_GOAT53KV1_EGHORIA_SKOPELOS.zip \
 		--datafile AUTH_GOAT53KV1_EGHORIA_SKOPELOS/AUTH_GOAT53KV1_EGHORIA_SKOPELOS.xlsx \
 		--code_column breed_code --id_column sample_name --chip_name IlluminaGoatSNP50 --country_column Country
+	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --bfile SMARTER_CHFR \
+		--dataset SMARTER_CHFR.zip --chip_name IlluminaGoatSNP50 --assembly ARS1 --create_samples
 
 	## convert genotypes without creating samples in database (GOAT)
 	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --bfile ADAPTmap_genotypeTOP_20161201/binary_fileset/ADAPTmap_genotypeTOP_20161201 \
