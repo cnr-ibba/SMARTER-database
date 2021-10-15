@@ -25,6 +25,7 @@ TODO
 0.4.3.dev0
 ----------
 
+* Update greek foreground metadata
 * Import phenotypes from Uruguay
 * Import phenotypes using alias
 * Allow phenotypes for ambigous sex animals
