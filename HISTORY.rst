@@ -24,11 +24,12 @@ TODO
 
 0.4.3.dev0
 ----------
-
+  
+* Move greek foreground metadata to a custom phenotypes dataset
 * Update greek foreground metadata
 * Import phenotypes from Uruguay
 * Import phenotypes using alias
-* Allow phenotypes for ambigous sex animals
+* Allow phenotypes for ambiguous sex animals
 * Import french goat foreground dataset
 * Pin ``plinkio`` to support *extra-chroms* in plink binary files
 * Import 5 Sweden Sheep background genotypes
