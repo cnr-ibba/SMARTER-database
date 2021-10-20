@@ -9,6 +9,7 @@ BUCKET = [OPTIONAL] your-bucket-for-syncing-data (do not include 's3://')
 PROFILE = default
 PROJECT_NAME = SMARTER-database
 PYTHON_INTERPRETER = python3
+CURRENT_VERSION = $(shell awk -F " = " '/current_version/ {print $$2}' .bumpversion.cfg | head -n1)
 
 ifeq (,$(shell which conda))
 HAS_CONDA=False
@@ -268,6 +269,20 @@ data: requirements
 	## merge SNPs into 1 file
 	$(PYTHON_INTERPRETER) src/data/merge_datasets.py --species sheep --assembly OAR3
 	$(PYTHON_INTERPRETER) src/data/merge_datasets.py --species goat --assembly ARS1
+
+## pack results to be shared via sFTP
+publish:
+	## SHEEP OAR3
+	cd ./data/processed/OAR3 && rm SMARTER-OA-OAR3-top-$(CURRENT_VERSION).zip SMARTER-OA-OAR3-top-$(CURRENT_VERSION).md5
+	cd ./data/processed/OAR3 && zip -rvT SMARTER-OA-OAR3-top-$(CURRENT_VERSION).zip SMARTER-OA-OAR3-top-$(CURRENT_VERSION).*
+	cd ./data/processed/OAR3 && md5sum SMARTER-OA-OAR3-top-$(CURRENT_VERSION).zip > SMARTER-OA-OAR3-top-$(CURRENT_VERSION).md5
+	find ./data/processed/OAR3 -type f \( -name "*.bed" -or -name "*.bim" -or -name "*.fam" -or -name "*.hh" -or -name "*.log" -or -name "*.nosex" \) -delete
+
+	## GOAT ARS1
+	cd ./data/processed/ARS1 && rm SMARTER-CH-ARS1-top-$(CURRENT_VERSION).zip SMARTER-CH-ARS1-top-$(CURRENT_VERSION).md5
+	cd ./data/processed/ARS1 && zip -rvT SMARTER-CH-ARS1-top-$(CURRENT_VERSION).zip SMARTER-CH-ARS1-top-$(CURRENT_VERSION).*
+	cd ./data/processed/ARS1 && md5sum SMARTER-CH-ARS1-top-$(CURRENT_VERSION).zip > SMARTER-CH-ARS1-top-$(CURRENT_VERSION).md5
+	find ./data/processed/ARS1 -type f \( -name "*.bed" -or -name "*.bim" -or -name "*.fam" -or -name "*.hh" -or -name "*.log" -or -name "*.nosex" \) -delete
 
 ## Delete all compiled Python files
 clean:

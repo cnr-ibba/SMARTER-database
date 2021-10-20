@@ -21,10 +21,12 @@ TODO
 * if ``src_dataset`` and ``dst_dataset`` are equals, provide only ``dst_dataset``
   both in *import_samples* and *import_metadata* scripts
 * define a collection for all available *purpose* phenotypes
+* add *foreground/background* type attribute in ``SampleSpecies``
 
 0.4.3.dev0
 ----------
-  
+
+* Add make rule to pack results and make checksum
 * Move greek foreground metadata to a custom phenotypes dataset
 * Update greek foreground metadata
 * Import phenotypes from Uruguay
