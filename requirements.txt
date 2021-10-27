@@ -24,7 +24,7 @@ cligj==0.7.1
 colorama==0.4.3
 coverage==5.4
 cycler==0.10.0
-dask==2021.2.0
+dask==2021.10.0
 decorator==4.4.2
 defusedxml==0.6.0
 deprecated==1.2.11
