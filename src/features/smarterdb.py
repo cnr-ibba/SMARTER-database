@@ -585,7 +585,7 @@ def get_sample_type(dataset: Dataset):
 
     for sampletype in SAMPLETYPE:
         if sampletype.value in dataset.type_:
-            logger.warning(
+            logger.debug(
                 f"Found {sampletype.value} in {dataset.type_}")
             type_ = sampletype.value
             break
