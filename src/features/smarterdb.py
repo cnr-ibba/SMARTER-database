@@ -67,6 +67,24 @@ def complement(genotype: str):
     return result
 
 
+class SmarterInfo(mongoengine.Document):
+    """A class to track database status informations"""
+
+    id = mongoengine.StringField(primary_key=True)
+    version = mongoengine.StringField(required=True)
+    working_assemblies = mongoengine.DictField()
+    plink_specie_opt = mongoengine.DictField()
+    last_updated = mongoengine.DateTimeField()
+
+    meta = {
+        'db_alias': DB_ALIAS,
+        'collection': 'smarterInfo'
+    }
+
+    def __str__(self):
+        return f"{self.id}: {self.version}"
+
+
 class Counter(mongoengine.Document):
     """A class to deal with counter collection (created when initializing
     smarter database)

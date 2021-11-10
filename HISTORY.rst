@@ -25,7 +25,8 @@ TODO
 0.4.3.dev0
 ----------
 
-* add *foreground/background* type attribute in ``SampleSpecies``
+* Track database status and constants
+* Add *foreground/background* type attribute in ``SampleSpecies``
 * Update dependencies
 * Add make rule to pack results and make checksum
 * Move greek foreground metadata to a custom phenotypes dataset
