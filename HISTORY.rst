@@ -7,7 +7,7 @@ TODO
 
 * ``illumina_top`` attribute should be referred to variants, while
   in ``locations`` should be stored the read value from data source. 
-  illumina_top shouldn't change within the same SNP, indipendently from data source
+  illumina_top shouldn't change within the same SNP, independently from data source
 * Check chromosomes in *Variants locations*: mind to **scaffold**, **null**, and
   **non-autosomal** chromosomes for *Goat* and *Sheep*
 * Enable continuous integration
@@ -26,6 +26,7 @@ TODO
 0.4.3.dev0
 ----------
 
+* Update dependencies
 * Add make rule to pack results and make checksum
 * Move greek foreground metadata to a custom phenotypes dataset
 * Update greek foreground metadata
@@ -57,7 +58,7 @@ TODO
 * Import french foreground sheep dataset
 * Use ``elemMatch`` in projection in ``plinkio.SmarterMixin.fetch_coordinates``
   (ex: ``VariantSheep.objects.fields(elemMatch__locations={"imported_from": "SNPchiMp v.3", "version": "Oar_v4.0"})``)
-* Use ``elemMatch`` to search a SNP within the desidered coordinate systems in ``plinkio.SmarterMixin.fetch_coordinates``
+* Use ``elemMatch`` to search a SNP within the desired coordinate systems in ``plinkio.SmarterMixin.fetch_coordinates``
 * Skip SNPchimp indels when importing from SNPchimp
 * Skip illumina indels when reading from manifest
 
@@ -94,7 +95,7 @@ TODO
 * Fix bug in importing dataset order
 * Model affymetrix fields
 * Read from affymetrix manifest file
-* Track illumina manifactured date
+* Track illumina manufactured date
 
 0.3.1 (2021-06-11)
 ------------------
