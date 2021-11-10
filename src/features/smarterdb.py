@@ -552,6 +552,29 @@ def get_or_create_sample(
     return sample, created
 
 
+def get_sample_type(dataset: Dataset):
+    """
+    test if foreground or background dataset
+
+    Args:
+        dataset (Dataset): the dataset instance used to register sample
+
+    Returns:
+        str: sample type ("background" or "foreground")
+    """
+
+    type_ = None
+
+    for sampletype in SAMPLETYPE:
+        if sampletype.value in dataset.type_:
+            logger.warning(
+                f"Found {sampletype.value} in {dataset.type_}")
+            type_ = sampletype.value
+            break
+
+    return type_
+
+
 class Consequence(mongoengine.EmbeddedDocument):
     pass
 
