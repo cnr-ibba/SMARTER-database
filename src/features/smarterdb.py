@@ -67,6 +67,24 @@ def complement(genotype: str):
     return result
 
 
+class SmarterInfo(mongoengine.Document):
+    """A class to track database status informations"""
+
+    id = mongoengine.StringField(primary_key=True)
+    version = mongoengine.StringField(required=True)
+    working_assemblies = mongoengine.DictField()
+    plink_specie_opt = mongoengine.DictField()
+    last_updated = mongoengine.DateTimeField()
+
+    meta = {
+        'db_alias': DB_ALIAS,
+        'collection': 'smarterInfo'
+    }
+
+    def __str__(self):
+        return f"{self.id}: {self.version}"
+
+
 class Counter(mongoengine.Document):
     """A class to deal with counter collection (created when initializing
     smarter database)
@@ -369,6 +387,11 @@ class Phenotype(mongoengine.DynamicEmbeddedDocument):
         return f"{self.to_json()}"
 
 
+class SAMPLETYPE(Enum):
+    FOREGROUND = 'foreground'
+    BACKGROUND = 'background'
+
+
 class SampleSpecies(mongoengine.Document):
     original_id = mongoengine.StringField(required=True)
     smarter_id = mongoengine.StringField(required=True, unique=True)
@@ -388,6 +411,9 @@ class SampleSpecies(mongoengine.Document):
         db_field="dataset_id",
         reverse_delete_rule=mongoengine.DENY
     )
+
+    # add type tag
+    type_ = mongoengine.EnumField(SAMPLETYPE, db_field="type", required=True)
 
     # track the original chip_name with sample
     chip_name = mongoengine.StringField()
@@ -479,6 +505,7 @@ def get_or_create_sample(
         SampleSpecies: Union[SampleGoat, SampleSheep],
         original_id: str,
         dataset: Dataset,
+        type_: str,
         breed: Breed,
         country: str,
         chip_name: str = None,
@@ -492,6 +519,7 @@ def get_or_create_sample(
             for insert/update
         original_id (str): The original_id in the dataset
         dataset (Dataset): the dataset instance used to register sample
+        type_ (str): "background" or "foreground"
         breed (Breed): A breed instance
         country (str): Country as a string
         chip_name (str): the chip name
@@ -522,6 +550,7 @@ def get_or_create_sample(
             breed=breed.name,
             breed_code=breed.code,
             dataset=dataset,
+            type_=type_,
             chip_name=chip_name,
             sex=sex,
             alias=alias
@@ -539,6 +568,29 @@ def get_or_create_sample(
             f"Got {qs.count()} results for '{original_id}'")
 
     return sample, created
+
+
+def get_sample_type(dataset: Dataset):
+    """
+    test if foreground or background dataset
+
+    Args:
+        dataset (Dataset): the dataset instance used to register sample
+
+    Returns:
+        str: sample type ("background" or "foreground")
+    """
+
+    type_ = None
+
+    for sampletype in SAMPLETYPE:
+        if sampletype.value in dataset.type_:
+            logger.debug(
+                f"Found {sampletype.value} in {dataset.type_}")
+            type_ = sampletype.value
+            break
+
+    return type_
 
 
 class Consequence(mongoengine.EmbeddedDocument):

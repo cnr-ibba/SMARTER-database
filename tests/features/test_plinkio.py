@@ -141,6 +141,21 @@ class TextPlinkIOPed(
             "ab"
         )
 
+    def test_process_genotypes_half_missing(self):
+        # read a file in forward coordinates
+        self.plinkio.pedfile = str(DATA_DIR / "plinktest_half-missing.ped")
+        half_missing = next(self.plinkio.read_pedfile())
+
+        # processing top genotype
+        test = self.plinkio._process_genotypes(half_missing, 'top')
+
+        # an half-missing genotype should be set as MISSING
+        reference = [
+            'TEX_IT', '1', '0', '0', '0', '-9',
+            '0', '0', 'A', 'G', '0', '0', '0', '0']
+
+        self.assertEqual(reference, test)
+
     def test_process_genotypes_forward(self):
         # read a file in forward coordinates
         self.plinkio.pedfile = str(DATA_DIR / "plinktest_forward.ped")
@@ -673,6 +688,7 @@ class IlluminaReportIOPed(
                 breed_code="TEX",
                 species="Sheep",
                 dataset=self.dataset,
+                type_="background",
                 chip_name=self.chip_name
             )
             sample.save()

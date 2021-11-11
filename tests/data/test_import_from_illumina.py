@@ -15,7 +15,7 @@ from unittest.mock import patch, PropertyMock
 from plinkio import plinkfile
 
 from src.data.import_from_illumina import main as import_from_illumina
-from src.features.smarterdb import SampleSheep, Dataset
+from src.features.smarterdb import SampleSheep, Dataset, Breed
 
 from ..common import (
     MongoMockMixin, SmarterIDMixin, VariantsMixin, SupportedChipMixin)
@@ -26,6 +26,18 @@ DATA_DIR = pathlib.Path(__file__).parents[1] / "features/data"
 class TestImportFromIllumina(
         VariantsMixin, SmarterIDMixin, SupportedChipMixin, MongoMockMixin,
         unittest.TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+
+        breed = Breed(
+            species="Sheep",
+            name="Merino",
+            code="MER",
+            n_individuals=0,
+        )
+        breed.save()
 
     @classmethod
     def tearDownClass(cls):
@@ -112,17 +124,29 @@ class TestImportFromIllumina(
         """Search breed relying on database"""
 
         # create two fake samples to colled fid relying on database
-        for i in range(2):
-            sample = SampleSheep(
-                original_id=f"{i+1}",
-                country="Italy",
-                breed="Texel",
-                breed_code="TEX",
-                species="Sheep",
-                dataset=self.dataset,
-                chip_name=self.chip_name
-            )
-            sample.save()
+        sample = SampleSheep(
+            original_id="1",
+            country="Italy",
+            breed="Texel",
+            breed_code="TEX",
+            species="Sheep",
+            dataset=self.dataset,
+            type_="background",
+            chip_name=self.chip_name
+        )
+        sample.save()
+
+        sample = SampleSheep(
+            original_id="2",
+            country="Italy",
+            breed="Merino",
+            breed_code="MER",
+            species="Sheep",
+            dataset=self.dataset,
+            type_="background",
+            chip_name=self.chip_name
+        )
+        sample.save()
 
         # create a temporary directory using the context manager
         with tempfile.TemporaryDirectory() as tmpdirname:
@@ -168,6 +192,11 @@ class TestImportFromIllumina(
 
             self.assertEqual(len(sample_list), 2)
             self.assertEqual(len(locus_list), 2)
+
+            # assert two different FID for samples
+            for record in sample_list:
+                sample = SampleSheep.objects.get(smarter_id=record.iid)
+                self.assertEqual(sample.breed_code, record.fid)
 
     @patch('src.features.plinkio.SmarterMixin.fetch_coordinates')
     @patch('src.features.smarterdb.Dataset.result_dir',

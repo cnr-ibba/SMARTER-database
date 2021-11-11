@@ -23,7 +23,7 @@ from plinkio import plinkfile
 from .snpchimp import clean_chrom
 from .smarterdb import (
     VariantSheep, SampleSheep, Breed, Dataset, SmarterDBException, SEX,
-    VariantGoat, SampleGoat, Location)
+    VariantGoat, SampleGoat, Location, get_sample_type)
 from .utils import TqdmToLogger
 from .illumina import read_snpList, read_illuminaRow
 
@@ -250,6 +250,9 @@ class SmarterMixin():
             # do I have a multi country dataset?
             country = self.get_country(dataset, breed)
 
+            # test if foreground or background dataset
+            type_ = get_sample_type(dataset)
+
             # insert sample into database
             logger.info(f"Registering sample '{line[1]}' in database")
             sample = self.SampleSpecies(
@@ -259,6 +262,7 @@ class SmarterMixin():
                 breed=breed.name,
                 breed_code=breed.code,
                 dataset=dataset,
+                type_=type_,
                 chip_name=self.chip_name,
                 sex=sex,
                 father_id=father_id,
@@ -443,6 +447,16 @@ class SmarterMixin():
             a2 = new_line[6+i*2+1]
 
             genotype = [a1, a2]
+
+            # xor condition: https://stackoverflow.com/a/433161/4385116
+            if (a1 in ["0", "-"]) != (a2 in ["0", "-"]):
+                logger.warning(
+                    f"Found half-missing SNP in {new_line[1]}: {i*2}: "
+                    f"[{a1}/{a2}]. Forcing SNP to be MISSING")
+
+                new_line[6+i*2], new_line[6+i*2+1] = ["0", "0"]
+
+                continue
 
             # is this snp filtered out
             if i in self.filtered:
@@ -885,12 +899,15 @@ class IlluminaReportIO(SmarterMixin):
                         dataset=dataset
                     )
 
-                    fid = sample.breed_code
-                    logger.debug(f"Found breed {fid} from {row.sample_id}")
+                    breed = sample.breed_code
+                    logger.debug(f"Found breed {breed} from {row.sample_id}")
+
+                else:
+                    breed = fid
 
                 # set values. I need to set a breed code in order to get a
                 # proper ped line
-                line[0], line[1], line[5] = fid, row.sample_id, -9
+                line[0], line[1], line[5] = breed, row.sample_id, -9
 
                 # track last sample
                 last_sample = row.sample_id
