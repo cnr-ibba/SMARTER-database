@@ -688,7 +688,7 @@ class Location(mongoengine.EmbeddedDocument):
 
         for allele in genotype:
             # mind to missing values. If missing can't be equal to illumina_top
-            if allele == missing:
+            if allele in missing:
                 continue
 
             if allele not in data:
@@ -696,7 +696,7 @@ class Location(mongoengine.EmbeddedDocument):
 
         return True
 
-    def is_top(self, genotype: list, missing: str = "0") -> bool:
+    def is_top(self, genotype: list, missing: list = ["0", "-"]) -> bool:
         """Return True if genotype is compatible with illumina TOP coding
 
         Args:
@@ -709,7 +709,7 @@ class Location(mongoengine.EmbeddedDocument):
 
         return self.__check_coding(genotype, "illumina_top", missing)
 
-    def is_forward(self, genotype: list, missing: str = "0") -> bool:
+    def is_forward(self, genotype: list, missing: list = ["0", "-"]) -> bool:
         """Return True if genotype is compatible with illumina FORWARD coding
 
         Args:
@@ -722,7 +722,7 @@ class Location(mongoengine.EmbeddedDocument):
 
         return self.__check_coding(genotype, "illumina_forward", missing)
 
-    def is_ab(self, genotype: list, missing: str = "-") -> bool:
+    def is_ab(self, genotype: list, missing: list = ["0", "-"]) -> bool:
         """Return True if genotype is compatible with illumina AB coding
 
         Args:
@@ -735,12 +735,13 @@ class Location(mongoengine.EmbeddedDocument):
 
         for allele in genotype:
             # mind to missing valies
-            if allele not in ["A", "B", missing]:
+            if allele not in ["A", "B"] + missing:
                 return False
 
         return True
 
-    def is_affymetrix(self, genotype: list, missing: str = "0") -> bool:
+    def is_affymetrix(
+            self, genotype: list, missing: list = ["0", "-"]) -> bool:
         """Return True if genotype is compatible with affymetrix coding
 
         Args:
@@ -753,7 +754,7 @@ class Location(mongoengine.EmbeddedDocument):
 
         return self.__check_coding(genotype, "affymetrix_ab", missing)
 
-    def forward2top(self, genotype: list, missing: str = "0") -> list:
+    def forward2top(self, genotype: list, missing: list = ["0", "-"]) -> list:
         """Convert an illumina forward SNP in a illumina top snp
 
         Args:
@@ -772,8 +773,8 @@ class Location(mongoengine.EmbeddedDocument):
 
         for allele in genotype:
             # mind to missing values
-            if allele == missing:
-                result.append(allele)
+            if allele in missing:
+                result.append("0")
 
             elif allele not in forward:
                 raise SmarterDBException(
@@ -784,7 +785,7 @@ class Location(mongoengine.EmbeddedDocument):
 
         return result
 
-    def ab2top(self, genotype: list, missing: str = "-") -> list:
+    def ab2top(self, genotype: list, missing: list = ["0", "-"]) -> list:
         """Convert an illumina ab SNP in a illumina top snp
 
         Args:
@@ -803,7 +804,7 @@ class Location(mongoengine.EmbeddedDocument):
 
         for allele in genotype:
             # mind to missing values
-            if allele == missing:
+            if allele in missing:
                 result.append("0")
 
             elif allele not in ["A", "B"]:
@@ -815,7 +816,7 @@ class Location(mongoengine.EmbeddedDocument):
 
         return result
 
-    def affy2top(self, genotype: list, missing: str = "0") -> list:
+    def affy2top(self, genotype: list, missing: list = ["0", "-"]) -> list:
         """Convert an affymetrix SNP in a illumina top snp
 
         Args:
@@ -834,7 +835,7 @@ class Location(mongoengine.EmbeddedDocument):
 
         for allele in genotype:
             # mind to missing values
-            if allele == missing:
+            if allele in missing:
                 result.append("0")
 
             elif allele not in affymetrix:
