@@ -171,7 +171,7 @@ data: requirements
 	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --bfile ADAPTmap_genotypeTOP_20161201/binary_fileset/ADAPTmap_genotypeTOP_20161201 \
 		--dataset "ADAPTmap_genotypeTOP_20161201.zip" --chip_name IlluminaGoatSNP50 --assembly ARS1
 	$(PYTHON_INTERPRETER) src/data/import_from_illumina.py --report AUTH_GOAT53KV1_EGHORIA_SKOPELOS/Aristotle_University_GOAT53KV1_20200728_FinalReport.txt \
-	 	--snpfile AUTH_GOAT53KV1_EGHORIA_SKOPELOS/SNP_Map.txt --dataset AUTH_GOAT53KV1_EGHORIA_SKOPELOS.zip \
+		--snpfile AUTH_GOAT53KV1_EGHORIA_SKOPELOS/SNP_Map.txt --dataset AUTH_GOAT53KV1_EGHORIA_SKOPELOS.zip \
 		--chip_name IlluminaGoatSNP50 --assembly ARS1
 
 	## add additional metadata to samples
@@ -269,6 +269,10 @@ data: requirements
 	## merge SNPs into 1 file
 	$(PYTHON_INTERPRETER) src/data/merge_datasets.py --species sheep --assembly OAR3
 	$(PYTHON_INTERPRETER) src/data/merge_datasets.py --species goat --assembly ARS1
+
+	## track database status
+	$(PYTHON_INTERPRETER) src/data/update_db_status.py
+
 
 ## pack results to be shared via sFTP
 publish:

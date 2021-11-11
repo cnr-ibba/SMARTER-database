@@ -23,7 +23,7 @@ from plinkio import plinkfile
 from .snpchimp import clean_chrom
 from .smarterdb import (
     VariantSheep, SampleSheep, Breed, Dataset, SmarterDBException, SEX,
-    VariantGoat, SampleGoat, Location)
+    VariantGoat, SampleGoat, Location, get_sample_type)
 from .utils import TqdmToLogger
 from .illumina import read_snpList, read_illuminaRow
 
@@ -250,6 +250,9 @@ class SmarterMixin():
             # do I have a multi country dataset?
             country = self.get_country(dataset, breed)
 
+            # test if foreground or background dataset
+            type_ = get_sample_type(dataset)
+
             # insert sample into database
             logger.info(f"Registering sample '{line[1]}' in database")
             sample = self.SampleSpecies(
@@ -259,6 +262,7 @@ class SmarterMixin():
                 breed=breed.name,
                 breed_code=breed.code,
                 dataset=dataset,
+                type_=type_,
                 chip_name=self.chip_name,
                 sex=sex,
                 father_id=father_id,

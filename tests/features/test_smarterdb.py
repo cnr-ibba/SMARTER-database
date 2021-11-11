@@ -14,7 +14,7 @@ from unittest.mock import patch
 from src.features.smarterdb import (
     VariantSheep, Location, SampleSheep,
     SmarterDBException, getSmarterId, Breed, get_or_create_breed, Dataset,
-    BreedAlias, get_or_create_sample, SEX)
+    BreedAlias, get_or_create_sample, SEX, get_sample_type)
 
 from ..common import MongoMockMixin, SmarterIDMixin
 
@@ -508,6 +508,7 @@ class SampleSheepTestCase(SmarterIDMixin, MongoMockMixin, unittest.TestCase):
         self.chip_name = "IlluminaOvineSNP50"
         self.sex = SEX.MALE
         self.alias = "TEST-ALIAS"
+        self.type_ = "background"
 
     def tearDown(self):
         SampleSheep.objects().delete()
@@ -519,7 +520,8 @@ class SampleSheepTestCase(SmarterIDMixin, MongoMockMixin, unittest.TestCase):
 
         self.sample = SampleSheep(
             original_id=self.original_id,
-            smarter_id=None
+            smarter_id=None,
+            type_="background"
         )
 
         # need country, breed and species in order to get a smarter_id
@@ -551,6 +553,7 @@ class SampleSheepTestCase(SmarterIDMixin, MongoMockMixin, unittest.TestCase):
             SampleSheep,
             self.original_id,
             self.dataset,
+            self.type_,
             self.breed,
             self.country,
             self.chip_name,
@@ -568,6 +571,7 @@ class SampleSheepTestCase(SmarterIDMixin, MongoMockMixin, unittest.TestCase):
             SampleSheep,
             self.original_id,
             self.dataset,
+            self.type_,
             self.breed,
             self.country,
             self.chip_name,
@@ -579,6 +583,12 @@ class SampleSheepTestCase(SmarterIDMixin, MongoMockMixin, unittest.TestCase):
         self.assertEqual(sample.smarter_id, self.smarter_id)
         self.assertEqual(SampleSheep.objects.count(), 1)
         self.assertFalse(created)
+
+    def test_get_sample_type(self):
+        self.create_sample()
+
+        test = get_sample_type(self.dataset)
+        self.assertEqual("background", test)
 
 
 class SEXTestCase(unittest.TestCase):

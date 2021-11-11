@@ -88,6 +88,7 @@ class PhenotypeMixin(SmarterIDMixin, SupportedChipMixin, MongoMockMixin):
             breed="Texel",
             breed_code="TEX",
             dataset=self.dst_dataset,
+            type_="background",
             chip_name=self.chip_name,
             alias="alias-1",
         )

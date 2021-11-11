@@ -24,7 +24,7 @@ import pycountry
 from src.data.common import (
     fetch_and_check_dataset, pandas_open, get_sample_species)
 from src.features.smarterdb import (
-    global_connection, Breed, get_or_create_sample, SEX)
+    global_connection, Breed, get_or_create_sample, SEX, get_sample_type)
 
 logger = logging.getLogger(__name__)
 
@@ -119,6 +119,9 @@ def main(
     # mind dataset species
     SampleSpecie = get_sample_species(dst_dataset.species)
 
+    # get sample type
+    type_ = get_sample_type(dst_dataset)
+
     # read datafile
     data = pandas_open(datapath)
 
@@ -187,6 +190,7 @@ def main(
             SampleSpecie,
             original_id,
             dst_dataset,
+            type_,
             breed,
             country.name,
             chip_name,
