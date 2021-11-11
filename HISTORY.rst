@@ -22,8 +22,8 @@ TODO
   both in *import_samples* and *import_metadata* scripts
 * define a collection for all available *purpose* phenotypes
 
-0.4.3.dev0
-----------
+0.4.3 (2021-11-11)
+------------------
 
 * Track database status and constants
 * Add *foreground/background* type attribute in ``SampleSpecies``
