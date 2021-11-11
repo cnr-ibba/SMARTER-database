@@ -95,6 +95,7 @@ data: requirements
 	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Klövsjö --code KLO --alias KLO --dataset five_sweden_sheeps.zip
 	$(PYTHON_INTERPRETER) src/data/add_breed.py --species Goat --name Fosses --code FSS --alias FOS --dataset SMARTER_CHFR.zip
 	$(PYTHON_INTERPRETER) src/data/add_breed.py --species Goat --name Provencale --code PVC --alias PVC --dataset SMARTER_CHFR.zip
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Frizarta --code FRZ --alias 0 --dataset Frizarta_270.zip
 
 	## load breeds into database relying on dataset
 	$(PYTHON_INTERPRETER) src/data/import_breeds.py --species Sheep --dataset="High density genotypes of French Sheep populations.zip" \
@@ -140,6 +141,8 @@ data: requirements
 		--code_column breed_code --id_column sample_name --chip_name IlluminaOvineSNP50 --country_column Country
 	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --bfile SWE_sheep \
 		--dataset "five_sweden_sheeps.zip" --chip_name IlluminaOvineHDSNP --assembly OAR3 --create_samples
+	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --file friz \
+		--dataset Frizarta_270.zip --coding ab --chip_name IlluminaOvineSNP50 --assembly OAR3 --create_samples
 
 	## convert genotypes without creating samples in database (SHEEP)
 	$(PYTHON_INTERPRETER) src/data/import_from_affymetrix.py --file Affymetrix_data_Plate_652_660/Affymetrix_data_Plate_652/Affymetrix_data_Plate_652 \

@@ -25,6 +25,7 @@ TODO
 0.4.3 (2021-11-11)
 ------------------
 
+* Add 270 Frizarta background samples
 * Import from ab plink and support multiple missing letters
 * Track database status and constants
 * Add *foreground/background* type attribute in ``SampleSpecies``
