@@ -22,6 +22,11 @@ TODO
   both in *import_samples* and *import_metadata* scripts
 * define a collection for all available *purpose* phenotypes
 
+0.4.4.dev0
+----------
+
+* Import latest 290 samples greek dataset
+
 0.4.3 (2021-11-11)
 ------------------
 
