@@ -894,14 +894,19 @@ class IlluminaReportIO(SmarterMixin):
 
                 # determine fid from sample, if not received as argument
                 if not fid:
-                    sample = self.SampleSpecies.objects.get(
-                        original_id=row.sample_id,
-                        dataset=dataset
-                    )
+                    try:
+                        sample = self.SampleSpecies.objects.get(
+                            original_id=row.sample_id,
+                            dataset=dataset
+                        )
 
-                    breed = sample.breed_code
-                    logger.debug(f"Found breed {breed} from {row.sample_id}")
+                        breed = sample.breed_code
+                        logger.debug(
+                            f"Found breed {breed} from {row.sample_id}")
 
+                    except DoesNotExist as e:
+                        logger.error(f"Couldn't find {row.sample_id}")
+                        raise e
                 else:
                     breed = fid
 
