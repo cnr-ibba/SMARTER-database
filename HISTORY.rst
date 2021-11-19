@@ -26,6 +26,7 @@ TODO
 ----------
 
 * Import latest 290 samples greek dataset
+* Fix issue with greek samples name (``B273`` converted into ``B273A``)
 
 0.4.3 (2021-11-11)
 ------------------
