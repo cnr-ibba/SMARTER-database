@@ -228,6 +228,10 @@ data: requirements
 		--datafile greece_foreground_sheep/AUTH_OVN50KV2_CHI_BOU_MYT_FRI.xlsx --id_column sample_name \
 		--latitude_column Latitude --longitude_column Longitude --metadata_column Region \
 		--metadata_column "Farm Coding" --metadata_column Note
+	$(PYTHON_INTERPRETER) src/data/import_metadata.py --src_dataset "Sweden_goat_metadata.zip" \
+		--dst_dataset "Swedish_Univ_Eriksson_GOAT53KV1_20200722.zip" \
+		--datafile SMARTER-metadata-SLU.xlsx --sheet_name samples --id_column original_id \
+		--latitude_column latitude --longitude_column longitude
 
 	## add phenotypes to samples
 	$(PYTHON_INTERPRETER) src/data/import_phenotypes.py --src_dataset ADAPTmap_phenotype_20161201.zip \
@@ -287,6 +291,10 @@ data: requirements
 		--dst_dataset AUTH_OVN50KV2_CHI_BOU_MYT_FRI.zip \
 		--datafile greece_foreground_sheep/AUTH_OVN50KV2_CHI_BOU_MYT_FRI.xlsx --id_column sample_name \
 		--purpose_column Purpose
+	$(PYTHON_INTERPRETER) src/data/import_phenotypes.py --src_dataset "Sweden_goat_metadata.zip" \
+		--dst_dataset "Swedish_Univ_Eriksson_GOAT53KV1_20200722.zip" \
+		--datafile SMARTER-metadata-SLU.xlsx --sheet_name samples --id_column original_id \
+		--purpose_column purpose
 
 	## merge SNPs into 1 file
 	$(PYTHON_INTERPRETER) src/data/merge_datasets.py --species sheep --assembly OAR3
