@@ -25,6 +25,7 @@ TODO
 0.4.4.dev0
 ----------
 
+* Describe smarter metadata
 * Import sweden goat metadata
 * Import latest 290 samples greek dataset
 * Fix issue with greek samples name (``B273`` converted into ``B273A``)
