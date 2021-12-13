@@ -510,6 +510,12 @@ class SampleSheepTestCase(SmarterIDMixin, MongoMockMixin, unittest.TestCase):
         self.alias = "TEST-ALIAS"
         self.type_ = "background"
 
+        # GPS coordinates
+        self.locations = {
+            'type': 'MultiPoint',
+            'coordinates': [[9.1859243, 45.4654219]]
+        }
+
     def tearDown(self):
         SampleSheep.objects().delete()
 
@@ -528,6 +534,9 @@ class SampleSheepTestCase(SmarterIDMixin, MongoMockMixin, unittest.TestCase):
         self.sample.country = self.country
         self.sample.breed = "Texel"
         self.sample.species = "Sheep"
+
+        # add locations
+        self.sample.locations = self.locations
 
         # save sample in db
         self.sample.save()
@@ -589,6 +598,47 @@ class SampleSheepTestCase(SmarterIDMixin, MongoMockMixin, unittest.TestCase):
 
         test = get_sample_type(self.dataset)
         self.assertEqual("background", test)
+
+    @unittest.skip(
+        "'$geoWithin' is a valid operation but it is "
+        "not supported by Mongomock yet")
+    def test_get_sample_geo_within(self):
+        self.create_sample()
+
+        qs = SampleSheep.objects.filter(
+            locations__geo_within={
+                "type": "Polygon",
+                "coordinates": [[
+                    [9, 45],
+                    [9, 46],
+                    [10, 46],
+                    [10, 45],
+                    [9, 45]
+                ]],
+            }
+        )
+
+        self.assertEqual(qs.count(), 1)
+        sample = qs.get()
+        self.assertEqual(sample.smarter_id, self.smarter_id)
+
+    @unittest.skip(
+        "'$geoWithin' is a valid operation but it is "
+        "not supported by Mongomock yet")
+    def test_get_sample_geo_within_sphere(self):
+        self.create_sample()
+
+        # center the sphere and define radius in radiant x / 6378.1 to convert
+        # kilometers to radias
+        qs = SampleSheep.objects.filter(
+            locations__geo_within_sphere=[
+                [9.18, 45.46], 
+                10 / 6378.1]
+            )
+        
+        self.assertEqual(qs.count(), 1)
+        sample = qs.get()
+        self.assertEqual(sample.smarter_id, self.smarter_id)
 
 
 class SEXTestCase(unittest.TestCase):

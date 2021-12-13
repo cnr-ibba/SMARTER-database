@@ -25,6 +25,7 @@ TODO
 0.4.4.dev0
 ----------
 
+* Model location with MultiPointField
 * Describe smarter metadata
 * Import sweden goat metadata
 * Import latest 290 samples greek dataset
