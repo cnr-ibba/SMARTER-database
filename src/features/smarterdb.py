@@ -434,6 +434,9 @@ class SampleSpecies(mongoengine.Document):
 
     meta = {
         'abstract': True,
+        'indexes': [
+            [("locations", "2dsphere")]
+        ]
     }
 
     def save(self, *args, **kwargs):
