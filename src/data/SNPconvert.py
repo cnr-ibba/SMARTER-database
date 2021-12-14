@@ -14,14 +14,14 @@ from pathlib import Path
 from click_option_group import optgroup, RequiredMutuallyExclusiveOptionGroup
 
 from src.features.smarterdb import Dataset, global_connection
-from src.features.plinkio import TextPlinkIO
+from src.features.plinkio import TextPlinkIO, IlluminaReportIO
 from src.data.common import WORKING_ASSEMBLIES, PLINK_SPECIES_OPT
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
 
 
-class CustomTextPlinkIO(TextPlinkIO):
+class CustomMixin():
     def _process_pedline(
             self,
             line: list,
@@ -48,6 +48,19 @@ class CustomTextPlinkIO(TextPlinkIO):
 
         return new_line
 
+class CustomTextPlinkIO(CustomMixin, TextPlinkIO):
+    pass
+
+
+class CustomIlluminaReportIO(CustomMixin, IlluminaReportIO):
+    def read_reportfile(
+            self, dataset: Dataset = None, *args, **kwargs):
+        """Custom Open illumina report returns iterator"""
+
+        logger.debug("Custom 'read_reportfile' called")
+
+        return super().read_reportfile("0", dataset, *args, **kwargs)
+
 
 def get_output_files(prefix: str, working_dir: Path, assembly: str):
     # create output directory
@@ -71,7 +84,7 @@ def deal_with_text_plink(file_: str, assembly: str, species: str):
     mapfile = file_ + ".map"
     pedfile = file_ + ".ped"
 
-    working_dir = Path(mapfile).parent
+    working_dir = Path.cwd()
 
     # instantiating a TextPlinkIO object
     plinkio = CustomTextPlinkIO(
@@ -80,9 +93,31 @@ def deal_with_text_plink(file_: str, assembly: str, species: str):
         species=species
     )
 
+    plinkio.read_mapfile()
+
     # determine output files
     output_dir, output_map, output_ped = get_output_files(
         file_, working_dir, assembly)
+
+    return plinkio, output_dir, output_map, output_ped
+
+
+def deal_with_illumina(
+        report: str, snpfile: str, assembly: str, species: str):
+
+    working_dir = Path.cwd()
+
+    plinkio = CustomIlluminaReportIO(
+        snpfile=snpfile,
+        report=report,
+        species=species,
+    )
+
+    plinkio.read_snpfile()
+
+    # determine output files
+    output_dir, output_map, output_ped = get_output_files(
+        Path(report).stem, working_dir, assembly)
 
     return plinkio, output_dir, output_map, output_ped
 
@@ -94,10 +129,12 @@ def deal_with_text_plink(file_: str, assembly: str, species: str):
 )
 @optgroup.option('--file', 'file_', type=str)
 @optgroup.option('--bfile', type=str)
+@optgroup.option('--report', type=str)
+@click.option('--snpfile', type=str)
 @click.option(
     '--coding',
     type=click.Choice(
-        ['top', 'forward'],
+        ['top', 'forward', 'ab'],
         case_sensitive=False),
     default="top", show_default=True,
     help="Illumina coding format"
@@ -105,7 +142,8 @@ def deal_with_text_plink(file_: str, assembly: str, species: str):
 @click.option('--assembly', type=str, required=True)
 @click.option('--species', type=str, required=True)
 @click.option('--results_dir', type=str, required=True)
-def main(file_, bfile, coding, assembly, species, results_dir):
+def main(file_, bfile, report, snpfile, coding, assembly, species, 
+        results_dir):
     logger.info(f"{Path(__file__).name} started")
 
     # find assembly configuration
@@ -121,6 +159,13 @@ def main(file_, bfile, coding, assembly, species, results_dir):
     elif bfile:
         raise NotImplementedError("Plink binary files not yet supported")
 
+    elif report:
+        if not snpfile:
+            raise RuntimeError(f"Missing snpfile for report {report}")
+
+        plinkio, output_dir, output_map, output_ped = deal_with_illumina(
+            report, snpfile, assembly, species)
+
     # ok check for results dir
     results_dir = Path(results_dir)
     results_dir.mkdir(parents=True, exist_ok=True)
@@ -129,9 +174,6 @@ def main(file_, bfile, coding, assembly, species, results_dir):
     final_prefix = results_dir / output_ped.stem
 
     # if I arrive here, I can create output files
-
-    # read mapdata and read updated coordinates from db
-    plinkio.read_mapfile()
 
     # fetch coordinates relying assembly configuration
     plinkio.fetch_coordinates(
