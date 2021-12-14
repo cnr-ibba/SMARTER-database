@@ -423,7 +423,8 @@ class SampleSpecies(mongoengine.Document):
 
     # GPS location
     # NOTE: X, Y where X is longitude, Y latitude
-    locations = mongoengine.ListField(mongoengine.PointField(), default=None)
+    locations = mongoengine.fields.MultiPointField(
+        auto_index=True, default=None)
 
     # additional (not modelled) metadata
     metadata = mongoengine.DictField(default=None)
@@ -433,6 +434,9 @@ class SampleSpecies(mongoengine.Document):
 
     meta = {
         'abstract': True,
+        'indexes': [
+            [("locations", "2dsphere")]
+        ]
     }
 
     def save(self, *args, **kwargs):
