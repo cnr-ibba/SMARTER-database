@@ -13,7 +13,8 @@ import tempfile
 from copy import deepcopy
 
 from src.features.smarterdb import (
-    VariantSheep, Location, Breed, Dataset, SampleSheep, SEX)
+    VariantSheep, Location, Breed, Dataset, SampleSheep, SEX, SampleGoat,
+    VariantGoat)
 from src.features.plinkio import (
     TextPlinkIO, MapRecord, CodingException, IlluminaReportIO, BinaryPlinkIO,
     AffyPlinkIO)
@@ -32,6 +33,25 @@ class TextPlinkIOMap(VariantsMixin, MongoMockMixin, unittest.TestCase):
         self.plinkio = TextPlinkIO(
             prefix=str(DATA_DIR / "plinktest"),
             species="Sheep")
+
+    def test_sheep_species(self):
+        self.assertEqual(self.plinkio.VariantSpecies, VariantSheep)
+        self.assertEqual(self.plinkio.SampleSpecies, SampleSheep)
+
+    def test_goat_species(self):
+        plinkio = TextPlinkIO(
+            prefix=str(DATA_DIR / "plinktest"),
+            species="Goat")
+
+        self.assertEqual(plinkio.VariantSpecies, VariantGoat)
+        self.assertEqual(plinkio.SampleSpecies, SampleGoat)
+
+    def test_species_not_implemented(self):
+        self.assertRaises(
+            NotImplementedError,
+            TextPlinkIO,
+            prefix=str(DATA_DIR / "plinktest"),
+            species="Foo")
 
     def test_read_mapfile(self):
         self.plinkio.read_mapfile()
