@@ -10,7 +10,8 @@ Folder structure
 ----------------
 
 All genoypes are processed in a unique PLINK binary file and divided by species
-and by the most common assemblies. This repository is structured like this:
+and by the most common assemblies. The PLINK binary files are compressed and archived 
+in .zip archive. This repository is structured like this:
 
 .
 ├── GOAT
@@ -41,8 +42,11 @@ Files names convention relies the following schema:
 
 So the plink file prefix SMARTER-OA-OAR3-top-0.4.2 stands for SMARTER Sheep (Ovis Aries)
 OAR3 release v0.4.2. There will be always 6 different extension which corresponds
-to the plink binary files (.bed, .bim, .fam, .hh, .log, .sex). For more informations,
-see the PLINK documentation (https://www.cog-genomics.org/plink/1.9/formats)
+to the plink binary files (.bed, .bim, .fam, .hh, .log, .sex - For more informations,
+see the PLINK documentation: https://www.cog-genomics.org/plink/1.9/formats). Those 
+file are compressed and archive in the same .zip archive, which follow the names 
+convention of the plink binary file. There's also a .md5 file useful to verify 
+file integrity.
 
 Datasets releases
 ----------------- 
@@ -76,6 +80,6 @@ Accessing metadata and subsetting dataset
 Datasets is composed by all samples imported with SMARTER project. However there 
 are additional metadata that could be used to subset the dataset according user's 
 need. Those data are made available to SMARTER Data Portal (https://webserver.ibba.cnr.it/smarter/)
-and SMARTER API (https://webserver.ibba.cnr.it/smarter/). Samples ID and breed code 
+and SMARTER API (https://webserver.ibba.cnr.it/smarter/). Samples IDs and breed code 
 available through these interface are the same used in the genoypes dataset and 
 could be used to subset data accordinag user needs.

@@ -91,6 +91,7 @@ class MetaDataMixin(SmarterIDMixin, SupportedChipMixin, MongoMockMixin):
             breed="Texel",
             breed_code="TEX",
             dataset=self.dst_dataset,
+            type_="background",
             chip_name=self.chip_name,
         )
         self.sample1.save()
@@ -103,6 +104,7 @@ class MetaDataMixin(SmarterIDMixin, SupportedChipMixin, MongoMockMixin):
             breed="Merino",
             breed_code="MER",
             dataset=self.dst_dataset,
+            type_="background",
             chip_name=self.chip_name,
         )
         self.sample2.save()
@@ -114,30 +116,23 @@ class MetaDataMixin(SmarterIDMixin, SupportedChipMixin, MongoMockMixin):
 
     def check_sample1_locations(self):
         self.sample1.reload()
-        self.assertListEqual(
+        self.assertEqual(
             self.sample1.locations,
-            [
-                {
-                    'type': 'Point',
-                    'coordinates': [9.18951, 45.46427]
-                }
-            ]
+            {
+                'type': 'MultiPoint',
+                'coordinates': [[9.18951, 45.46427]]
+            }
+        
         )
 
     def check_sample2_locations(self):
         self.sample2.reload()
-        self.assertListEqual(
+        self.assertEqual(
             self.sample2.locations,
-            [
-                {
-                    'type': 'Point',
-                    'coordinates': [9.18951, 45.46427]
-                },
-                {
-                    'type': 'Point',
-                    'coordinates': [10.18951, 46.46427]
-                },
-            ]
+            {
+                'type': 'MultiPoint', 
+                'coordinates': [[9.18951, 45.46427], [10.18951, 46.46427]]
+            }
         )
 
     def check_sample1_metadata(self):

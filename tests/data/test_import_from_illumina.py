@@ -131,6 +131,7 @@ class TestImportFromIllumina(
             breed_code="TEX",
             species="Sheep",
             dataset=self.dataset,
+            type_="background",
             chip_name=self.chip_name
         )
         sample.save()
@@ -142,6 +143,7 @@ class TestImportFromIllumina(
             breed_code="MER",
             species="Sheep",
             dataset=self.dataset,
+            type_="background",
             chip_name=self.chip_name
         )
         sample.save()

@@ -37,7 +37,8 @@ class TestImportSamples(
             species="Sheep",
             contents=[
                 "metadata.xlsx"
-            ]
+            ],
+            type_=["background", "genotypes"]
         )
         cls.src_dataset.save()
 
@@ -77,6 +78,7 @@ class TestImportSamples(
             breed="Texel",
             breed_code="TEX",
             dataset=self.dst_dataset,
+            type_="background",
             chip_name=self.chip_name,
         )
         self.sample.save()

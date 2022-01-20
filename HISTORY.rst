@@ -7,7 +7,7 @@ TODO
 
 * ``illumina_top`` attribute should be referred to variants, while
   in ``locations`` should be stored the read value from data source. 
-  illumina_top shouldn't change within the same SNP, indipendently from data source
+  illumina_top shouldn't change within the same SNP, independently from data source
 * Check chromosomes in *Variants locations*: mind to **scaffold**, **null**, and
   **non-autosomal** chromosomes for *Goat* and *Sheep*
 * Enable continuous integration
@@ -23,9 +23,33 @@ TODO
   both in *import_samples* and *import_metadata* scripts
 * define a collection for all available *purpose* phenotypes
 
-0.4.3.dev0
+0.4.4.dev0
 ----------
 
+* Model location with MultiPointField
+* Describe smarter metadata
+* Import sweden goat metadata
+* Import latest 290 samples greek dataset
+* Fix issue with greek samples name (``B273`` converted into ``B273A``)
+
+0.4.3 (2021-11-11)
+------------------
+
+* Add 270 Frizarta background samples
+* Import from ab plink and support multiple missing letters
+* Track database status and constants
+* Add *foreground/background* type attribute in ``SampleSpecies``
+* Update dependencies
+* Add make rule to pack results and make checksum
+* Move greek foreground metadata to a custom phenotypes dataset
+* Update greek foreground metadata
+* Import phenotypes from Uruguay
+* Import phenotypes using alias
+* Allow phenotypes for ambiguous sex animals
+* Import french goat foreground dataset
+* Pin ``plinkio`` to support *extra-chroms* in plink binary files
+* Import 5 Sweden Sheep background genotypes
+* Force *half-missing* SNPs to be MISSING
 * Add the README.txt.ftp
 * Bug fixed in importing multibreed reportfile (setting FID properly in output)
 
@@ -47,7 +71,7 @@ TODO
 * Import french foreground sheep dataset
 * Use ``elemMatch`` in projection in ``plinkio.SmarterMixin.fetch_coordinates``
   (ex: ``VariantSheep.objects.fields(elemMatch__locations={"imported_from": "SNPchiMp v.3", "version": "Oar_v4.0"})``)
-* Use ``elemMatch`` to search a SNP within the desidered coordinate systems in ``plinkio.SmarterMixin.fetch_coordinates``
+* Use ``elemMatch`` to search a SNP within the desired coordinate systems in ``plinkio.SmarterMixin.fetch_coordinates``
 * Skip SNPchimp indels when importing from SNPchimp
 * Skip illumina indels when reading from manifest
 
@@ -85,7 +109,7 @@ TODO
 * Fix bug in importing dataset order
 * Model affymetrix fields
 * Read from affymetrix manifest file
-* Track illumina manifactured date
+* Track illumina manufactured date
 
 0.3.1 (2021-06-11)
 ------------------

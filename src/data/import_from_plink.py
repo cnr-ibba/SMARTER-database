@@ -129,7 +129,7 @@ def deal_with_binary_plink(bfile: str, dataset: Dataset, assembly: str):
 @click.option(
     '--coding',
     type=click.Choice(
-        ['top', 'forward'],
+        ['top', 'forward', 'ab'],
         case_sensitive=False),
     default="top", show_default=True,
     help="Illumina coding format"

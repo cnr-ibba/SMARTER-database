@@ -9,6 +9,7 @@ BUCKET = [OPTIONAL] your-bucket-for-syncing-data (do not include 's3://')
 PROFILE = default
 PROJECT_NAME = SMARTER-database
 PYTHON_INTERPRETER = python3
+CURRENT_VERSION = $(shell awk -F " = " '/current_version/ {print $$2}' .bumpversion.cfg | head -n1)
 
 ifeq (,$(shell which conda))
 HAS_CONDA=False
@@ -73,6 +74,7 @@ data: requirements
 
 	## foreground data
 	$(PYTHON_INTERPRETER) src/data/import_datasets.py --types genotypes foreground data/raw/genotypes-fg.csv data/processed/genotypes-fg.json
+	$(PYTHON_INTERPRETER) src/data/import_datasets.py --types phenotypes foreground data/raw/phenotypes-fg.csv data/processed/phenotypes-fg.json
 
 	## upload breeds into database and update aliases
 	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Texel --code TEX --alias TEXEL_UY --dataset TEXEL_INIA_UY.zip
@@ -96,6 +98,18 @@ data: requirements
 	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Chios --code CHI --alias CHI --dataset AUTH_OVN50KV2_CHIOS_MYTILINI_BOUTSKO.zip
 	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Mytilini --code MYT --alias MYT --dataset AUTH_OVN50KV2_CHIOS_MYTILINI_BOUTSKO.zip
 	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Boutsko --code BOU --alias BOU --dataset AUTH_OVN50KV2_CHIOS_MYTILINI_BOUTSKO.zip
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Dalapäls --code DAL --alias DAL --dataset five_sweden_sheeps.zip
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Fjällnäs --code FJA --alias FJA --dataset five_sweden_sheeps.zip
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Gotland --code GOT --alias GOT --dataset five_sweden_sheeps.zip
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Gute --code GUT --alias GUT --dataset five_sweden_sheeps.zip
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Klövsjö --code KLO --alias KLO --dataset five_sweden_sheeps.zip
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species Goat --name Fosses --code FSS --alias FOS --dataset SMARTER_CHFR.zip
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species Goat --name Provencale --code PVC --alias PVC --dataset SMARTER_CHFR.zip
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Frizarta --code FRZ --alias 0 --dataset Frizarta_270.zip
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Boutsko --code BOU --alias BOU --dataset AUTH_OVN50KV2_CHI_BOU_MYT_FRI.zip
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Chios --code CHI --alias CHI --dataset AUTH_OVN50KV2_CHI_BOU_MYT_FRI.zip
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Frizarta --code FRZ --alias FRI --dataset AUTH_OVN50KV2_CHI_BOU_MYT_FRI.zip
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Mytilini --code MYT --alias MYT --dataset AUTH_OVN50KV2_CHI_BOU_MYT_FRI.zip
 
 	## load breeds into database relying on dataset
 	$(PYTHON_INTERPRETER) src/data/import_breeds.py --species Sheep --dataset="High density genotypes of French Sheep populations.zip" \
@@ -106,7 +120,7 @@ data: requirements
 	$(PYTHON_INTERPRETER) src/data/import_breeds.py --species Goat --dataset ADAPTmap_genotypeTOP_20161201.zip \
 		--datafile ADAPTmap_genotypeTOP_20161201/ADAPTmap_Breeds_20161201_fix.csv --breed_column Breed_fullname --code_column Breed_code
 
-	## import data from plink (or report) files for SHEEP (and create samples if not exist)
+	## create SHEEP samples from raw data files or from XLS (orders matter)
 	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --file TEXEL_UY --dataset TEXEL_INIA_UY.zip --chip_name IlluminaOvineSNP50 \
 		--assembly OAR3 --create_samples
 	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --file Frizarta54samples_ped_map_files/Frizarta54samples \
@@ -123,23 +137,29 @@ data: requirements
 		--dataset "High density genotypes of French Sheep populations.zip" --chip_name IlluminaOvineHDSNP --assembly OAR3 --create_samples
 	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --file ovine_SNP50HapMap_data/SNP50_Breedv1/SNP50_Breedv1 \
 		--dataset ovine_SNP50HapMap_data.zip --chip_name IlluminaOvineSNP50 --assembly OAR3 --create_samples
-
-	## create samples from custom files for sheep (should be after others sample created or smarter IDS will be not consistent)
 	$(PYTHON_INTERPRETER) src/data/import_samples.py --src_dataset Affymetrix_data_Plate_652_660.zip --dst_dataset Affymetrix_data_Plate_652_660.zip \
 		--datafile Affymetrix_data_Plate_652_660/Uruguay_Corriedale_ID_GenotypedAnimals_fix.xlsx --code_all CRR --id_column "Sample Name" \
 		--chip_name AffymetrixAxiomOviCan --country_all Uruguay --alias_column "Sample Filename"
 	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --bfile SMARTER_OVIS_FRANCE \
 		--dataset "SMARTER_OVIS_FRANCE.zip" --chip_name IlluminaOvineHDSNP --assembly OAR3 --create_samples
-	$(PYTHON_INTERPRETER) src/data/import_samples.py --src_dataset AUTH_OVN50KV2_CHIOS_FRIZARTA.zip --dst_dataset AUTH_OVN50KV2_CHIOS_FRIZARTA.zip \
-		--datafile AUTH_OVN50KV2_CHIOS_FRIZARTA/AUTH_OVN50KV2_CHIOS_FRIZARTA.xlsx --code_column breed_code --id_column sample_name \
+	$(PYTHON_INTERPRETER) src/data/import_samples.py --src_dataset greece_foreground_sheep.zip --dst_dataset AUTH_OVN50KV2_CHIOS_FRIZARTA.zip \
+		--datafile greece_foreground_sheep/AUTH_OVN50KV2_CHIOS_FRIZARTA.xlsx --code_column breed_code --id_column sample_name \
 		--chip_name IlluminaOvineSNP50 --country_column Country
-	$(PYTHON_INTERPRETER) src/data/import_samples.py --src_dataset AUTH_OVN50KV2_CHIOS_FRIZARTA_PELAGONIA.zip \
+	$(PYTHON_INTERPRETER) src/data/import_samples.py --src_dataset greece_foreground_sheep.zip \
 		--dst_dataset AUTH_OVN50KV2_CHIOS_FRIZARTA_PELAGONIA.zip \
-		--datafile AUTH_OVN50KV2_CHIOS_FRIZARTA_PELAGONIA/AUTH_OVN50KV2_CHIOS_FRIZARTA_PELAGONIA.xlsx \
+		--datafile greece_foreground_sheep/AUTH_OVN50KV2_CHIOS_FRIZARTA_PELAGONIA.xlsx \
 		--code_column breed_code --id_column sample_name --chip_name IlluminaOvineSNP50 --country_column Country
-	$(PYTHON_INTERPRETER) src/data/import_samples.py --src_dataset AUTH_OVN50KV2_CHIOS_MYTILINI_BOUTSKO.zip \
+	$(PYTHON_INTERPRETER) src/data/import_samples.py --src_dataset greece_foreground_sheep.zip \
 		--dst_dataset AUTH_OVN50KV2_CHIOS_MYTILINI_BOUTSKO.zip \
-		--datafile AUTH_OVN50KV2_CHIOS_MYTILINI_BOUTSKO/AUTH_OVN50KV2_CHIOS_MYTILINI_BOUTSKO.xlsx \
+		--datafile greece_foreground_sheep/AUTH_OVN50KV2_CHIOS_MYTILINI_BOUTSKO.xlsx \
+		--code_column breed_code --id_column sample_name --chip_name IlluminaOvineSNP50 --country_column Country
+	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --bfile SWE_sheep \
+		--dataset "five_sweden_sheeps.zip" --chip_name IlluminaOvineHDSNP --assembly OAR3 --create_samples
+	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --file friz \
+		--dataset Frizarta_270.zip --coding ab --chip_name IlluminaOvineSNP50 --assembly OAR3 --create_samples
+	$(PYTHON_INTERPRETER) src/data/import_samples.py --src_dataset greece_foreground_sheep.zip \
+		--dst_dataset AUTH_OVN50KV2_CHI_BOU_MYT_FRI.zip \
+		--datafile greece_foreground_sheep/AUTH_OVN50KV2_CHI_BOU_MYT_FRI.xlsx \
 		--code_column breed_code --id_column sample_name --chip_name IlluminaOvineSNP50 --country_column Country
 
 	## convert genotypes without creating samples in database (SHEEP)
@@ -154,6 +174,8 @@ data: requirements
 	$(PYTHON_INTERPRETER) src/data/import_from_illumina.py --report AUTH_OVN50KV2_CHIOS_MYTILINI_BOUTSKO/Aristotle_University_OVN50KV02_20210720_FinalReport.txt \
 		--snpfile AUTH_OVN50KV2_CHIOS_MYTILINI_BOUTSKO/SNP_Map.txt --dataset AUTH_OVN50KV2_CHIOS_MYTILINI_BOUTSKO.zip \
 		--chip_name IlluminaOvineSNP50 --assembly OAR3
+	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --bfile AUTH_OVN50KV2_CHI_BOU_MYT_FRI/Aristotle_University_OVN50KV02_20211108 \
+		--dataset AUTH_OVN50KV2_CHI_BOU_MYT_FRI.zip --chip_name IlluminaOvineSNP50 --assembly OAR3
 
 	## create samples from custom files or genotypes for GOAT
 	$(PYTHON_INTERPRETER) src/data/import_samples.py --src_dataset ADAPTmap_phenotype_20161201.zip --dst_dataset ADAPTmap_genotypeTOP_20161201.zip \
@@ -162,15 +184,17 @@ data: requirements
 	$(PYTHON_INTERPRETER) src/data/import_from_illumina.py --snpfile Swedish_Univ_Eriksson_GOAT53KV1_20200722/SNP_Map.txt \
 		--report Swedish_Univ_Eriksson_GOAT53KV1_20200722/Swedish_Univ_Eriksson_GOAT53KV1_20200722_FinalReport.txt \
 		--dataset Swedish_Univ_Eriksson_GOAT53KV1_20200722.zip --breed_code LNR --chip_name IlluminaGoatSNP50 --assembly ARS1 --create_samples
-	$(PYTHON_INTERPRETER) src/data/import_samples.py --src_dataset AUTH_GOAT53KV1_EGHORIA_SKOPELOS.zip --dst_dataset AUTH_GOAT53KV1_EGHORIA_SKOPELOS.zip \
-		--datafile AUTH_GOAT53KV1_EGHORIA_SKOPELOS/AUTH_GOAT53KV1_EGHORIA_SKOPELOS.xlsx \
+	$(PYTHON_INTERPRETER) src/data/import_samples.py --src_dataset greece_foreground_goat.zip --dst_dataset AUTH_GOAT53KV1_EGHORIA_SKOPELOS.zip \
+		--datafile greece_foreground_goat/AUTH_GOAT53KV1_EGHORIA_SKOPELOS.xlsx \
 		--code_column breed_code --id_column sample_name --chip_name IlluminaGoatSNP50 --country_column Country
+	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --bfile SMARTER_CHFR \
+		--dataset SMARTER_CHFR.zip --chip_name IlluminaGoatSNP50 --assembly ARS1 --create_samples
 
 	## convert genotypes without creating samples in database (GOAT)
 	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --bfile ADAPTmap_genotypeTOP_20161201/binary_fileset/ADAPTmap_genotypeTOP_20161201 \
 		--dataset "ADAPTmap_genotypeTOP_20161201.zip" --chip_name IlluminaGoatSNP50 --assembly ARS1
 	$(PYTHON_INTERPRETER) src/data/import_from_illumina.py --report AUTH_GOAT53KV1_EGHORIA_SKOPELOS/Aristotle_University_GOAT53KV1_20200728_FinalReport.txt \
-	 	--snpfile AUTH_GOAT53KV1_EGHORIA_SKOPELOS/SNP_Map.txt --dataset AUTH_GOAT53KV1_EGHORIA_SKOPELOS.zip \
+		--snpfile AUTH_GOAT53KV1_EGHORIA_SKOPELOS/SNP_Map.txt --dataset AUTH_GOAT53KV1_EGHORIA_SKOPELOS.zip \
 		--chip_name IlluminaGoatSNP50 --assembly ARS1
 
 	## add additional metadata to samples
@@ -189,26 +213,35 @@ data: requirements
 		--datafile ADAPTmap_phenotype_20161201/ADAPTmap_InfoSample_20161201_fix.xlsx --id_column ADAPTmap_code \
 		--latitude_column GPS_Latitude --longitude_column GPS_Longitude --metadata_column Sampling_info \
 		--metadata_column DOB --metadata_column Notes --na_values NA
-	$(PYTHON_INTERPRETER) src/data/import_metadata.py --src_dataset AUTH_OVN50KV2_CHIOS_FRIZARTA.zip \
+	$(PYTHON_INTERPRETER) src/data/import_metadata.py --src_dataset greece_foreground_sheep.zip \
 		--dst_dataset AUTH_OVN50KV2_CHIOS_FRIZARTA.zip \
-		--datafile AUTH_OVN50KV2_CHIOS_FRIZARTA/AUTH_OVN50KV2_CHIOS_FRIZARTA.xlsx --id_column sample_name \
+		--datafile greece_foreground_sheep/AUTH_OVN50KV2_CHIOS_FRIZARTA.xlsx --id_column sample_name \
 		--latitude_column Latitude --longitude_column Longitude --metadata_column Region \
 		--metadata_column "Farm Coding"
-	$(PYTHON_INTERPRETER) src/data/import_metadata.py --src_dataset AUTH_OVN50KV2_CHIOS_FRIZARTA_PELAGONIA.zip \
+	$(PYTHON_INTERPRETER) src/data/import_metadata.py --src_dataset greece_foreground_sheep.zip \
 		--dst_dataset AUTH_OVN50KV2_CHIOS_FRIZARTA_PELAGONIA.zip \
-		--datafile AUTH_OVN50KV2_CHIOS_FRIZARTA_PELAGONIA/AUTH_OVN50KV2_CHIOS_FRIZARTA_PELAGONIA.xlsx --id_column sample_name \
+		--datafile greece_foreground_sheep/AUTH_OVN50KV2_CHIOS_FRIZARTA_PELAGONIA.xlsx --id_column sample_name \
 		--latitude_column Latitude --longitude_column Longitude --metadata_column Region \
 		--metadata_column "Farm Coding"
-	$(PYTHON_INTERPRETER) src/data/import_metadata.py --src_dataset AUTH_GOAT53KV1_EGHORIA_SKOPELOS.zip \
+	$(PYTHON_INTERPRETER) src/data/import_metadata.py --src_dataset greece_foreground_goat.zip \
 		--dst_dataset AUTH_GOAT53KV1_EGHORIA_SKOPELOS.zip \
-		--datafile AUTH_GOAT53KV1_EGHORIA_SKOPELOS/AUTH_GOAT53KV1_EGHORIA_SKOPELOS.xlsx --id_column sample_name \
+		--datafile greece_foreground_goat/AUTH_GOAT53KV1_EGHORIA_SKOPELOS.xlsx --id_column sample_name \
 		--latitude_column Latitude --longitude_column Longitude --metadata_column Region \
 		--metadata_column "Farm Coding"
-	$(PYTHON_INTERPRETER) src/data/import_metadata.py --src_dataset AUTH_OVN50KV2_CHIOS_MYTILINI_BOUTSKO.zip \
+	$(PYTHON_INTERPRETER) src/data/import_metadata.py --src_dataset greece_foreground_sheep.zip \
 		--dst_dataset AUTH_OVN50KV2_CHIOS_MYTILINI_BOUTSKO.zip \
-		--datafile AUTH_OVN50KV2_CHIOS_MYTILINI_BOUTSKO/AUTH_OVN50KV2_CHIOS_MYTILINI_BOUTSKO.xlsx --id_column sample_name \
+		--datafile greece_foreground_sheep/AUTH_OVN50KV2_CHIOS_MYTILINI_BOUTSKO.xlsx --id_column sample_name \
 		--latitude_column Latitude --longitude_column Longitude --metadata_column Region \
-		--metadata_column "Farm Coding"
+		--metadata_column "Farm Coding" --metadata_column Note
+	$(PYTHON_INTERPRETER) src/data/import_metadata.py --src_dataset greece_foreground_sheep.zip \
+		--dst_dataset AUTH_OVN50KV2_CHI_BOU_MYT_FRI.zip \
+		--datafile greece_foreground_sheep/AUTH_OVN50KV2_CHI_BOU_MYT_FRI.xlsx --id_column sample_name \
+		--latitude_column Latitude --longitude_column Longitude --metadata_column Region \
+		--metadata_column "Farm Coding" --metadata_column Note
+	$(PYTHON_INTERPRETER) src/data/import_metadata.py --src_dataset "Sweden_goat_metadata.zip" \
+		--dst_dataset "Swedish_Univ_Eriksson_GOAT53KV1_20200722.zip" \
+		--datafile SMARTER-metadata-SLU.xlsx --sheet_name samples --id_column original_id \
+		--latitude_column latitude --longitude_column longitude
 
 	## add phenotypes to samples
 	$(PYTHON_INTERPRETER) src/data/import_phenotypes.py --src_dataset ADAPTmap_phenotype_20161201.zip \
@@ -228,26 +261,74 @@ data: requirements
 		--datafile ADAPTmap_phenotype_20161201/ADAPTmap_InfoSample_20161201_fix.xlsx --id_column ADAPTmap_code \
 		--chest_girth_column ChestGirth --height_column Height --length_column Length \
 		--additional_column FAMACHA --additional_column WidthOfPinBones
-	$(PYTHON_INTERPRETER) src/data/import_phenotypes.py --src_dataset AUTH_OVN50KV2_CHIOS_FRIZARTA.zip \
+	$(PYTHON_INTERPRETER) src/data/import_phenotypes.py --src_dataset greece_foreground_sheep.zip \
 		--dst_dataset AUTH_OVN50KV2_CHIOS_FRIZARTA.zip \
-		--datafile AUTH_OVN50KV2_CHIOS_FRIZARTA/AUTH_OVN50KV2_CHIOS_FRIZARTA.xlsx --id_column sample_name \
+		--datafile greece_foreground_sheep/AUTH_OVN50KV2_CHIOS_FRIZARTA.xlsx --id_column sample_name \
 		--purpose_column Purpose
-	$(PYTHON_INTERPRETER) src/data/import_phenotypes.py --src_dataset AUTH_OVN50KV2_CHIOS_FRIZARTA_PELAGONIA.zip \
+	$(PYTHON_INTERPRETER) src/data/import_phenotypes.py --src_dataset greece_foreground_sheep.zip \
 		--dst_dataset AUTH_OVN50KV2_CHIOS_FRIZARTA_PELAGONIA.zip \
-		--datafile AUTH_OVN50KV2_CHIOS_FRIZARTA_PELAGONIA/AUTH_OVN50KV2_CHIOS_FRIZARTA_PELAGONIA.xlsx --id_column sample_name \
+		--datafile greece_foreground_sheep/AUTH_OVN50KV2_CHIOS_FRIZARTA_PELAGONIA.xlsx --id_column sample_name \
 		--purpose_column Purpose
-	$(PYTHON_INTERPRETER) src/data/import_phenotypes.py --src_dataset AUTH_GOAT53KV1_EGHORIA_SKOPELOS.zip \
+	$(PYTHON_INTERPRETER) src/data/import_phenotypes.py --src_dataset greece_foreground_goat.zip \
 		--dst_dataset AUTH_GOAT53KV1_EGHORIA_SKOPELOS.zip \
-		--datafile AUTH_GOAT53KV1_EGHORIA_SKOPELOS/AUTH_GOAT53KV1_EGHORIA_SKOPELOS.xlsx --id_column sample_name \
+		--datafile greece_foreground_goat/AUTH_GOAT53KV1_EGHORIA_SKOPELOS.xlsx --id_column sample_name \
 		--purpose_column Purpose
-	$(PYTHON_INTERPRETER) src/data/import_phenotypes.py --src_dataset AUTH_OVN50KV2_CHIOS_MYTILINI_BOUTSKO.zip \
+	$(PYTHON_INTERPRETER) src/data/import_phenotypes.py --src_dataset greece_foreground_sheep.zip \
 		--dst_dataset AUTH_OVN50KV2_CHIOS_MYTILINI_BOUTSKO.zip \
-		--datafile AUTH_OVN50KV2_CHIOS_MYTILINI_BOUTSKO/AUTH_OVN50KV2_CHIOS_MYTILINI_BOUTSKO.xlsx --id_column sample_name \
+		--datafile greece_foreground_sheep/AUTH_OVN50KV2_CHIOS_MYTILINI_BOUTSKO.xlsx --id_column sample_name \
 		--purpose_column Purpose
+	$(PYTHON_INTERPRETER) src/data/import_phenotypes.py --src_dataset SMARTER-metadata-Uruguay_Metadata.zip \
+		--dst_dataset CREOLE_INIA_UY.zip --sheet_name samples \
+		--datafile SMARTER-metadata-Uruguay_Metadata.xlsx --id_column original_id \
+		--purpose_column purpose
+	$(PYTHON_INTERPRETER) src/data/import_phenotypes.py --src_dataset SMARTER-metadata-Uruguay_Metadata.zip \
+		--dst_dataset CORRIEDALE_INIA_UY.zip --sheet_name samples \
+		--datafile SMARTER-metadata-Uruguay_Metadata.xlsx --id_column original_id \
+		--purpose_column purpose
+	$(PYTHON_INTERPRETER) src/data/import_phenotypes.py --src_dataset SMARTER-metadata-Uruguay_Metadata.zip \
+		--dst_dataset MERINO_INIA_UY.zip --sheet_name samples \
+		--datafile SMARTER-metadata-Uruguay_Metadata.xlsx --id_column original_id \
+		--purpose_column purpose
+	$(PYTHON_INTERPRETER) src/data/import_phenotypes.py --src_dataset SMARTER-metadata-Uruguay_Metadata.zip \
+		--dst_dataset TEXEL_INIA_UY.zip --sheet_name samples \
+		--datafile SMARTER-metadata-Uruguay_Metadata.xlsx --id_column original_id \
+		--purpose_column purpose
+	$(PYTHON_INTERPRETER) src/data/import_phenotypes.py --src_dataset SMARTER-metadata-Uruguay_Metadata.zip \
+		--dst_dataset Affymetrix_data_Plate_652_660.zip --sheet_name samples \
+		--datafile SMARTER-metadata-Uruguay_Metadata.xlsx --alias_column original_id \
+		--purpose_column purpose
+	$(PYTHON_INTERPRETER) src/data/import_phenotypes.py --src_dataset greece_foreground_sheep.zip \
+		--dst_dataset AUTH_OVN50KV2_CHI_BOU_MYT_FRI.zip \
+		--datafile greece_foreground_sheep/AUTH_OVN50KV2_CHI_BOU_MYT_FRI.xlsx --id_column sample_name \
+		--purpose_column Purpose
+	$(PYTHON_INTERPRETER) src/data/import_phenotypes.py --src_dataset "Sweden_goat_metadata.zip" \
+		--dst_dataset "Swedish_Univ_Eriksson_GOAT53KV1_20200722.zip" \
+		--datafile SMARTER-metadata-SLU.xlsx --sheet_name samples --id_column original_id \
+		--purpose_column purpose
 
 	## merge SNPs into 1 file
 	$(PYTHON_INTERPRETER) src/data/merge_datasets.py --species sheep --assembly OAR3
 	$(PYTHON_INTERPRETER) src/data/merge_datasets.py --species goat --assembly ARS1
+
+	## track database status
+	$(PYTHON_INTERPRETER) src/data/update_db_status.py
+
+
+## pack results to be shared via sFTP
+publish:
+	## SHEEP OAR3
+	$(eval BASENAME=SMARTER-OA-OAR3-top-$(CURRENT_VERSION))
+	cd ./data/processed/OAR3 && if [ -e $(BASENAME).zip ]; then rm $(BASENAME).zip; fi
+	cd ./data/processed/OAR3 && zip -rvT $(BASENAME).zip $(BASENAME).bed $(BASENAME).bim $(BASENAME).fam $(BASENAME).hh $(BASENAME).log $(BASENAME).nosex
+	cd ./data/processed/OAR3 && md5sum $(BASENAME).zip > $(BASENAME).md5
+	find ./data/processed/OAR3 -type f \( -name "*.bed" -or -name "*.bim" -or -name "*.fam" -or -name "*.hh" -or -name "*.log" -or -name "*.nosex" \) -delete
+
+	## GOAT ARS1
+	$(eval BASENAME=SMARTER-CH-ARS1-top-$(CURRENT_VERSION))
+	cd ./data/processed/ARS1 && if [ -e $(BASENAME).zip ]; then rm $(BASENAME).zip; fi
+	cd ./data/processed/ARS1 && zip -rvT $(BASENAME).zip $(BASENAME).bed $(BASENAME).bim $(BASENAME).fam $(BASENAME).hh $(BASENAME).log $(BASENAME).nosex
+	cd ./data/processed/ARS1 && md5sum $(BASENAME).zip > $(BASENAME).md5
+	find ./data/processed/ARS1 -type f \( -name "*.bed" -or -name "*.bim" -or -name "*.fam" -or -name "*.hh" -or -name "*.log" -or -name "*.nosex" \) -delete
 
 ## Delete all compiled Python files
 clean:

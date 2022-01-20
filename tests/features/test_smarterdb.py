@@ -14,7 +14,7 @@ from unittest.mock import patch
 from src.features.smarterdb import (
     VariantSheep, Location, SampleSheep,
     SmarterDBException, getSmarterId, Breed, get_or_create_breed, Dataset,
-    BreedAlias, get_or_create_sample, SEX)
+    BreedAlias, get_or_create_sample, SEX, get_sample_type)
 
 from ..common import MongoMockMixin, SmarterIDMixin
 
@@ -508,6 +508,13 @@ class SampleSheepTestCase(SmarterIDMixin, MongoMockMixin, unittest.TestCase):
         self.chip_name = "IlluminaOvineSNP50"
         self.sex = SEX.MALE
         self.alias = "TEST-ALIAS"
+        self.type_ = "background"
+
+        # GPS coordinates
+        self.locations = {
+            'type': 'MultiPoint',
+            'coordinates': [[9.1859243, 45.4654219]]
+        }
 
     def tearDown(self):
         SampleSheep.objects().delete()
@@ -519,13 +526,17 @@ class SampleSheepTestCase(SmarterIDMixin, MongoMockMixin, unittest.TestCase):
 
         self.sample = SampleSheep(
             original_id=self.original_id,
-            smarter_id=None
+            smarter_id=None,
+            type_="background"
         )
 
         # need country, breed and species in order to get a smarter_id
         self.sample.country = self.country
         self.sample.breed = "Texel"
         self.sample.species = "Sheep"
+
+        # add locations
+        self.sample.locations = self.locations
 
         # save sample in db
         self.sample.save()
@@ -551,6 +562,7 @@ class SampleSheepTestCase(SmarterIDMixin, MongoMockMixin, unittest.TestCase):
             SampleSheep,
             self.original_id,
             self.dataset,
+            self.type_,
             self.breed,
             self.country,
             self.chip_name,
@@ -568,6 +580,7 @@ class SampleSheepTestCase(SmarterIDMixin, MongoMockMixin, unittest.TestCase):
             SampleSheep,
             self.original_id,
             self.dataset,
+            self.type_,
             self.breed,
             self.country,
             self.chip_name,
@@ -579,6 +592,53 @@ class SampleSheepTestCase(SmarterIDMixin, MongoMockMixin, unittest.TestCase):
         self.assertEqual(sample.smarter_id, self.smarter_id)
         self.assertEqual(SampleSheep.objects.count(), 1)
         self.assertFalse(created)
+
+    def test_get_sample_type(self):
+        self.create_sample()
+
+        test = get_sample_type(self.dataset)
+        self.assertEqual("background", test)
+
+    @unittest.skip(
+        "'$geoWithin' is a valid operation but it is "
+        "not supported by Mongomock yet")
+    def test_get_sample_geo_within(self):
+        self.create_sample()
+
+        qs = SampleSheep.objects.filter(
+            locations__geo_within={
+                "type": "Polygon",
+                "coordinates": [[
+                    [9, 45],
+                    [9, 46],
+                    [10, 46],
+                    [10, 45],
+                    [9, 45]
+                ]],
+            }
+        )
+
+        self.assertEqual(qs.count(), 1)
+        sample = qs.get()
+        self.assertEqual(sample.smarter_id, self.smarter_id)
+
+    @unittest.skip(
+        "'$geoWithin' is a valid operation but it is "
+        "not supported by Mongomock yet")
+    def test_get_sample_geo_within_sphere(self):
+        self.create_sample()
+
+        # center the sphere and define radius in radiant x / 6378.1 to convert
+        # kilometers to radias
+        qs = SampleSheep.objects.filter(
+            locations__geo_within_sphere=[
+                [9.18, 45.46], 
+                10 / 6378.1]
+            )
+        
+        self.assertEqual(qs.count(), 1)
+        sample = qs.get()
+        self.assertEqual(sample.smarter_id, self.smarter_id)
 
 
 class SEXTestCase(unittest.TestCase):
