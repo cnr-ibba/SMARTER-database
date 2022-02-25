@@ -13,7 +13,8 @@ import tempfile
 from copy import deepcopy
 
 from src.features.smarterdb import (
-    VariantSheep, Location, Breed, Dataset, SampleSheep, SEX)
+    VariantSheep, Location, Breed, Dataset, SampleSheep, SEX, SampleGoat,
+    VariantGoat)
 from src.features.plinkio import (
     TextPlinkIO, MapRecord, CodingException, IlluminaReportIO, BinaryPlinkIO,
     AffyPlinkIO)
@@ -32,6 +33,25 @@ class TextPlinkIOMap(VariantsMixin, MongoMockMixin, unittest.TestCase):
         self.plinkio = TextPlinkIO(
             prefix=str(DATA_DIR / "plinktest"),
             species="Sheep")
+
+    def test_sheep_species(self):
+        self.assertEqual(self.plinkio.VariantSpecies, VariantSheep)
+        self.assertEqual(self.plinkio.SampleSpecies, SampleSheep)
+
+    def test_goat_species(self):
+        plinkio = TextPlinkIO(
+            prefix=str(DATA_DIR / "plinktest"),
+            species="Goat")
+
+        self.assertEqual(plinkio.VariantSpecies, VariantGoat)
+        self.assertEqual(plinkio.SampleSpecies, SampleGoat)
+
+    def test_species_not_implemented(self):
+        self.assertRaises(
+            NotImplementedError,
+            TextPlinkIO,
+            prefix=str(DATA_DIR / "plinktest"),
+            species="Foo")
 
     def test_read_mapfile(self):
         self.plinkio.read_mapfile()
@@ -84,6 +104,42 @@ class TextPlinkIOMap(VariantsMixin, MongoMockMixin, unittest.TestCase):
                     version="Oar_v3.1", imported_from="SNPchiMp v.3")
                 self.assertEqual(location.chrom, record.chrom)
                 self.assertEqual(location.position, record.position)
+
+
+class TextPlinkIOMapRSID(VariantsMixin, MongoMockMixin, unittest.TestCase):
+    """A class to test plink files with rsid as SNP names"""
+
+    def setUp(self):
+        super().setUp()
+
+        self.plinkio = TextPlinkIO(
+            mapfile=str(DATA_DIR / "plinktest_rsid.map"),
+            pedfile=str(DATA_DIR / "plinktest.ped"),
+            species="Sheep")
+
+    def test_fetch_coordinates_by_rs_id(self):
+        self.plinkio.read_mapfile()
+        self.plinkio.fetch_coordinates(
+            version="Oar_v3.1",
+            imported_from="SNPchiMp v.3",
+            search_field='rs_id'
+        )
+
+        self.assertIsInstance(self.plinkio.locations, list)
+        self.assertEqual(len(self.plinkio.locations), 4)
+
+        self.assertIsInstance(self.plinkio.filtered, set)
+        self.assertEqual(len(self.plinkio.filtered), 2)
+
+        # assert filtered items
+        self.assertIn(0, self.plinkio.filtered)
+        self.assertIn(3, self.plinkio.filtered)
+
+        for idx, record in enumerate(self.plinkio.locations):
+            if idx in self.plinkio.filtered:
+                self.assertIsNone(record)
+            else:
+                self.assertIsInstance(record, Location)
 
 
 class TextPlinkIOPed(

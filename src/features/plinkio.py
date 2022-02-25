@@ -17,7 +17,7 @@ from pathlib import Path
 from dataclasses import dataclass
 
 from tqdm import tqdm
-from mongoengine.errors import DoesNotExist
+from mongoengine.errors import DoesNotExist, MultipleObjectsReturned
 from plinkio import plinkfile
 
 from .snpchimp import clean_chrom
@@ -282,19 +282,31 @@ class SmarterMixin():
 
     def fetch_coordinates(
             self, version: str, imported_from: str,
-            search_field: str = "name"):
+            search_field: str = "name",
+            chip_name: str = None):
         """Search for variants in smarter database
 
         Args:
             version (str): the Location.version attribute
             imported_from (str): the Location.imported_from attribute
             search_field (str): search variant by field (def. "name")
+            chip_name (str): limit search to this chip_name
         """
 
         # reset meta informations
         self.locations = list()
         self.filtered = set()
         self.variants_name = list()
+
+        # helper function
+        def skip_index(idx):
+            # skip this variant (even in ped)
+            self.filtered.add(idx)
+
+            # need to add an empty value in locations (or my indexes
+            # won't work properly). The same for variants name
+            self.locations.append(None)
+            self.variants_name.append(None)
 
         # this is required to search with the desidered coordinate system
         # relying on mongodb elemMatch and projection
@@ -308,11 +320,18 @@ class SmarterMixin():
         for idx, record in enumerate(tqdm(
                 self.mapdata, file=tqdm_out, mininterval=1)):
             try:
+                # additional arguments used in query
+                additional_arguments = {
+                    search_field: record.name,
+                    "chip_name": chip_name
+                }
+
                 # TODO: remember to project illumina_top if it become
                 # a VariantSpecies attribute
+                # remove empty additional arguments if any
                 variant = self.VariantSpecies.objects(
                     locations__match=coordinate_system,
-                    **{search_field: record.name}
+                    **{k: v for k, v in additional_arguments.items() if v}
                 ).fields(
                     elemMatch__locations=coordinate_system,
                     name=1,
@@ -324,13 +343,17 @@ class SmarterMixin():
                     f"Couldn't find {record.name} in {coordinate_system}"
                     f" assembly: {e}")
 
-                # skip this variant (even in ped)
-                self.filtered.add(idx)
+                skip_index(idx)
 
-                # need to add an empty value in locations (or my indexes
-                # won't work properly). The same for variants name
-                self.locations.append(None)
-                self.variants_name.append(None)
+                # don't check location for missing SNP
+                continue
+
+            except MultipleObjectsReturned as e:
+                logger.warning(
+                    f"Got multiple {record.name} in {coordinate_system}"
+                    f" assembly: {e}")
+
+                skip_index(idx)
 
                 # don't check location for missing SNP
                 continue
