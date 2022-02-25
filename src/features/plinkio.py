@@ -506,7 +506,7 @@ class SmarterMixin():
         if len(line) != len(self.mapdata)*2 + 6:
             logger.critical(
                 f"SNPs sizes don't match in '{self.mapfile}' "
-                "and '{self.pedfile}'")
+                f"and '{self.pedfile}'")
             logger.critical("Please check file contents")
 
             raise PlinkIOException(".ped line size doens't match .map size")
