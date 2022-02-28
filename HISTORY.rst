@@ -21,7 +21,6 @@ TODO
 * if ``src_dataset`` and ``dst_dataset`` are equals, provide only ``dst_dataset``
   both in *import_samples* and *import_metadata* scripts
 * define a collection for all available *purpose* phenotypes
-* add a country collection
 
 0.4.4.dev0
 ----------
@@ -32,6 +31,7 @@ TODO
 * Import latest 290 samples greek dataset
 * Fix issue with greek samples name (``B273`` converted into ``B273A``)
 * add latest 19 sheep greek samples
+* add a country collection
 
 0.4.3 (2021-11-11)
 ------------------

@@ -17,8 +17,7 @@ from mongoengine.errors import DoesNotExist
 from src import __version__
 from src.data.common import WORKING_ASSEMBLIES, PLINK_SPECIES_OPT
 from src.features.smarterdb import (
-    global_connection, SmarterInfo, SampleSheep, SampleGoat, CountrySheep,
-    CountryGoat)
+    global_connection, SmarterInfo, SampleSheep, SampleGoat, Country)
 
 logger = logging.getLogger(__name__)
 
@@ -31,8 +30,7 @@ def update_countries_collection():
     logger.debug("Dropping country collections")
 
     # drop old country collection
-    CountrySheep.drop_collection()
-    CountryGoat.drop_collection()
+    Country.drop_collection()
 
     logger.info("Updating country collections")
 
@@ -40,14 +38,22 @@ def update_countries_collection():
     sheep_countries = SampleSheep.objects.distinct("country")
 
     for country_name in sheep_countries:
-        country = CountrySheep(name=country_name)
+        country = Country(name=country_name, species="Sheep")
         country.save()
 
     goat_countries = SampleGoat.objects.distinct("country")
 
     for country_name in goat_countries:
-        country = CountryGoat(name=country_name)
-        country.save()
+        try:
+            # append species if country exists
+            country = Country.objects.get(name=country_name)
+            country.species.append("Goat")
+            country.save()
+
+        except DoesNotExist:
+            # create a new obj
+            country = Country(name=country_name, species="Goat")
+            country.save()
 
     logger.info("Done!")
 
