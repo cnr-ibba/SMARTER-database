@@ -22,16 +22,17 @@ TODO
   both in *import_samples* and *import_metadata* scripts
 * define a collection for all available *purpose* phenotypes
 
-0.4.4.dev0
-----------
+0.4.4 (2022-02-28)
+------------------
 
 * Model location with MultiPointField
 * Describe smarter metadata
 * Import sweden goat metadata
 * Import latest 290 samples greek dataset
 * Fix issue with greek samples name (``B273`` converted into ``B273A``)
-* add latest 19 sheep greek samples
-* add a country collection
+* Add latest 19 sheep greek samples
+* Add a country collection
+* Update dependencies
 
 0.4.3 (2021-11-11)
 ------------------
