@@ -14,12 +14,29 @@ from unittest.mock import patch
 from src.features.smarterdb import (
     VariantSheep, Location, SampleSheep,
     SmarterDBException, getSmarterId, Breed, get_or_create_breed, Dataset,
-    BreedAlias, get_or_create_sample, SEX, get_sample_type)
+    BreedAlias, get_or_create_sample, SEX, get_sample_type, CountrySheep)
 
 from ..common import MongoMockMixin, SmarterIDMixin
 
 # set data dir (like os.dirname(__file__)) + "fixtures"
 DATA_DIR = pathlib.Path(__file__).parents[1] / "fixtures"
+
+
+class CountryTestCase(MongoMockMixin, unittest.TestCase):
+    def setUp(self):
+        self.country = CountrySheep(name="Italy")
+
+    def test_init(self):
+        self.assertEqual(self.country.alpha_2, "IT")
+        self.assertEqual(self.country.name, "Italy")
+
+    def test_str(self):
+        self.assertEqual(str(self.country), "Italy (IT)")
+
+    def test_no_official_name(self):
+        country = CountrySheep(name="Barbados")
+        self.assertEqual(str(country), "Barbados (BB)")
+        self.assertIsNone(country.official_name)
 
 
 class BreedTestCase(MongoMockMixin, unittest.TestCase):
@@ -632,10 +649,10 @@ class SampleSheepTestCase(SmarterIDMixin, MongoMockMixin, unittest.TestCase):
         # kilometers to radias
         qs = SampleSheep.objects.filter(
             locations__geo_within_sphere=[
-                [9.18, 45.46], 
+                [9.18, 45.46],
                 10 / 6378.1]
             )
-        
+
         self.assertEqual(qs.count(), 1)
         sample = qs.get()
         self.assertEqual(sample.smarter_id, self.smarter_id)

@@ -12,19 +12,35 @@ import unittest
 from click.testing import CliRunner
 
 from src import __version__
-from src.features.smarterdb import SmarterInfo
+from src.features.smarterdb import SmarterInfo, SampleSheep, CountrySheep
 from src.data.common import WORKING_ASSEMBLIES, PLINK_SPECIES_OPT
 from src.data.update_db_status import main as update_db_status
 
-from ..common import MongoMockMixin
+from ..common import MongoMockMixin, SmarterIDMixin, SupportedChipMixin
 
 
-class UpdateDBStatusTest(MongoMockMixin, unittest.TestCase):
+class UpdateDBStatusTest(
+        SmarterIDMixin, SupportedChipMixin, MongoMockMixin, unittest.TestCase):
     def setUp(self):
         super().setUp()
 
         self.working_assemblies = json.loads(json.dumps(WORKING_ASSEMBLIES))
         self.plink_specie_opt = json.loads(json.dumps(PLINK_SPECIES_OPT))
+
+        # create a SampleSheep object with a country
+        self.sample = SampleSheep(
+            original_id="test-1",
+            smarter_id="ITOA-TEX-000000001",
+            country="Italy",
+            species="Sheep",
+            breed="Texel",
+            breed_code="TEX",
+            dataset=self.dataset,
+            type_="background",
+            chip_name=self.chip_name,
+            alias="alias-1",
+        )
+        self.sample.save()
 
         self.runner = CliRunner()
 
@@ -62,3 +78,15 @@ class UpdateDBStatusTest(MongoMockMixin, unittest.TestCase):
         self.assertEqual(info.version, __version__)
         self.assertDictEqual(info.working_assemblies, self.working_assemblies)
         self.assertDictEqual(info.plink_specie_opt, self.plink_specie_opt)
+
+    def test_update_countries(self):
+        result = self.runner.invoke(update_db_status, [])
+
+        self.assertEqual(0, result.exit_code)
+        qs = CountrySheep.objects.all()
+
+        self.assertEqual(qs.count(), 1)
+
+        italy = qs.get()
+        self.assertEqual(italy.name, "Italy")
+        self.assertEqual(italy.alpha_2, "IT")

@@ -102,6 +102,55 @@ class Counter(mongoengine.Document):
         return f"{self.id}: {self.sequence_value}"
 
 
+class CountrySpecies(mongoengine.Document):
+    """A helper class to deal with countries object. Each record is created
+    after data import, when database status is updated"""
+
+    alpha_2 = mongoengine.StringField(
+        required=True, unique=True, min_length=2, max_length=2)
+    alpha_3 = mongoengine.StringField(
+        required=True, unique=True, min_length=3, max_length=3)
+    name = mongoengine.StringField(required=True, unique=True)
+    numeric = mongoengine.IntField(required=True, unique=True)
+    official_name = mongoengine.StringField()
+
+    meta = {
+        'abstract': True
+    }
+
+    def __init__(self, name: str = None, *args, **kwargs):
+        # initialize base object
+        super(CountrySpecies, self).__init__(*args, **kwargs)
+
+        if name:
+            country = pycountry.countries.get(name=name)
+
+            self.alpha_2 = country.alpha_2
+            self.alpha_3 = country.alpha_3
+            self.name = name
+            self.numeric = country.numeric
+
+            if hasattr(country, "official_name"):
+                self.official_name = country.official_name
+
+    def __str__(self):
+        return f"{self.name} ({self.alpha_2})"
+
+
+class CountrySheep(CountrySpecies):
+    meta = {
+        'db_alias': DB_ALIAS,
+        'collection': 'countrySheep'
+    }
+
+
+class CountryGoat(CountrySpecies):
+    meta = {
+        'db_alias': DB_ALIAS,
+        'collection': 'countryGoat'
+    }
+
+
 class SupportedChip(mongoengine.Document):
     name = mongoengine.StringField(required=True, unique=True)
     species = mongoengine.StringField(required=True)
