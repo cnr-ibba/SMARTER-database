@@ -17,9 +17,45 @@ from mongoengine.errors import DoesNotExist
 from src import __version__
 from src.data.common import WORKING_ASSEMBLIES, PLINK_SPECIES_OPT
 from src.features.smarterdb import (
-    global_connection, SmarterInfo)
+    global_connection, SmarterInfo, SampleSheep, SampleGoat, Country)
 
 logger = logging.getLogger(__name__)
+
+
+def update_countries_collection():
+    """After all data is loaded and samples created, get all countries and
+    makes a collection respectively for Sheep and goats, in order to help
+    user while searching from their samples"""
+
+    logger.debug("Dropping country collections")
+
+    # drop old country collection
+    Country.drop_collection()
+
+    logger.info("Updating country collections")
+
+    # get distinct countries from samples
+    sheep_countries = SampleSheep.objects.distinct("country")
+
+    for country_name in sheep_countries:
+        country = Country(name=country_name, species="Sheep")
+        country.save()
+
+    goat_countries = SampleGoat.objects.distinct("country")
+
+    for country_name in goat_countries:
+        try:
+            # append species if country exists
+            country = Country.objects.get(name=country_name)
+            country.species.append("Goat")
+            country.save()
+
+        except DoesNotExist:
+            # create a new obj
+            country = Country(name=country_name, species="Goat")
+            country.save()
+
+    logger.info("Done!")
 
 
 @click.command()
@@ -35,6 +71,9 @@ def main():
     except DoesNotExist:
         logger.warning("Smarter database status was never tracked")
         database = SmarterInfo(id="smarter")
+
+    # update collections
+    update_countries_collection()
 
     # update stuff
     database.version = __version__

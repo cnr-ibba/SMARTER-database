@@ -96,6 +96,12 @@ data: requirements
 	$(PYTHON_INTERPRETER) src/data/add_breed.py --species Goat --name Fosses --code FSS --alias FOS --dataset SMARTER_CHFR.zip
 	$(PYTHON_INTERPRETER) src/data/add_breed.py --species Goat --name Provencale --code PVC --alias PVC --dataset SMARTER_CHFR.zip
 	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Frizarta --code FRZ --alias 0 --dataset Frizarta_270.zip
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Boutsko --code BOU --alias BOU --dataset AUTH_OVN50KV2_CHI_BOU_MYT_FRI.zip
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Chios --code CHI --alias CHI --dataset AUTH_OVN50KV2_CHI_BOU_MYT_FRI.zip
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Frizarta --code FRZ --alias FRI --dataset AUTH_OVN50KV2_CHI_BOU_MYT_FRI.zip
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Mytilini --code MYT --alias MYT --dataset AUTH_OVN50KV2_CHI_BOU_MYT_FRI.zip
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Chios --code CHI --alias CHI --dataset AUTH_OVN50KV2_CHI_FRZ.zip
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Frizarta --code FRZ --alias FRZ --dataset AUTH_OVN50KV2_CHI_FRZ.zip
 
 	## load breeds into database relying on dataset
 	$(PYTHON_INTERPRETER) src/data/import_breeds.py --species Sheep --dataset="High density genotypes of French Sheep populations.zip" \
@@ -143,6 +149,14 @@ data: requirements
 		--dataset "five_sweden_sheeps.zip" --chip_name IlluminaOvineHDSNP --assembly OAR3 --create_samples
 	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --file friz \
 		--dataset Frizarta_270.zip --coding ab --chip_name IlluminaOvineSNP50 --assembly OAR3 --create_samples
+	$(PYTHON_INTERPRETER) src/data/import_samples.py --src_dataset greece_foreground_sheep.zip \
+		--dst_dataset AUTH_OVN50KV2_CHI_BOU_MYT_FRI.zip \
+		--datafile greece_foreground_sheep/AUTH_OVN50KV2_CHI_BOU_MYT_FRI.xlsx \
+		--code_column breed_code --id_column sample_name --chip_name IlluminaOvineSNP50 --country_column Country
+	$(PYTHON_INTERPRETER) src/data/import_samples.py --src_dataset greece_foreground_sheep.zip \
+		--dst_dataset AUTH_OVN50KV2_CHI_FRZ.zip \
+		--datafile greece_foreground_sheep/AUTH_OVN50KV2_CHI_FRZ.xlsx \
+		--code_column breed_code --id_column sample_name --chip_name IlluminaOvineSNP50 --country_column Country
 
 	## convert genotypes without creating samples in database (SHEEP)
 	$(PYTHON_INTERPRETER) src/data/import_from_affymetrix.py --file Affymetrix_data_Plate_652_660/Affymetrix_data_Plate_652/Affymetrix_data_Plate_652 \
@@ -156,6 +170,10 @@ data: requirements
 	$(PYTHON_INTERPRETER) src/data/import_from_illumina.py --report AUTH_OVN50KV2_CHIOS_MYTILINI_BOUTSKO/Aristotle_University_OVN50KV02_20210720_FinalReport.txt \
 		--snpfile AUTH_OVN50KV2_CHIOS_MYTILINI_BOUTSKO/SNP_Map.txt --dataset AUTH_OVN50KV2_CHIOS_MYTILINI_BOUTSKO.zip \
 		--chip_name IlluminaOvineSNP50 --assembly OAR3
+	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --bfile AUTH_OVN50KV2_CHI_BOU_MYT_FRI/Aristotle_University_OVN50KV02_20211108 \
+		--dataset AUTH_OVN50KV2_CHI_BOU_MYT_FRI.zip --chip_name IlluminaOvineSNP50 --assembly OAR3
+	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --bfile AUTH_OVN50K2_CHI_FRZ/Aristotle_University_OVN50KV02_20211124 \
+		--dataset AUTH_OVN50KV2_CHI_FRZ.zip --chip_name IlluminaOvineSNP50 --assembly OAR3
 
 	## create samples from custom files or genotypes for GOAT
 	$(PYTHON_INTERPRETER) src/data/import_samples.py --src_dataset ADAPTmap_phenotype_20161201.zip --dst_dataset ADAPTmap_genotypeTOP_20161201.zip \
@@ -213,6 +231,20 @@ data: requirements
 		--datafile greece_foreground_sheep/AUTH_OVN50KV2_CHIOS_MYTILINI_BOUTSKO.xlsx --id_column sample_name \
 		--latitude_column Latitude --longitude_column Longitude --metadata_column Region \
 		--metadata_column "Farm Coding" --metadata_column Note
+	$(PYTHON_INTERPRETER) src/data/import_metadata.py --src_dataset greece_foreground_sheep.zip \
+		--dst_dataset AUTH_OVN50KV2_CHI_BOU_MYT_FRI.zip \
+		--datafile greece_foreground_sheep/AUTH_OVN50KV2_CHI_BOU_MYT_FRI.xlsx --id_column sample_name \
+		--latitude_column Latitude --longitude_column Longitude --metadata_column Region \
+		--metadata_column "Farm Coding" --metadata_column Note
+	$(PYTHON_INTERPRETER) src/data/import_metadata.py --src_dataset "Sweden_goat_metadata.zip" \
+		--dst_dataset "Swedish_Univ_Eriksson_GOAT53KV1_20200722.zip" \
+		--datafile SMARTER-metadata-SLU.xlsx --sheet_name samples --id_column original_id \
+		--latitude_column latitude --longitude_column longitude
+	$(PYTHON_INTERPRETER) src/data/import_metadata.py --src_dataset greece_foreground_sheep.zip \
+		--dst_dataset AUTH_OVN50KV2_CHI_FRZ.zip \
+		--datafile greece_foreground_sheep/AUTH_OVN50KV2_CHI_FRZ.xlsx --id_column sample_name \
+		--latitude_column Latitude --longitude_column Longitude --metadata_column Region \
+		--metadata_column "Farm Coding" --metadata_column Note
 
 	## add phenotypes to samples
 	$(PYTHON_INTERPRETER) src/data/import_phenotypes.py --src_dataset ADAPTmap_phenotype_20161201.zip \
@@ -268,6 +300,18 @@ data: requirements
 		--dst_dataset Affymetrix_data_Plate_652_660.zip --sheet_name samples \
 		--datafile SMARTER-metadata-Uruguay_Metadata.xlsx --alias_column original_id \
 		--purpose_column purpose
+	$(PYTHON_INTERPRETER) src/data/import_phenotypes.py --src_dataset greece_foreground_sheep.zip \
+		--dst_dataset AUTH_OVN50KV2_CHI_BOU_MYT_FRI.zip \
+		--datafile greece_foreground_sheep/AUTH_OVN50KV2_CHI_BOU_MYT_FRI.xlsx --id_column sample_name \
+		--purpose_column Purpose
+	$(PYTHON_INTERPRETER) src/data/import_phenotypes.py --src_dataset "Sweden_goat_metadata.zip" \
+		--dst_dataset "Swedish_Univ_Eriksson_GOAT53KV1_20200722.zip" \
+		--datafile SMARTER-metadata-SLU.xlsx --sheet_name samples --id_column original_id \
+		--purpose_column purpose
+	$(PYTHON_INTERPRETER) src/data/import_phenotypes.py --src_dataset greece_foreground_sheep.zip \
+		--dst_dataset AUTH_OVN50KV2_CHI_FRZ.zip \
+		--datafile greece_foreground_sheep/AUTH_OVN50KV2_CHI_FRZ.xlsx --id_column sample_name \
+		--purpose_column Purpose
 
 	## merge SNPs into 1 file
 	$(PYTHON_INTERPRETER) src/data/merge_datasets.py --species sheep --assembly OAR3

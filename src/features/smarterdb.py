@@ -102,6 +102,49 @@ class Counter(mongoengine.Document):
         return f"{self.id}: {self.sequence_value}"
 
 
+class Country(mongoengine.Document):
+    """A helper class to deal with countries object. Each record is created
+    after data import, when database status is updated"""
+
+    alpha_2 = mongoengine.StringField(
+        required=True, unique=True, min_length=2, max_length=2)
+    alpha_3 = mongoengine.StringField(
+        required=True, unique=True, min_length=3, max_length=3)
+    name = mongoengine.StringField(required=True, unique=True)
+    numeric = mongoengine.IntField(required=True, unique=True)
+    official_name = mongoengine.StringField()
+
+    species = mongoengine.ListField(mongoengine.StringField())
+
+    meta = {
+        'db_alias': DB_ALIAS,
+        'collection': 'countries'
+    }
+
+    def __init__(self, name: str = None, *args, **kwargs):
+        # fix species type if necessary
+        if "species" in kwargs:
+            if type(kwargs["species"]) == str:
+                kwargs["species"] = [kwargs["species"]]
+
+        # initialize base object
+        super(Country, self).__init__(*args, **kwargs)
+
+        if name:
+            country = pycountry.countries.get(name=name)
+
+            self.alpha_2 = country.alpha_2
+            self.alpha_3 = country.alpha_3
+            self.name = name
+            self.numeric = country.numeric
+
+            if hasattr(country, "official_name"):
+                self.official_name = country.official_name
+
+    def __str__(self):
+        return f"{self.name} ({self.alpha_2})"
+
+
 class SupportedChip(mongoengine.Document):
     name = mongoengine.StringField(required=True, unique=True)
     species = mongoengine.StringField(required=True)
@@ -423,7 +466,8 @@ class SampleSpecies(mongoengine.Document):
 
     # GPS location
     # NOTE: X, Y where X is longitude, Y latitude
-    locations = mongoengine.ListField(mongoengine.PointField(), default=None)
+    locations = mongoengine.fields.MultiPointField(
+        auto_index=True, default=None)
 
     # additional (not modelled) metadata
     metadata = mongoengine.DictField(default=None)
@@ -433,6 +477,9 @@ class SampleSpecies(mongoengine.Document):
 
     meta = {
         'abstract': True,
+        'indexes': [
+            [("locations", "2dsphere")]
+        ]
     }
 
     def save(self, *args, **kwargs):
