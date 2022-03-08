@@ -47,7 +47,7 @@ class SmarterIDMixin():
         super().setUpClass()
 
         # need a dataset for certain tests
-        dataset = Dataset(
+        cls.dataset = Dataset(
             file="test.zip",
             country="Italy",
             species="Sheep",
@@ -64,23 +64,23 @@ class SmarterIDMixin():
             ],
             type_=["background", "genotypes"]
         )
-        dataset.save()
+        cls.dataset.save()
 
         # need to define a breed in order to get a smarter id
-        alias = BreedAlias(
+        cls.alias = BreedAlias(
             fid="TEX_IT",
-            dataset=dataset,
+            dataset=cls.dataset,
             country="Italy"
         )
 
-        breed = Breed(
+        cls.breed = Breed(
             species="Sheep",
             name="Texel",
             code="TEX",
             n_individuals=0,
-            aliases=[alias]
+            aliases=[cls.alias]
         )
-        breed.save()
+        cls.breed.save()
 
         # need also a counter object for sheep and goat
         counter = Counter(
