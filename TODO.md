@@ -15,6 +15,10 @@ Code
 Database
 --------
 
+* Model 10K affymetrix dataset 
+  * collect and upload 10k manifest file
+  * move `AffymetrixAxiomOviCan` to `AffymetrixOvineSNP50`
+  * add `AffymetrixOvineSNP10`
 * Should I check genotype coding **before** importing dataset?
 * create a variation collection (for goat and sheep)
   - parse dbSNP data and update position
