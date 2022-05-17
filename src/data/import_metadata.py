@@ -115,7 +115,7 @@ def add_metadata_by_sample(
     SampleSpecie = get_sample_species(dst_dataset.species)
 
     for index, row in data.iterrows():
-        original_id = row.get(columns["id_column"])
+        original_id = str(row.get(columns["id_column"]))
 
         # get additional columns for original_id
         locations = get_locations(row, columns, original_id)
