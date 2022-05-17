@@ -121,6 +121,8 @@ data: requirements
 		--fid_column Breed --country_column country
 	$(PYTHON_INTERPRETER) src/data/import_breeds.py --species Goat --dataset ADAPTmap_genotypeTOP_20161201.zip \
 		--datafile ADAPTmap_genotypeTOP_20161201/ADAPTmap_Breeds_20161201_fix.csv --breed_column Breed_fullname --code_column Breed_code
+	$(PYTHON_INTERPRETER) src/data/import_breeds.py --species Sheep --dataset NativesheepBreeds_Hu.zip \
+		--datafile NativesheepBreeds_Hu/nativesheeps_hu_fixed.xlsx --breed_column breed --code_column code --fid_column fid --country_column country
 
 	## create SHEEP samples from raw data files or from XLS (orders matter)
 	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --file TEXEL_UY --dataset TEXEL_INIA_UY.zip --chip_name IlluminaOvineSNP50 \
@@ -167,6 +169,9 @@ data: requirements
 		--dst_dataset AUTH_OVN50KV2_CHI_FRZ.zip \
 		--datafile greece_foreground_sheep/AUTH_OVN50KV2_CHI_FRZ.xlsx \
 		--code_column breed_code --id_column sample_name --chip_name IlluminaOvineSNP50 --country_column Country
+	$(PYTHON_INTERPRETER) src/data/import_samples.py --src_dataset NativesheepBreeds_Hu.zip \
+		--dst_dataset NativesheepBreeds_Hu.zip --datafile NativesheepBreeds_Hu/nativesheeps_hu_fixed.xlsx \
+		--code_column fid --id_column original_id --chip_name IlluminaOvineSNP50 --country_column country
 
 	## convert genotypes without creating samples in database (SHEEP)
 	$(PYTHON_INTERPRETER) src/data/import_from_affymetrix.py --file Affymetrix_data_Plate_652_660/Affymetrix_data_Plate_652/Affymetrix_data_Plate_652 \
@@ -184,6 +189,8 @@ data: requirements
 		--dataset AUTH_OVN50KV2_CHI_BOU_MYT_FRI.zip --chip_name IlluminaOvineSNP50 --assembly OAR3
 	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --bfile AUTH_OVN50K2_CHI_FRZ/Aristotle_University_OVN50KV02_20211124 \
 		--dataset AUTH_OVN50KV2_CHI_FRZ.zip --chip_name IlluminaOvineSNP50 --assembly OAR3
+	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --file NativesheepBreeds_Hu/NativeSheepGenotypes \
+		--dataset NativesheepBreeds_Hu.zip --coding forward --chip_name IlluminaOvineSNP50 --assembly OAR3
 
 	## create samples from custom files or genotypes for GOAT
 	$(PYTHON_INTERPRETER) src/data/import_samples.py --src_dataset ADAPTmap_phenotype_20161201.zip --dst_dataset ADAPTmap_genotypeTOP_20161201.zip \
@@ -255,6 +262,10 @@ data: requirements
 		--datafile greece_foreground_sheep/AUTH_OVN50KV2_CHI_FRZ.xlsx --id_column sample_name \
 		--latitude_column Latitude --longitude_column Longitude --metadata_column Region \
 		--metadata_column "Farm Coding" --metadata_column Note
+	$(PYTHON_INTERPRETER) src/data/import_metadata.py --src_dataset NativesheepBreeds_Hu.zip \
+		--dst_dataset NativesheepBreeds_Hu.zip \
+		--datafile NativesheepBreeds_Hu/nativesheeps_hu_fixed.xlsx --id_column original_id \
+		--latitude_column latitude --longitude_column longitude
 
 	## add phenotypes to samples
 	$(PYTHON_INTERPRETER) src/data/import_phenotypes.py --src_dataset ADAPTmap_phenotype_20161201.zip \
