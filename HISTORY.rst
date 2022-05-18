@@ -17,6 +17,7 @@ TODO
 * Check coordinates with sheep and goat genome projects
 * Release a *smarter* coordinate version with information on every variant defined 
   in database (which will be used as reference)
+* Map affymetrix snps in OARV3 coordinates
 * Have an ``update_breed`` script to add an alias to an existent breed
 * if ``src_dataset`` and ``dst_dataset`` are equals, provide only ``dst_dataset``
   both in *import_samples* and *import_metadata* scripts
@@ -26,6 +27,7 @@ TODO
 ----------
 
 * Update requirements
+* Import data from Hungary [#53](https://github.com/cnr-ibba/SMARTER-database/issues/53)
 
 0.4.4 (2022-02-28)
 ------------------
@@ -94,6 +96,7 @@ TODO
 * Clearly state when creating samples (ignore samples if not defined in database)
 * Track sample aliases for ``original_id``
 * Import samples from file by providing *country* and *breeds* values as parameters
+* Import sheep coordinates from genome project
 * Security updates
 * Fix github Workflow
 
