@@ -46,7 +46,7 @@ class CountryTestCase(MongoMockMixin, unittest.TestCase):
 
 class BreedTestCase(MongoMockMixin, unittest.TestCase):
     def setUp(self):
-        # createing a sample breed
+        # creating a sample breed
         self.breed = Breed(
             species="Sheep",
             name="Texel",
@@ -614,6 +614,40 @@ class SampleSheepTestCase(SmarterIDMixin, MongoMockMixin, unittest.TestCase):
         self.assertEqual(sample.smarter_id, self.smarter_id)
         self.assertEqual(SampleSheep.objects.count(), 1)
         self.assertFalse(created)
+
+    def test_get_or_create_sample_breed(self):
+        """Test that also breed is involved in getting or creating samples"""
+
+        # creating sample first
+        sample, created = get_or_create_sample(
+            SampleSheep,
+            self.original_id,
+            self.dataset,
+            self.type_,
+            self.breed,
+            self.country,
+            self.chip_name,
+            self.sex,
+            self.alias
+        )
+
+        # calling the same function again, but with a new breed
+        sample, created = get_or_create_sample(
+            SampleSheep,
+            self.original_id,
+            self.dataset,
+            self.type_,
+            Breed.objects.get(species="Sheep", code="MER"),
+            self.country,
+            self.chip_name,
+            self.sex,
+            self.alias
+        )
+
+        self.assertIsInstance(sample, SampleSheep)
+        self.assertEqual(sample.smarter_id, "ITOA-MER-000000002")
+        self.assertEqual(SampleSheep.objects.count(), 2)
+        self.assertTrue(created)
 
     def test_get_sample_type(self):
         self.create_sample()
