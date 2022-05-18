@@ -28,18 +28,6 @@ class TestImportFromIllumina(
         unittest.TestCase):
 
     @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
-
-        breed = Breed(
-            species="Sheep",
-            name="Merino",
-            code="MER",
-            n_individuals=0,
-        )
-        breed.save()
-
-    @classmethod
     def tearDownClass(cls):
         # need to delete object from db after import
         SampleSheep.objects.delete()
