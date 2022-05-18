@@ -328,7 +328,7 @@ class TextPlinkIOPed(
         # there are no sample in database, so get_sample returns none
         self.assertIsNone(reference)
 
-        # assert an element in database
+        # assert no element in database
         self.assertEqual(SampleSheep.objects.count(), 0)
 
         # check individuals updated
@@ -362,6 +362,50 @@ class TextPlinkIOPed(
 
         # check that objects are the same
         self.assertEqual(reference, test)
+
+    def test_get_sample_breed_check(self):
+        """get a sample without creating item"""
+
+        # get a sample line
+        line = self.lines[0]
+
+        breed1 = Breed.objects(
+            aliases__match={'fid': line[0], 'dataset': self.dataset}).get()
+
+        # create a sample
+        sample1 = self.plinkio.get_or_create_sample(line, self.dataset, breed1)
+
+        # change the line and create a new sample
+        line2 = line.copy()
+        line2[0] = "MER_IT"
+
+        breed2 = Breed.objects(
+            aliases__match={'fid': line2[0], 'dataset': self.dataset}).get()
+
+        # create another sample
+        sample2 = self.plinkio.get_or_create_sample(
+            line2, self.dataset, breed2)
+
+        # ensure 2 samples created
+        self.assertEqual(SampleSheep.objects.count(), 2)
+
+        # calling get_sample to collect first sample
+        test = self.plinkio.get_sample(
+            line,
+            self.dataset
+        )
+
+        self.assertIsInstance(test, SampleSheep)
+        self.assertEqual(test, sample1)
+
+        # calling get_sample to collect second sample
+        test = self.plinkio.get_sample(
+            line2,
+            self.dataset
+        )
+
+        self.assertIsInstance(test, SampleSheep)
+        self.assertEqual(test, sample2)
 
     def test_get_sample_by_alias(self):
         """get a sample without creating item"""
