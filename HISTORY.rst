@@ -23,6 +23,13 @@ TODO
   both in *import_samples* and *import_metadata* scripts
 * define a collection for all available *purpose* phenotypes
 
+0.4.5.dev0
+----------
+
+* Update requirements
+* Import data from Hungary [#53](https://github.com/cnr-ibba/SMARTER-database/issues/53)
+* Create a new sample when having the same ``original_id`` in dataset but for a different breed
+
 0.4.4 (2022-02-28)
 ------------------
 

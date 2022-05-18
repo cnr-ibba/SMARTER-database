@@ -146,6 +146,8 @@ def main(
         else:
             code = row.get(code_column)
 
+            logger.debug(f"search for fid: {code}, dataset: {dst_dataset}")
+
             # get breed from database
             breed = Breed.objects(
                 aliases__match={'fid': code, 'dataset': dst_dataset}).get()

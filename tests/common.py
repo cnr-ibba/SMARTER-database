@@ -82,6 +82,22 @@ class SmarterIDMixin():
         )
         cls.breed.save()
 
+        # create additional breed
+        alias = BreedAlias(
+            fid="MER_IT",
+            dataset=cls.dataset,
+            country="Italy"
+        )
+
+        cls.breed2 = Breed(
+            species="Sheep",
+            name="Merino",
+            code="MER",
+            n_individuals=0,
+            aliases=[alias]
+        )
+        cls.breed2.save()
+
         # need also a counter object for sheep and goat
         counter = Counter(
             pk="sampleSheep",

@@ -581,7 +581,7 @@ def get_or_create_sample(
 
     # search for sample in database
     qs = SampleSpecies.objects(
-        original_id=original_id, dataset=dataset)
+        original_id=original_id, breed_code=breed.code, dataset=dataset)
 
     if qs.count() == 1:
         logger.debug(f"Sample '{original_id}' found in database")

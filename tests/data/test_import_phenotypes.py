@@ -303,8 +303,8 @@ class TestImportPhenotypeByBreedsNotExists(PhenotypeMixin, unittest.TestCase):
         super().setUpClass()
 
         # override value (set a breed which notx exist in database)
-        cls.sheet.cell(row=2, column=1, value="MER")
-        cls.sheet.cell(row=2, column=2, value="Merino")
+        cls.sheet.cell(row=2, column=1, value="CRL")
+        cls.sheet.cell(row=2, column=2, value="Creole")
 
     @patch('src.features.smarterdb.Dataset.working_dir',
            new_callable=PropertyMock)

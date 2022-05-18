@@ -193,9 +193,13 @@ class SmarterMixin():
             sample_field: str = "original_id"):
         """Get a registered sample from database"""
 
-        # search for sample in database
+        # get a breed object from database reling on fid
+        breed = self.get_breed(fid=line[0], dataset=dataset)
+
+        # search for sample in database ensure breed are the same
         qs = self.SampleSpecies.objects(
             dataset=dataset,
+            breed_code=breed.code,
             **{sample_field: line[1]}
         )
 
@@ -230,7 +234,7 @@ class SmarterMixin():
 
         # search for sample in database
         qs = self.SampleSpecies.objects(
-            original_id=line[1], dataset=dataset)
+            original_id=line[1], breed_code=breed.code, dataset=dataset)
 
         sex, father_id, mother_id = self._deal_with_relationship(
             line, dataset)
