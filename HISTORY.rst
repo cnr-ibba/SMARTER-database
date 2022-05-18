@@ -22,6 +22,11 @@ TODO
   both in *import_samples* and *import_metadata* scripts
 * define a collection for all available *purpose* phenotypes
 
+0.4.5.dev0
+----------
+
+* Update requirements
+
 0.4.4 (2022-02-28)
 ------------------
 
