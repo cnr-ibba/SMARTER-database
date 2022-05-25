@@ -23,13 +23,14 @@ def get_alleles(record):
 
     alleles = None
 
-    # A snp not in dbSNP could have no allele
-    if record.ref_allele and record.alt_allele:
-        # in dbSNP alleles order has no meaning: it's writtein in
-        # alphabetical order
-        # https://www.ncbi.nlm.nih.gov/books/NBK44476/#Reports.does_the_order_of_the_alleles_li
-        alleles = sorted([record.ref_allele, record.alt_allele])
-        alleles = "/".join(alleles)
+    if hasattr(record, "ref_allele") and hasattr(record, "alt_allele"):
+        # A snp not in dbSNP could have no allele
+        if record.ref_allele and record.alt_allele:
+            # in dbSNP alleles order has no meaning: it's writtein in
+            # alphabetical order
+            # https://www.ncbi.nlm.nih.gov/books/NBK44476/#Reports.does_the_order_of_the_alleles_li
+            alleles = sorted([record.ref_allele, record.alt_allele])
+            alleles = "/".join(alleles)
 
     return alleles
 
@@ -42,10 +43,21 @@ def search_database(record, VariantSpecie):
         tmp = record.cust_id.split("_")
 
         # last element is a number
-        tmp[-1] = str(int(tmp[-1]))
+        try:
+            tmp[-1] = str(int(tmp[-1]))
 
-        # recode the illumina name and define a re.pattern
-        illumina_name = "_".join(tmp[:-1]) + "." + tmp[-1]
+            # recode the illumina name and define a re.pattern
+            illumina_name = "_".join(tmp[:-1]) + "." + tmp[-1]
+
+        except ValueError as exc:
+            logger.debug(
+                f"Attempt to convert {tmp[-1]} as integer failed: "
+                f"{exc}"
+            )
+
+            # I suppose to have an illumina name:
+            illumina_name = record.cust_id
+
         illumina_pattern = re.compile(".".join(tmp))
 
     # search for a snp in database (relying on illumina name first)

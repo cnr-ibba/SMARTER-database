@@ -62,10 +62,9 @@ def search_manifactured_date(header: list) -> Union[datetime.datetime, None]:
 
     if records:
         record = records[0].split("=")
-        record = record[1].split()
-        date = parse_date(record[0])
+        date = parse_date(record[-1], fuzzy=True)
 
-    return date
+    return date.date()
 
 
 def read_Manifest(path: str, delimiter=","):
