@@ -933,6 +933,9 @@ class VariantSpecies(mongoengine.Document):
     }
 
     def __str__(self):
+        if not self.name and self.affy_snp_id:
+            return (f"affy_snp_id='{self.affy_snp_id}', rs_id='{self.rs_id}'")
+
         return (f"name='{self.name}', rs_id='{self.rs_id}'")
 
     def save(self, *args, **kwargs):

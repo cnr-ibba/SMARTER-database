@@ -297,8 +297,9 @@ def update_affymetrix_record(
                 updated = True
 
         elif key == 'cust_id':
-            # only update cust_id if different from illumina name
-            if variant_attr and variant_attr != record.name:
+            # only update cust_id if different from illumina name and
+            # if necessary
+            if variant_attr and variant_attr not in [record.name, record_attr]:
                 if record_attr:
                     logger.warning(
                         f"Updating {key} {variant_attr} with {record_attr}")

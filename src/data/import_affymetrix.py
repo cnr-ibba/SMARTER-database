@@ -10,6 +10,8 @@ import re
 import click
 import logging
 
+from mongoengine.queryset import Q
+
 from src.features.illumina import IlluSNP, IlluSNPException
 from src.features.smarterdb import global_connection, SupportedChip, Location
 from src.features.affymetrix import read_Manifest
@@ -61,13 +63,16 @@ def search_database(record, VariantSpecie):
         illumina_pattern = re.compile(".".join(tmp))
 
     # search for a snp in database (relying on illumina name first)
+    # however is still possible that the cust_id I found is not yet into db
     if illumina_name:
-        qs = VariantSpecie.objects.filter(name=illumina_name)
+        qs = VariantSpecie.objects.filter(
+            Q(name=illumina_name) | Q(name=record.affy_snp_id))
 
         if qs.count() == 0:
             logger.debug(
                 f"Couldn't find a variant with '{illumina_name}'. "
                 f"Trying with '{illumina_pattern}' pattern")
+
             # ok make an attempt with pattern
             qs = VariantSpecie.objects.filter(name=illumina_pattern)
 

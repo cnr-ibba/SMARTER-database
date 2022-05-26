@@ -12,7 +12,9 @@ import datetime
 
 from click.testing import CliRunner
 
-from src.data.import_affymetrix import main as import_affymetrix
+from src.data.import_affymetrix import (
+    main as import_affymetrix, search_database)
+from src.features.affymetrix import read_Manifest
 from src.features.smarterdb import VariantSheep, SupportedChip
 
 from ..common import MongoMockMixin, VariantsMixin, SupportedChipMixin
@@ -32,9 +34,13 @@ class ManifestMixin():
 
         # custom attributes
         cls.version = "Oar_v3.1"
+        cls.manifest_file = DATA_DIR / "test_affy.csv"
+
+        # read manifest data
+        cls.manifest_data = list(read_Manifest(cls.manifest_file))
 
     def import_data(self):
-        manifest_file = DATA_DIR / "test_affy.csv"
+        """import affy data after defining import function"""
 
         result = self.runner.invoke(
             self.main_function,
@@ -42,7 +48,7 @@ class ManifestMixin():
                 "--species",
                 "Sheep",
                 "--manifest",
-                str(manifest_file),
+                str(self.manifest_file),
                 "--chip_name",
                 self.chip_name,
                 "--version",
@@ -188,6 +194,19 @@ class UpdateManifestTest(
         self.assertEqual(location.chrom, "0")
         self.assertEqual(location.position, 0)
         self.assertEqual(location.illumina_top, "A/G")
+
+    def test_search_database(self):
+        """Test getting snp while updating manifest"""
+
+        self.import_data()
+
+        # get a snp available only in affymetrix manifest
+        record = self.manifest_data[1]
+        qs = search_database(record, VariantSheep)
+
+        self.assertEqual(qs.count(), 1)
+        variant = qs.get()
+        self.assertEqual(variant.name, record.affy_snp_id)
 
 
 if __name__ == '__main__':
