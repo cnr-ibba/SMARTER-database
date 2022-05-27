@@ -13,7 +13,8 @@ import logging
 from mongoengine.queryset import Q
 
 from src.features.illumina import IlluSNP, IlluSNPException
-from src.features.smarterdb import global_connection, SupportedChip, Location
+from src.features.smarterdb import (
+    global_connection, SupportedChip, Location, SmarterDBException)
 from src.features.affymetrix import read_Manifest
 from src.data.common import get_variant_species, update_variant, new_variant
 
@@ -166,7 +167,12 @@ def main(species, manifest, chip_name, version):
         qs = search_database(record, VariantSpecie)
 
         if qs.count() == 1:
-            update_variant(qs, variant, location)
+            try:
+                update_variant(qs, variant, location)
+
+            except SmarterDBException as exc:
+                # TODO: remove this exception handling
+                logger.warn(f"Error with {variant}: {exc} - ignoring snp")
 
         elif qs.count() == 0:
             new_variant(variant, location)

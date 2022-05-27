@@ -302,16 +302,17 @@ def update_affymetrix_record(
             if variant_attr and variant_attr not in [record.name, record_attr]:
                 if record_attr:
                     logger.warning(
-                        f"Updating {key} {variant_attr} with {record_attr}")
+                        f"Updating {key}:{variant_attr} with {record_attr}")
 
                 setattr(record, key, variant_attr)
                 updated = True
 
-        else:
+        elif key == 'affy_snp_id':
             if variant_attr and variant_attr != record_attr:
                 if record_attr:
-                    logger.warning(
-                        f"Updating {key} {variant_attr} with {record_attr}")
+                    raise SmarterDBException(
+                        f"Error with {key}:{variant_attr} and {record_attr}"
+                        f": 'affy_snp_id' already defined!")
 
                 setattr(record, key, variant_attr)
                 updated = True
