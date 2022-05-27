@@ -10,6 +10,7 @@
     "sequence": {
       "illumina": "NNNNNNNNNNNNNNNNCTGCTTCCGTATTTGGGTCTTCTCTCAACTTCTCTTCTTCTCCC[T/C]TGCTGAGGAGGAGGCACTTTCAGATGTATTATGTTAATGGAGAGAAAAAGCATAATATTG"
     },
+    "illumina_top": "A/G",
     "locations": [
       {
         "version": "Oar_v3.1",
@@ -51,6 +52,7 @@
     "sequence": {
       "illumina": "TATGCATGTACATTTTCTTGCCCTTTCCGGGCTTGCACTGTGTGCTTCTCACACCTTCTG[T/C]TTGAAAACTTATGTTACTTGGTATGCTCTGGAAGAGTATGTGAGGGAGTCAGGGATTGTG"
     },
+    "illumina_top": "A/G",
     "locations": [
       {
         "version": "Oar_v3.1",
@@ -92,6 +94,7 @@
     "sequence": {
       "illumina": "ACCTTAGTGTTAAAGGATTAACATAAGGAAACTGCAGCAGTATAGAAAAGACAAGACATT[T/C]TCTATTTAGATTGAACCCATTAAAATAATGACATTACAGGTGTAAAACCAAGACAATACT"
     },
+    "illumina_top": "A/G",
     "locations": [
       {
         "version": "Oar_v3.1",
@@ -132,6 +135,7 @@
     "sequence": {
       "manifest": "GTGCCAGCGTGCAGGGAGGAGAATCAGGTTAATGAGGTACAGGCTTTTCGGGTATTCCCG[A/G]AGCTTTTCTTTGGGTAAGGGCCACATCGCCAGTTCCCTCCAATTAATAAATTGTCAGGAG"
     },
+    "illumina_top": "A/G",
     "locations": [
       {
         "version": "Oar_v3.1",

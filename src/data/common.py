@@ -186,6 +186,9 @@ def new_variant(
 
     variant.locations.append(location)
 
+    # set the illumina_top attribute relying on the first location
+    variant.illumina_top = location.illumina_top
+
     logger.debug(f"adding {variant} to database")
 
     variant.save()
