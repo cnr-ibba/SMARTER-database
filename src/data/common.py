@@ -205,6 +205,15 @@ def update_variant(
 
     update_record = False
 
+    # check that the snp I want to update has the same illumina_top
+    # allele with the new location: if not no update!
+    if record.illumina_top != location.illumina_top:
+        logger.error(
+            f"illumina_top alleles between variant and new location don't "
+            f"match: {record.illumina_top} <> {location.illumina_top}")
+        logger.warning("ignoring {variant}")
+        return update_record
+
     # check chip_name in variant list
     record, updated = update_chip_name(variant, record)
 

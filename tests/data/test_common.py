@@ -289,6 +289,18 @@ class VariantUpdateTests(VariantsMixin, MongoMockMixin, unittest.TestCase):
         record, updated = update_rs_id(self.variant, self.record)
         self.assertTrue(updated)
 
+    def test_update_variant_snp_mismatch(self):
+        """No update if location.illumina_top is different from
+        variant.illumina_top"""
+
+        qs = VariantSheep.objects.filter(
+            name="250506CS3900065000002_1238.1")
+
+        self.location.illumina_top = "A/C"
+
+        updated = update_variant(qs, self.variant, self.location)
+        self.assertFalse(updated)
+
     def test_update_variant_chip_name(self):
         qs = VariantSheep.objects.filter(
             name="250506CS3900065000002_1238.1")
