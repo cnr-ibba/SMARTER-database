@@ -37,47 +37,54 @@ def get_alleles(record):
     return alleles
 
 
+def fix_illumina_args(record):
+    tmp = record.cust_id.split("_")
+
+    args = {}
+
+    # last element is a number
+    try:
+        tmp[-1] = str(int(tmp[-1]))
+
+        # recode the illumina name and define a re.pattern
+        args["name"] = "_".join(tmp[:-1]) + "." + tmp[-1]
+
+    except ValueError as exc:
+        logger.debug(
+            f"Attempt to convert {tmp[-1]} as integer failed: "
+            f"{exc}"
+        )
+
+        args["name"] = re.compile(".".join(tmp))
+
+    logger.debug(f"Try to search with {args}")
+
+    return args
+
+
 def search_database(record, VariantSpecie):
-    # try to read the cust_id like illumina name:
-    illumina_name = None
-
+    # if I have a cust_id, search with it
     if record.cust_id:
-        tmp = record.cust_id.split("_")
-
-        # last element is a number
-        try:
-            tmp[-1] = str(int(tmp[-1]))
-
-            # recode the illumina name and define a re.pattern
-            illumina_name = "_".join(tmp[:-1]) + "." + tmp[-1]
-
-        except ValueError as exc:
-            logger.debug(
-                f"Attempt to convert {tmp[-1]} as integer failed: "
-                f"{exc}"
-            )
-
-            # I suppose to have an illumina name:
-            illumina_name = record.cust_id
-
-        illumina_pattern = re.compile(".".join(tmp))
-
-    # search for a snp in database (relying on illumina name first)
-    # however is still possible that the cust_id I found is not yet into db
-    if illumina_name:
+        # search for cust_id or affy_snp_id
+        # (private Affy SNP with unmatched cust_id)
         qs = VariantSpecie.objects.filter(
-            Q(name=illumina_name) | Q(name=record.affy_snp_id))
+            Q(name=record.cust_id) | Q(name=record.affy_snp_id))
 
         if qs.count() == 0:
-            logger.debug(
-                f"Couldn't find a variant with '{illumina_name}'. "
-                f"Trying with '{illumina_pattern}' pattern")
+            logger.debug(f"Can't find a Variant using {record.cust_id}")
 
-            # ok make an attempt with pattern
-            qs = VariantSpecie.objects.filter(name=illumina_pattern)
+            args = fix_illumina_args(record)
+            qs = VariantSpecie.objects.filter(**args)
+
+            if qs.count() == 0:
+                logger.debug(f"Can't find a Variant using {args}")
 
     else:
+        # search by affy id
         qs = VariantSpecie.objects.filter(name=record.affy_snp_id)
+
+        if qs.count() == 0:
+            logger.debug(f"Can't find a Variant using {record.affy_snp_id}")
 
     return qs
 
