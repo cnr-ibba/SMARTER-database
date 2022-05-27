@@ -5,9 +5,6 @@ History
 TODO
 ^^^^
 
-* ``illumina_top`` attribute should be referred to variants, while
-  in ``locations`` should be stored the read value from data source. 
-  illumina_top shouldn't change within the same SNP, independently from data source
 * Check chromosomes in *Variants locations*: mind to **scaffold**, **null**, and
   **non-autosomal** chromosomes for *Goat* and *Sheep*
 * Enable continuous integration
@@ -27,8 +24,11 @@ TODO
 ----------
 
 * Update requirements
-* Import data from Hungary [#53](https://github.com/cnr-ibba/SMARTER-database/issues/53)
+* Import data from Hungary `#53 <https://github.com/cnr-ibba/SMARTER-database/issues/53>`__
 * Create a new sample when having the same ``original_id`` in dataset but for a different breed
+* ``illumina_top`` is an attribute of variant, and is set when the first location
+  is loaded. 
+* Check variants data before update `#56 <https://github.com/cnr-ibba/SMARTER-database/issues/56>`__
 
 0.4.4 (2022-02-28)
 ------------------

@@ -333,16 +333,34 @@ def update_location(
             version=location.version, imported_from=location.imported_from)
 
         # ok get the old location and check with the new one
-        if variant.locations[index] == location:
+        old_location = variant.locations[index]
+
+        if old_location == location:
             logger.debug("Locations match")
 
-        # HINT: should I update location? maybe relying on date and
-        # __gt__ method?
+        # upgrade locations relying dates
         else:
             logger.warning(
                 f"Locations differ for '{variant.name}': {location} <> "
-                f"{variant.locations[index]}"
+                f"{old_location}"
             )
+
+            # make location.date offset-naive
+            # https://stackoverflow.com/a/796019
+            location.date = location.date.replace(tzinfo=None)
+
+            if (hasattr(old_location, "date") and hasattr(location, "date") and
+                    old_location.date < location.date):
+                # update location
+                logger.warning(
+                    f"Replacing location for {variant} since is newer")
+                variant.locations[index] = location
+                updated = True
+
+            else:
+                logger.debug(
+                    f"New location is not more recent ({location.date.date()}"
+                    f" <> {old_location.date.date()}), ignoring location")
 
     except SmarterDBException as exc:
         # if a index does not exist, then insert feature without warnings
