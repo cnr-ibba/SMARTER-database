@@ -345,22 +345,27 @@ def update_location(
                 f"{old_location}"
             )
 
-            # make location.date offset-naive
-            # https://stackoverflow.com/a/796019
-            location.date = location.date.replace(tzinfo=None)
+            # check if values are defined
+            if old_location.date and location.date:
+                # make location.date offset-naive
+                # https://stackoverflow.com/a/796019
+                location.date = location.date.replace(tzinfo=None)
 
-            if (hasattr(old_location, "date") and hasattr(location, "date") and
-                    old_location.date < location.date):
-                # update location
-                logger.warning(
-                    f"Replacing location for {variant} since is newer")
-                variant.locations[index] = location
-                updated = True
+                if old_location.date < location.date:
+                    # update location
+                    logger.warning(
+                        f"Replacing location for {variant} since is newer")
+                    variant.locations[index] = location
+                    updated = True
+
+                else:
+                    logger.debug(
+                        f"New location is not more recent than the old "
+                        f"({location.date.date()}"
+                        f" <> {old_location.date.date()}), ignoring location")
 
             else:
-                logger.debug(
-                    f"New location is not more recent ({location.date.date()}"
-                    f" <> {old_location.date.date()}), ignoring location")
+                logger.debug("Skip location comparison: dates not set")
 
     except SmarterDBException as exc:
         # if a index does not exist, then insert feature without warnings
