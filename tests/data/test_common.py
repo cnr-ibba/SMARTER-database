@@ -7,6 +7,7 @@ Created on Fri Apr 30 15:45:36 2021
 """
 
 import pathlib
+import datetime
 import unittest
 import tempfile
 
@@ -265,15 +266,31 @@ class VariantUpdateTests(VariantsMixin, MongoMockMixin, unittest.TestCase):
         record, updated = update_location(self.location, self.record)
         self.assertTrue(updated)
 
-    def test_update_location_mismatch(self):
-        # test a location mismatch
-        # HINT: should I overwrite the location?
+    def test_update_location_no_update(self):
+        """Test a location mismatch"""
         self.location.chrom = "test"
         record, updated = update_location(self.location, self.record)
         self.assertFalse(updated)
 
-        # no location added
-        self.assertEqual(len(self.record.locations), 2)
+        # no location added if the new location is older
+        self.assertEqual(len(record.locations), 2)
+
+    def test_update_location_new_location(self):
+        """Test a location mismatch with a new location"""
+
+        # now update location date
+        self.location.chrom = "test"
+        self.location.date = datetime.datetime(2022, 5, 27)
+        record, updated = update_location(self.location, self.record)
+        self.assertTrue(updated)
+
+        # now location is updated
+        self.assertEqual(len(record.locations), 2)
+
+        location = record.get_location(
+            version="Oar_v3.1", imported_from="manifest")
+        self.assertEqual(location.chrom, "test")
+        self.assertEqual(location.date, datetime.datetime(2022, 5, 27))
 
     def test_update_rs_id(self):
         record, updated = update_rs_id(self.variant, self.record)
@@ -288,6 +305,18 @@ class VariantUpdateTests(VariantsMixin, MongoMockMixin, unittest.TestCase):
         self.variant.rs_id = "test"
         record, updated = update_rs_id(self.variant, self.record)
         self.assertTrue(updated)
+
+    def test_update_variant_snp_mismatch(self):
+        """No update if location.illumina_top is different from
+        variant.illumina_top"""
+
+        qs = VariantSheep.objects.filter(
+            name="250506CS3900065000002_1238.1")
+
+        self.location.illumina_top = "A/C"
+
+        updated = update_variant(qs, self.variant, self.location)
+        self.assertFalse(updated)
 
     def test_update_variant_chip_name(self):
         qs = VariantSheep.objects.filter(
