@@ -8,7 +8,6 @@ Created on Fri Apr  9 15:58:40 2021
 Try to model data operations on plink files
 """
 
-import io
 import re
 import csv
 import logging
@@ -55,15 +54,6 @@ class MapRecord():
         # types are annotations. So, enforce position type:
         self.position = int(self.position)
         self.cm = float(self.cm)
-
-
-def get_reader(handle: io.TextIOWrapper):
-    logger.debug(f"Reading '{handle.name}' content")
-
-    sniffer = csv.Sniffer()
-    dialect = sniffer.sniff(handle.read(2048))
-    handle.seek(0)
-    return csv.reader(handle, dialect=dialect)
 
 
 class SmarterMixin():
@@ -344,8 +334,8 @@ class SmarterMixin():
 
             except DoesNotExist as e:
                 logger.warning(
-                    f"Couldn't find {record.name} in {coordinate_system}"
-                    f" assembly: {e}")
+                    f"Couldn't find '{record.name}' in {coordinate_system}"
+                    f" assembly using '{search_field}' as search_field: {e}")
 
                 skip_index(idx)
 
@@ -686,26 +676,6 @@ class TextPlinkIO(SmarterMixin):
         """Read map data and track informations in memory. Useful to process
         data files"""
 
-        with open(self.mapfile) as handle:
-            reader = get_reader(handle)
-            self.mapdata = [MapRecord(*record) for record in reader]
-
-    def read_pedfile(self, *args, **kwargs):
-        """Open pedfile for reading return iterator"""
-
-        with open(self.pedfile) as handle:
-            reader = get_reader(handle)
-            for line in reader:
-                yield line
-
-
-# a new class for affymetrix plink files, which are slightly different from
-# plink text files
-class AffyPlinkIO(TextPlinkIO):
-    def read_mapfile(self):
-        """Read map data and track informations in memory. Useful to process
-        data files"""
-
         self.mapdata = []
 
         with open(self.mapfile) as handle:
@@ -717,6 +687,25 @@ class AffyPlinkIO(TextPlinkIO):
                 if not record[0].startswith("#"):
                     self.mapdata.append(MapRecord(*record))
 
+    def read_pedfile(self, *args, **kwargs):
+        """Open pedfile for reading return iterator"""
+
+        with open(self.pedfile) as handle:
+            # affy files has both " " and "\t" in their files
+            for record in handle:
+                # affy data may have comments in files
+                if record.startswith("#"):
+                    logger.info(f"Skipping {record}")
+                    continue
+
+                line = re.split('[ \t]+', record.strip())
+
+                yield line
+
+
+# a new class for affymetrix plink files, which are slightly different from
+# plink text files
+class AffyPlinkIO(TextPlinkIO):
     def get_breed(self, fid, *args, **kwargs):
         """Override the default get_breed method"""
 
