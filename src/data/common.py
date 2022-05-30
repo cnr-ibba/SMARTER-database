@@ -186,6 +186,9 @@ def new_variant(
 
     variant.locations.append(location)
 
+    # set the illumina_top attribute relying on the first location
+    variant.illumina_top = location.illumina_top
+
     logger.debug(f"adding {variant} to database")
 
     variant.save()
@@ -201,6 +204,15 @@ def update_variant(
     logger.debug(f"found {record} in database")
 
     update_record = False
+
+    # check that the snp I want to update has the same illumina_top
+    # allele with the new location: if not no update!
+    if record.illumina_top != location.illumina_top:
+        logger.error(
+            f"illumina_top alleles between variant and new location don't "
+            f"match: {record.illumina_top} <> {location.illumina_top}")
+        logger.warning("ignoring {variant}")
+        return update_record
 
     # check chip_name in variant list
     record, updated = update_chip_name(variant, record)
@@ -333,16 +345,39 @@ def update_location(
             version=location.version, imported_from=location.imported_from)
 
         # ok get the old location and check with the new one
-        if variant.locations[index] == location:
+        old_location = variant.locations[index]
+
+        if old_location == location:
             logger.debug("Locations match")
 
-        # HINT: should I update location? maybe relying on date and
-        # __gt__ method?
+        # upgrade locations relying dates
         else:
             logger.warning(
                 f"Locations differ for '{variant.name}': {location} <> "
-                f"{variant.locations[index]}"
+                f"{old_location}"
             )
+
+            # check if values are defined
+            if old_location.date and location.date:
+                # make location.date offset-naive
+                # https://stackoverflow.com/a/796019
+                location.date = location.date.replace(tzinfo=None)
+
+                if old_location.date < location.date:
+                    # update location
+                    logger.warning(
+                        f"Replacing location for {variant} since is newer")
+                    variant.locations[index] = location
+                    updated = True
+
+                else:
+                    logger.debug(
+                        f"New location is not more recent than the old "
+                        f"({location.date.date()}"
+                        f" <> {old_location.date.date()}), ignoring location")
+
+            else:
+                logger.debug("Skip location comparison: dates not set")
 
     except SmarterDBException as exc:
         # if a index does not exist, then insert feature without warnings

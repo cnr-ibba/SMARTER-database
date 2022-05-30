@@ -904,6 +904,9 @@ class VariantSpecies(mongoengine.Document):
     # sequence should model both illumina or affymetrix sequences
     sequence = mongoengine.DictField()
 
+    # illumina top variant at variant level
+    illumina_top = mongoengine.StringField(required=True)
+
     locations = mongoengine.ListField(
         mongoengine.EmbeddedDocumentField(Location))
 
@@ -934,9 +937,13 @@ class VariantSpecies(mongoengine.Document):
 
     def __str__(self):
         if not self.name and self.affy_snp_id:
-            return (f"affy_snp_id='{self.affy_snp_id}', rs_id='{self.rs_id}'")
+            return (
+                f"affy_snp_id='{self.affy_snp_id}', rs_id='{self.rs_id}', " 
+                f"illumina_top='{self.illumina_top}'")
 
-        return (f"name='{self.name}', rs_id='{self.rs_id}'")
+        return (
+            f"name='{self.name}', rs_id='{self.rs_id}', "
+            f"illumina_top='{self.illumina_top}'")
 
     def save(self, *args, **kwargs):
         """Custom save method. Deal with variant name before save"""
