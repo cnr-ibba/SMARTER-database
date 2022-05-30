@@ -211,7 +211,7 @@ def update_variant(
         logger.error(
             f"illumina_top alleles between variant and new location don't "
             f"match: {record.illumina_top} <> {location.illumina_top}")
-        logger.warning("ignoring {variant}")
+        logger.warning(f"ignoring {variant}")
         return update_record
 
     # check chip_name in variant list
@@ -323,7 +323,7 @@ def update_affymetrix_record(
             if variant_attr and variant_attr != record_attr:
                 if record_attr:
                     raise SmarterDBException(
-                        f"Error with {key}:{variant_attr} and {record_attr}"
+                        f"Error with {key}: {variant_attr} and {record_attr}"
                         f": 'affy_snp_id' already defined!")
 
                 setattr(record, key, variant_attr)
