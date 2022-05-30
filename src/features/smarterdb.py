@@ -730,6 +730,10 @@ class Location(mongoengine.EmbeddedDocument):
     def __check_coding(self, genotype: list, coding: str, missing: str):
         """Internal method to check genotype coding"""
 
+        if not getattr(self, coding):
+            raise SmarterDBException(
+                f"There's no information for '{coding}' in '{self}'")
+
         # get illumina data as an array
         data = getattr(self, coding).split("/")
 
@@ -938,7 +942,7 @@ class VariantSpecies(mongoengine.Document):
     def __str__(self):
         if not self.name and self.affy_snp_id:
             return (
-                f"affy_snp_id='{self.affy_snp_id}', rs_id='{self.rs_id}', " 
+                f"affy_snp_id='{self.affy_snp_id}', rs_id='{self.rs_id}', "
                 f"illumina_top='{self.illumina_top}'")
 
         return (

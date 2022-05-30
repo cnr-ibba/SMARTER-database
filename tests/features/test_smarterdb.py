@@ -367,6 +367,17 @@ class LocationTestCase(VariantMixin, MongoMockMixin, unittest.TestCase):
             ["A", "T"]
         )
 
+    def test_no_information(self):
+        """Get an exception while querying for affymetrix in a illumina
+        record"""
+
+        self.assertRaisesRegex(
+            SmarterDBException,
+            "There's no information for",
+            self.location.is_affymetrix,
+            "T/C"
+        )
+
     def test_is_affy(self):
         for genotype in ["T/C", "T/T", "C/T", "C/C", "0/0"]:
             genotype = genotype.split("/")
