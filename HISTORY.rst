@@ -15,13 +15,12 @@ TODO
 * Release a *smarter* coordinate version with information on every variant defined 
   in database (which will be used as reference)
 * Map affymetrix snps in OARV3 coordinates
-* Have an ``update_breed`` script to add an alias to an existent breed
 * if ``src_dataset`` and ``dst_dataset`` are equals, provide only ``dst_dataset``
   both in *import_samples* and *import_metadata* scripts
 * define a collection for all available *purpose* phenotypes
 
-0.4.5.dev0
-----------
+0.4.5.dev
+---------
 
 * Update requirements
 * Import data from Hungary `#53 <https://github.com/cnr-ibba/SMARTER-database/issues/53>`__
@@ -29,6 +28,11 @@ TODO
 * ``illumina_top`` is an attribute of variant, and is set when the first location
   is loaded. 
 * Check variants data before update `#56 <https://github.com/cnr-ibba/SMARTER-database/issues/56>`__
+* Simplified ``import_affymetrix`` script
+* Import custom affymetrix chip (*Oar_v3.1*)
+* Support *source* and *destination* assemblies when importing from *plink* or
+  *affymetrix* source files
+* Deal with spaces in filenames while importing from plink
 
 0.4.4 (2022-02-28)
 ------------------

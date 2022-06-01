@@ -114,6 +114,10 @@ data: requirements
 	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Mytilini --code MYT --alias MYT --dataset AUTH_OVN50KV2_CHI_BOU_MYT_FRI.zip
 	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Chios --code CHI --alias CHI --dataset AUTH_OVN50KV2_CHI_FRZ.zip
 	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Frizarta --code FRZ --alias FRZ --dataset AUTH_OVN50KV2_CHI_FRZ.zip
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Assaf --code ASF --alias Assaf --dataset SMARTER-500-ASSAF.zip
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Assaf --code ASF --alias Assaf --dataset Castellana.zip
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Castellana --code CAS --alias SMARTER --dataset Castellana.zip
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Churra --code CHU --alias CHURRA --dataset Churra.zip
 
 	## load breeds into database relying on dataset
 	$(PYTHON_INTERPRETER) src/data/import_breeds.py --species Sheep --dataset="High density genotypes of French Sheep populations.zip" \
@@ -174,6 +178,15 @@ data: requirements
 	$(PYTHON_INTERPRETER) src/data/import_samples.py --src_dataset NativesheepBreeds_Hu.zip \
 		--dst_dataset NativesheepBreeds_Hu.zip --datafile NativesheepBreeds_Hu/nativesheeps_hu_fixed.xlsx \
 		--code_column fid --id_column original_id --chip_name IlluminaOvineSNP50 --country_column country
+	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --file SMARTER-500-ASSAF --dataset SMARTER-500-ASSAF.zip \
+		--coding affymetrix --chip_name AffymetrixAxiomBGovisNP --assembly OAR3 --search_field probeset_id --create_samples \
+		--src_version Oar_v3.1 --src_imported_from affymetrix
+	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --file "Castellana/20220131 Ovine" --dataset Castellana.zip \
+		--coding affymetrix --chip_name AffymetrixAxiomBGovisNP --assembly OAR3 --search_field probeset_id --create_samples \
+		--src_version Oar_v3.1 --src_imported_from affymetrix
+	$(PYTHON_INTERPRETER) src/data/import_samples.py --src_dataset Churra_metadata.zip \
+		--dst_dataset Churra.zip --datafile metadata/Churra.xlsx \
+		--code_column fid --id_column original_id --chip_name AffymetrixAxiomBGovisNP --country_column country
 
 	## convert genotypes without creating samples in database (SHEEP)
 	$(PYTHON_INTERPRETER) src/data/import_from_affymetrix.py --file Affymetrix_data_Plate_652_660/Affymetrix_data_Plate_652/Affymetrix_data_Plate_652 \
@@ -195,6 +208,9 @@ data: requirements
 		--dataset AUTH_OVN50KV2_CHI_FRZ.zip --chip_name IlluminaOvineSNP50 --assembly OAR3
 	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --file NativesheepBreeds_Hu/NativeSheepGenotypes \
 		--dataset NativesheepBreeds_Hu.zip --coding forward --chip_name IlluminaOvineSNP50 --assembly OAR3
+	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --file Churra/churra_fixed \
+		--dataset Churra.zip --coding affymetrix --chip_name AffymetrixAxiomBGovisNP --assembly OAR3 \
+		--src_version Oar_v3.1 --src_imported_from affymetrix
 
 	## create samples from custom files or genotypes for GOAT
 	$(PYTHON_INTERPRETER) src/data/import_samples.py --src_dataset ADAPTmap_phenotype_20161201.zip --dst_dataset ADAPTmap_genotypeTOP_20161201.zip \
