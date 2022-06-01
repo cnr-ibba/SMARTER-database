@@ -32,11 +32,11 @@ def get_output_files(reportpath: str, working_dir: Path, assembly: str):
     output_dir.mkdir(exist_ok=True)
 
     # determine map outputfile. get the basename of the prefix
-    output_map = Path(reportpath).stem + "_updated.map"
+    output_map = Path(reportpath).stem + "_updated.map".replace(" ", "_")
     output_map = output_dir / output_map
 
     # creating ped file for writing updated genotypes
-    output_ped = Path(reportpath).stem + "_updated.ped"
+    output_ped = Path(reportpath).stem + "_updated.ped".replace(" ", "_")
     output_ped = output_dir / output_ped
 
     return output_dir, output_map, output_ped

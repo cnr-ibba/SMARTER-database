@@ -36,11 +36,11 @@ def get_output_files(prefix: str, working_dir: Path, assembly: str):
     # determine map outputfile. get the basename of the prefix
     prefix = Path(prefix)
 
-    output_map = f"{prefix.name}_updated.map"
+    output_map = f"{prefix.name}_updated.map".replace(" ", "_")
     output_map = output_dir / output_map
 
     # determine ped outputfile
-    output_ped = f"{prefix.name}_updated.ped"
+    output_ped = f"{prefix.name}_updated.ped".replace(" ", "_")
     output_ped = output_dir / output_ped
 
     return output_dir, output_map, output_ped
