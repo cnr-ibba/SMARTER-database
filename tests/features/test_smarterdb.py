@@ -458,7 +458,7 @@ class VariantSheepTestCase(VariantMixin, MongoMockMixin, unittest.TestCase):
             SmarterDBException,
             "Couldn't determine a unique location for",
             self.variant.get_location,
-            version="Oar_v4.0",
+            version="Oar_v4.1",
             imported_from='SNPchiMp v.3'
         )
 
@@ -469,7 +469,7 @@ class VariantSheepTestCase(VariantMixin, MongoMockMixin, unittest.TestCase):
             SmarterDBException,
             "is not in locations",
             self.variant.get_location_index,
-            version="Oar_v4.0",
+            version="Oar_v4.1",
             imported_from='SNPchiMp v.3'
         )
 

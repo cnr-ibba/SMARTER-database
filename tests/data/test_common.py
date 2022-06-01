@@ -273,7 +273,7 @@ class VariantUpdateTests(VariantsMixin, MongoMockMixin, unittest.TestCase):
         self.assertFalse(updated)
 
         # no location added if the new location is older
-        self.assertEqual(len(record.locations), 2)
+        self.assertEqual(len(record.locations), 3)
 
     def test_update_location_new_location(self):
         """Test a location mismatch with a new location"""
@@ -285,7 +285,7 @@ class VariantUpdateTests(VariantsMixin, MongoMockMixin, unittest.TestCase):
         self.assertTrue(updated)
 
         # now location is updated
-        self.assertEqual(len(record.locations), 2)
+        self.assertEqual(len(record.locations), 3)
 
         location = record.get_location(
             version="Oar_v3.1", imported_from="manifest")

@@ -35,6 +35,18 @@
         "illumina_strand": "bottom",
         "strand": "forward",
         "imported_from": "SNPchiMp v.3"
+      },
+      {
+        "ss_id" : "ss836318713",
+        "version" : "Oar_v4.0",
+        "chrom" : "15",
+        "position" : 5859890,
+        "alleles" : "C/T",
+        "illumina" : "T/C",
+        "illumina_forward" : "T/C",
+        "illumina_strand" : "bottom",
+        "strand" : "forward",
+        "imported_from" : "SNPchiMp v.3"
       }
     ],
     "sender": "AGR_BS",
@@ -77,6 +89,18 @@
         "illumina_strand": "bottom",
         "strand": "forward",
         "imported_from": "SNPchiMp v.3"
+      },
+      {
+        "ss_id" : "ss836318714",
+        "version" : "Oar_v4.0",
+        "chrom" : "23",
+        "position" : 26243215,
+        "alleles" : "C/T",
+        "illumina" : "T/C",
+        "illumina_forward" : "T/C",
+        "illumina_strand" : "bottom",
+        "strand" : "forward",
+        "imported_from" : "SNPchiMp v.3"
       }
     ],
     "sender": "AGR_BS",
@@ -119,6 +143,18 @@
         "illumina_strand": "bottom",
         "strand": "forward",
         "imported_from": "SNPchiMp v.3"
+      },
+      {
+        "ss_id" : "ss836318715",
+        "version" : "Oar_v4.0",
+        "chrom" : "7",
+        "position" : 81590897,
+        "alleles" : "C/T",
+        "illumina" : "T/C",
+        "illumina_forward" : "T/C",
+        "illumina_strand" : "bottom",
+        "strand" : "forward",
+        "imported_from" : "SNPchiMp v.3"
       }
     ],
     "sender": "AGR_BS",
@@ -156,6 +192,14 @@
         "illumina": "A/G",
         "illumina_forward": "A/G",
         "imported_from": "SNPchiMp v.3"
+      },
+      {
+        "version" : "Oar_v4.0",
+        "chrom" : "0",
+        "position" : 0,
+        "illumina" : "A/G",
+        "illumina_forward" : "A/G",
+        "imported_from" : "SNPchiMp v.3"
       }
     ],
     "sender": "AGR_BS",

@@ -24,7 +24,7 @@ from click_option_group import optgroup, RequiredMutuallyExclusiveOptionGroup
 from src.features.plinkio import (
     TextPlinkIO, BinaryPlinkIO, plink_binary_exists)
 from src.features.smarterdb import Dataset, global_connection, SupportedChip
-from src.data.common import WORKING_ASSEMBLIES, PLINK_SPECIES_OPT
+from src.data.common import WORKING_ASSEMBLIES, PLINK_SPECIES_OPT, AssemblyConf
 
 logger = logging.getLogger(__name__)
 
@@ -129,7 +129,7 @@ def deal_with_binary_plink(bfile: str, dataset: Dataset, assembly: str):
 @click.option(
     '--coding',
     type=click.Choice(
-        ['top', 'forward', 'ab'],
+        ['top', 'forward', 'ab', 'affymetrix'],
         case_sensitive=False),
     default="top", show_default=True,
     help="Illumina coding format"
@@ -137,7 +137,22 @@ def deal_with_binary_plink(bfile: str, dataset: Dataset, assembly: str):
 @click.option('--chip_name', type=str, required=True)
 @click.option('--assembly', type=str, required=True)
 @click.option('--create_samples', is_flag=True)
-def main(file_, bfile, dataset, coding, chip_name, assembly, create_samples):
+@click.option(
+    '--search_field',
+    type=str,
+    default="name",
+    show_default=True,
+    help='search variants using this field')
+@click.option(
+    '--src_version',
+    type=str,
+    help="Source assembly version")
+@click.option(
+    '--src_imported_from',
+    type=str,
+    help="Source assembly imported_from")
+def main(file_, bfile, dataset, coding, chip_name, assembly, create_samples,
+         search_field, src_version, src_imported_from):
     """Read sample names from map/ped files and updata smarter database (insert
     a record if necessary and define a smarter id for each sample)
     """
@@ -148,7 +163,15 @@ def main(file_, bfile, dataset, coding, chip_name, assembly, create_samples):
     if assembly not in WORKING_ASSEMBLIES:
         raise Exception(f"assembly {assembly} not managed by smarter")
 
-    src_assembly = WORKING_ASSEMBLIES[assembly]
+    src_assembly, dst_assembly = None, None
+
+    if src_version and src_imported_from:
+        src_assembly = AssemblyConf(src_version, src_imported_from)
+        logger.info(f"Got '{src_assembly} as source assembly'")
+        dst_assembly = WORKING_ASSEMBLIES[assembly]
+
+    else:
+        src_assembly = WORKING_ASSEMBLIES[assembly]
 
     # get the dataset object
     dataset = Dataset.objects(file=dataset).get()
@@ -192,7 +215,9 @@ def main(file_, bfile, dataset, coding, chip_name, assembly, create_samples):
 
     # fetch coordinates relying assembly configuration
     plinkio.fetch_coordinates(
-        src_assembly=src_assembly
+        src_assembly=src_assembly,
+        dst_assembly=dst_assembly,
+        search_field=search_field
     )
 
     logger.info("Writing a new map file with updated coordinates")
