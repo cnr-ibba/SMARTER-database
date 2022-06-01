@@ -920,7 +920,7 @@ class VariantSpecies(mongoengine.Document):
     # Affymetryx specific fields
     # more probe could be assigned to the same SNP
     probeset_id = mongoengine.ListField(mongoengine.StringField())
-    affy_snp_id = mongoengine.StringField()
+    affy_snp_id = mongoengine.StringField(unique=True)
     cust_id = mongoengine.StringField()
 
     # abstract class with custom indexes
@@ -934,8 +934,16 @@ class VariantSpecies(mongoengine.Document):
                     "locations.position"
                 ],
             },
+            {
+                'fields': ["affy_snp_id"],
+                'partialFilterExpression': {
+                    "affy_snp_id": {
+                        "$exists": True
+                    }
+                }
+            },
             'probeset_id',
-            'rs_id'
+            'rs_id',
         ]
     }
 
