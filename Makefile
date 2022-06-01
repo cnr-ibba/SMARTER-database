@@ -177,9 +177,11 @@ data: requirements
 
 	## convert genotypes without creating samples in database (SHEEP)
 	$(PYTHON_INTERPRETER) src/data/import_from_affymetrix.py --file Affymetrix_data_Plate_652_660/Affymetrix_data_Plate_652/Affymetrix_data_Plate_652 \
-		--dataset Affymetrix_data_Plate_652_660.zip --breed_code CRR --chip_name AffymetrixAxiomOviCan --assembly OAR3 --sample_field alias
+		--dataset Affymetrix_data_Plate_652_660.zip --breed_code CRR --chip_name AffymetrixAxiomOviCan --assembly OAR3 --sample_field alias \
+		--src_version Oar_v4.0 --src_imported_from affymetrix
 	$(PYTHON_INTERPRETER) src/data/import_from_affymetrix.py --file Affymetrix_data_Plate_652_660/Affymetrix_data_Plate_660/Affymetrix_data_Plate_660 \
-		--dataset Affymetrix_data_Plate_652_660.zip --breed_code CRR --chip_name AffymetrixAxiomOviCan --assembly OAR3 --sample_field alias
+		--dataset Affymetrix_data_Plate_652_660.zip --breed_code CRR --chip_name AffymetrixAxiomOviCan --assembly OAR3 --sample_field alias \
+		--src_version Oar_v4.0 --src_imported_from affymetrix
 	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --bfile AUTH_OVN50KV2_CHIOS_FRIZARTA/AUTH_OVN50KV2_CHI_FRI \
 		--dataset AUTH_OVN50KV2_CHIOS_FRIZARTA.zip --coding forward --chip_name IlluminaOvineSNP50 --assembly OAR3
 	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --bfile AUTH_OVN50KV2_CHIOS_FRIZARTA_PELAGONIA/AUTH_OVN50KV2_CHIOS_FRIZARTA_PELAGONIA \

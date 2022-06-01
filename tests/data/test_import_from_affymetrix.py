@@ -92,7 +92,11 @@ class TestImportFromAffymetrix(
                     "TEX",
                     "--sample_field",
                     "alias",
-                    "--create_samples"
+                    "--create_samples",
+                    "--src_version",
+                    "Oar_v4.0",
+                    "--src_imported_from",
+                    "affymetrix"
                 ]
             )
 
@@ -163,7 +167,11 @@ class TestImportFromAffymetrix(
                     "TEX",
                     "--sample_field",
                     "alias",
-                    "--create_samples"
+                    "--create_samples",
+                    "--src_version",
+                    "Oar_v4.0",
+                    "--src_imported_from",
+                    "affymetrix"
                 ]
             )
 

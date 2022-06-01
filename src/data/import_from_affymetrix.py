@@ -99,9 +99,25 @@ def deal_with_affymetrix(file_: str, dataset: Dataset, assembly: str):
     default="original_id",
     help="Search samples using this attribute"
 )
+@click.option(
+    '--search_field',
+    type=str,
+    default="probeset_id",
+    show_default=True,
+    help='search variants using this field')
+@click.option(
+    '--src_version',
+    type=str,
+    help="Source assembly version",
+    required=True)
+@click.option(
+    '--src_imported_from',
+    type=str,
+    help="Source assembly imported_from",
+    required=True)
 def main(
-        file_, dataset, breed_code, chip_name, assembly,
-        create_samples, sample_field):
+        file_, dataset, breed_code, chip_name, assembly, create_samples,
+        sample_field, search_field, src_version, src_imported_from):
     """
     Read sample names from map/ped files and updata smarter database (insert
     a record if necessary and define a smarter id for each sample)
@@ -113,9 +129,9 @@ def main(
     if assembly not in WORKING_ASSEMBLIES:
         raise Exception(f"assembly {assembly} not managed by smarter")
 
-    # define src_assembly
-    # TODO: define this relying parameters
-    src_assembly = AssemblyConf('Oar_v4.0', 'affymetrix')
+    # define assemblies
+    src_assembly = AssemblyConf(src_version, src_imported_from)
+    logger.info(f"Got '{src_assembly} as source assembly'")
     dst_assembly = WORKING_ASSEMBLIES[assembly]
 
     # get the dataset object
@@ -157,7 +173,7 @@ def main(
     plinkio.fetch_coordinates(
         src_assembly=src_assembly,
         dst_assembly=dst_assembly,
-        search_field="probeset_id"
+        search_field=search_field
     )
 
     logger.info("Writing a new map file with updated coordinates")
