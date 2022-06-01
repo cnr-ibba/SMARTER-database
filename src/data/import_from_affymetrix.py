@@ -23,7 +23,7 @@ from pathlib import Path
 from src.features.plinkio import (
     AffyPlinkIO, plink_binary_exists)
 from src.features.smarterdb import Dataset, global_connection, SupportedChip
-from src.data.common import WORKING_ASSEMBLIES, PLINK_SPECIES_OPT
+from src.data.common import WORKING_ASSEMBLIES, PLINK_SPECIES_OPT, AssemblyConf
 
 logger = logging.getLogger(__name__)
 
@@ -113,7 +113,10 @@ def main(
     if assembly not in WORKING_ASSEMBLIES:
         raise Exception(f"assembly {assembly} not managed by smarter")
 
-    assembly_conf = WORKING_ASSEMBLIES[assembly]
+    # define src_assembly
+    # TODO: define this relying parameters
+    src_assembly = AssemblyConf('Oar_v4.0', 'affymetrix')
+    dst_assembly = WORKING_ASSEMBLIES[assembly]
 
     # get the dataset object
     dataset = Dataset.objects(file=dataset).get()
@@ -152,35 +155,13 @@ def main(
 
     # fetch coordinates relying assembly configuration. Mind affy probeset_id
     plinkio.fetch_coordinates(
-        version=assembly_conf.version,
-        imported_from=assembly_conf.imported_from,
+        src_assembly=src_assembly,
+        dst_assembly=dst_assembly,
         search_field="probeset_id"
     )
 
     logger.info("Writing a new map file with updated coordinates")
     plinkio.update_mapfile(str(output_map))
-
-    # now track the filtered SNPs in the destination assemply
-    filtered_snps = plinkio.filtered
-
-    logging.info(
-        f"Track {len(filtered_snps)} SNPs to remove from desidered assembly")
-    logging.info(
-        "Reading affymetrix original coordinates to determine"
-        "original genotypes")
-
-    # ok get coordinates again, this time from the original affymetrix system
-    plinkio.fetch_coordinates(
-        version="Oar_v4.0",
-        imported_from="affymetrix",
-        search_field="probeset_id"
-    )
-
-    logging.info("Merging filtered SNPs from both coordinate system")
-
-    # merge the filtered SNPs set with the other set of filtered SNPs of the
-    # desidered assembly
-    plinkio.filtered.update(filtered_snps)
 
     logger.info("Writing a new ped file with fixed genotype (illumina TOP)")
     plinkio.update_pedfile(

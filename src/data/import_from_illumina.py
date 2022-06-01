@@ -74,7 +74,7 @@ def main(
     if assembly not in WORKING_ASSEMBLIES:
         raise Exception(f"assembly {assembly} not managed by smarter")
 
-    assembly_conf = WORKING_ASSEMBLIES[assembly]
+    src_assembly = WORKING_ASSEMBLIES[assembly]
 
     # custom method to check a dataset and ensure that needed stuff exists
     dataset, [snpfilepath, reportpath] = fetch_and_check_dataset(
@@ -119,8 +119,7 @@ def main(
 
     # fetch coordinates relying assembly configuration
     report.fetch_coordinates(
-        version=assembly_conf.version,
-        imported_from=assembly_conf.imported_from
+        src_assembly=src_assembly
     )
 
     logger.info("Writing a new map file with updated coordinates")

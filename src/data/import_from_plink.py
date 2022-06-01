@@ -148,7 +148,7 @@ def main(file_, bfile, dataset, coding, chip_name, assembly, create_samples):
     if assembly not in WORKING_ASSEMBLIES:
         raise Exception(f"assembly {assembly} not managed by smarter")
 
-    assembly_conf = WORKING_ASSEMBLIES[assembly]
+    src_assembly = WORKING_ASSEMBLIES[assembly]
 
     # get the dataset object
     dataset = Dataset.objects(file=dataset).get()
@@ -192,8 +192,7 @@ def main(file_, bfile, dataset, coding, chip_name, assembly, create_samples):
 
     # fetch coordinates relying assembly configuration
     plinkio.fetch_coordinates(
-        version=assembly_conf.version,
-        imported_from=assembly_conf.imported_from
+        src_assembly=src_assembly
     )
 
     logger.info("Writing a new map file with updated coordinates")
