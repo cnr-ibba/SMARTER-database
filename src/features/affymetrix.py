@@ -43,7 +43,7 @@ def skip_comments(handle) -> (int, list):
 
 
 def search_manifactured_date(header: list) -> Union[datetime.datetime, None]:
-    """Grep manifactured date from illumina header
+    """Grep manifactured date from affymetrix header
 
     Args:
         header (list): affymetrix header section
@@ -64,7 +64,7 @@ def search_manifactured_date(header: list) -> Union[datetime.datetime, None]:
         record = records[0].split("=")
         date = parse_date(record[-1], fuzzy=True)
 
-    return date.date()
+    return date
 
 
 def read_Manifest(path: str, delimiter=","):

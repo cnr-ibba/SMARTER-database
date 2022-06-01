@@ -82,7 +82,8 @@ def search_database(record, VariantSpecie):
 
     else:
         # search by affy id
-        qs = VariantSpecie.objects.filter(name=record.affy_snp_id)
+        qs = VariantSpecie.objects.filter(
+            Q(name=record.affy_snp_id) | Q(affy_snp_id=record.affy_snp_id))
 
         if qs.count() == 0:
             logger.debug(f"Can't find a Variant using {record.affy_snp_id}")
