@@ -33,6 +33,9 @@ TODO
 * Support *source* and *destination* assemblies when importing from *plink* or
   *affymetrix* source files
 * Deal with spaces in filenames while importing from plink
+* Add ``affy_snp_id`` primary key
+* Update ``import_affymetrix.py`` script
+* Import data from Spain `#52 <https://github.com/cnr-ibba/SMARTER-database/issues/52>`__
 
 0.4.4 (2022-02-28)
 ------------------
