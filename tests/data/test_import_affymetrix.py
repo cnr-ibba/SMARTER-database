@@ -135,7 +135,6 @@ class UpdateManifestTest(
         """test update illumina data with affymetrix"""
         self.import_data()
 
-        # affychip should report 2 snps
         self.chip.reload()
         self.assertEqual(self.chip.n_of_snps, 3)
 

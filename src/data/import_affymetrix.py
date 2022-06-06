@@ -69,7 +69,7 @@ def search_database(record, VariantSpecie):
         # search for cust_id or affy_snp_id
         # (private Affy SNP with unmatched cust_id)
         qs = VariantSpecie.objects.filter(
-            Q(name=record.cust_id) | Q(name=record.affy_snp_id))
+            Q(name=record.cust_id) | Q(affy_snp_id=record.affy_snp_id))
 
         if qs.count() == 0:
             logger.debug(f"Can't find a Variant using {record.cust_id}")

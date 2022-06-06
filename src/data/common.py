@@ -314,7 +314,8 @@ def update_affymetrix_record(
             if variant_attr and variant_attr not in [record.name, record_attr]:
                 if record_attr:
                     logger.warning(
-                        f"Updating {key}:{variant_attr} with {record_attr}")
+                        f"Updating {key}: '{variant_attr}' with "
+                        f"'{record_attr}'")
 
                 setattr(record, key, variant_attr)
                 updated = True
@@ -323,8 +324,8 @@ def update_affymetrix_record(
             if variant_attr and variant_attr != record_attr:
                 if record_attr:
                     raise SmarterDBException(
-                        f"Error with {key}: {variant_attr} and {record_attr}"
-                        f": 'affy_snp_id' already defined!")
+                        f"Error with {key}: '{variant_attr}' and "
+                        f"'{record_attr}': 'affy_snp_id' already defined!")
 
                 setattr(record, key, variant_attr)
                 updated = True
@@ -366,7 +367,7 @@ def update_location(
                 if old_location.date < location.date:
                     # update location
                     logger.warning(
-                        f"Replacing location for {variant} since is newer")
+                        f"Replacing location for '{variant}' since is newer")
                     variant.locations[index] = location
                     updated = True
 
@@ -400,7 +401,7 @@ def update_rs_id(
     updated = False
 
     if variant.rs_id and variant.rs_id != record.rs_id:
-        logger.warning(f"Update '{record}' with '{variant.rs_id}'")
+        logger.warning(f"Update '{record}' with rs_id: '{variant.rs_id}'")
         record.rs_id = variant.rs_id
         updated = True
 
