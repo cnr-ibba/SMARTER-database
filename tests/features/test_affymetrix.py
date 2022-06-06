@@ -28,13 +28,13 @@ class ReadManifest(unittest.TestCase):
     def test_search_manifactured_date(self):
         data = ['#%create_date=2019-01-17 GMT-08:00 12:04:49']
         test = search_manifactured_date(data)
-        reference = datetime.date(2019, 1, 17)
+        reference = datetime.datetime(2019, 1, 17, 12, 4, 49)
 
         self.assertEqual(reference, test)
 
         data = ['#%create_date=Tue Apr  4 11:40:20 2017']
         test = search_manifactured_date(data)
-        reference = datetime.date(2017, 4, 4)
+        reference = datetime.datetime(2017, 4, 4, 11, 40, 20)
 
         self.assertEqual(reference, test)
 

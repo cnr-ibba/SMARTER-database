@@ -105,7 +105,9 @@ class ImportManifestTest(
         self.assertEqual(location.illumina_top, "A/G")
         self.assertEqual(location.affymetrix_ab, "T/C")
         self.assertEqual(location.alleles, "C/T")
-        self.assertEqual(location.date, datetime.datetime(2019, 1, 17))
+        self.assertEqual(
+            location.date,
+            datetime.datetime(2019, 1, 17, 12, 4, 49))
 
 
 class UpdateManifestTest(

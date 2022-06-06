@@ -920,7 +920,7 @@ class VariantSpecies(mongoengine.Document):
     # Affymetryx specific fields
     # more probe could be assigned to the same SNP
     probeset_id = mongoengine.ListField(mongoengine.StringField())
-    affy_snp_id = mongoengine.StringField(unique=True)
+    affy_snp_id = mongoengine.StringField()
     cust_id = mongoengine.StringField()
 
     # abstract class with custom indexes
