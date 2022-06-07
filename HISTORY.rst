@@ -36,6 +36,7 @@ TODO
 * Add ``affy_snp_id`` primary key
 * Update ``import_affymetrix.py`` script
 * Import data from Spain `#52 <https://github.com/cnr-ibba/SMARTER-database/issues/52>`__
+* Fix 20220503 dataset breed and churra chip name
 
 0.4.4 (2022-02-28)
 ------------------
