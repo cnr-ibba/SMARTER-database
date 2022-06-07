@@ -43,6 +43,8 @@ initialize: requirements
 	$(PYTHON_INTERPRETER) src/data/import_snpchimp.py --species sheep --snpchimp data/external/SHE/SNPCHIMP/SNPchimp_SHE_SNPHDv1_oar3.1.csv.gz --version Oar_v3.1
 	$(PYTHON_INTERPRETER) src/data/import_affymetrix.py --species sheep --manifest data/external/SHE/AFFYMETRIX/Axiom_BGovisNP_ovine_Annotation.r1.csv.gz \
 		--chip_name AffymetrixAxiomBGovisNP --version Oar_v3.1
+	$(PYTHON_INTERPRETER) src/data/import_affymetrix.py --species sheep --manifest data/external/SHE/AFFYMETRIX/Axiom_BGovis2_Annotation.r1.csv.gz \
+		--chip_name AffymetrixAxiomBGovis2 --version Oar_v3.1
 	$(PYTHON_INTERPRETER) src/data/import_consortium.py --species sheep --datafile data/external/SHE/CONSORTIUM/OvineSNP50_B.csv_v3.1_pos_20190513.csv.gz \
 		--version Oar_v3.1
 	$(PYTHON_INTERPRETER) src/data/import_consortium.py --species sheep --datafile data/external/SHE/CONSORTIUM/SheepHD_AgResearch_Cons_15041608_A.csv_v3.1_pos_20190513.csv.gz \

@@ -29,7 +29,7 @@ TODO
   is loaded. 
 * Check variants data before update `#56 <https://github.com/cnr-ibba/SMARTER-database/issues/56>`__
 * Simplified ``import_affymetrix`` script
-* Import custom affymetrix chip (*Oar_v3.1*)
+* Import custom affymetrix chips (*Oar_v3.1*)
 * Support *source* and *destination* assemblies when importing from *plink* or
   *affymetrix* source files
 * Deal with spaces in filenames while importing from plink
