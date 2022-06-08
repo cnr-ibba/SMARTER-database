@@ -854,13 +854,16 @@ class AffyPlinkIOMapTest(VariantsMixin, MongoMockMixin, unittest.TestCase):
     # load a custom fixture for this class
     variant_fixture = "affy_variants.json"
 
+    # custom chip
+    chip_name = "AffymetrixAxiomOviCan"
+
     def setUp(self):
         super().setUp()
 
         self.plinkio = AffyPlinkIO(
             prefix=str(DATA_DIR / "affytest"),
             species="Sheep",
-            chip_name="AffymetrixAxiomOviCan"
+            chip_name=self.chip_name
         )
 
         # source and destination assemblies
@@ -881,7 +884,8 @@ class AffyPlinkIOMapTest(VariantsMixin, MongoMockMixin, unittest.TestCase):
         self.plinkio.fetch_coordinates(
             src_assembly=self.src_assembly,
             dst_assembly=self.dst_assembly,
-            search_field='probeset_id'
+            search_field='probeset_id',
+            chip_name=self.chip_name
         )
 
         self.assertIsInstance(self.plinkio.src_locations, list)
@@ -910,7 +914,8 @@ class AffyPlinkIOMapTest(VariantsMixin, MongoMockMixin, unittest.TestCase):
             self.plinkio.fetch_coordinates(
                 src_assembly=self.src_assembly,
                 dst_assembly=self.dst_assembly,
-                search_field='probeset_id'
+                search_field='probeset_id',
+                chip_name=self.chip_name
             )
             self.plinkio.update_mapfile(str(outfile))
 
@@ -935,6 +940,9 @@ class AffyPlinkIOPedTest(
     # load a custom fixture for this class
     variant_fixture = "affy_variants.json"
 
+    # custom chip
+    chip_name = "AffymetrixAxiomOviCan"
+
     def setUp(self):
         super().setUp()
 
@@ -957,7 +965,8 @@ class AffyPlinkIOPedTest(
         self.plinkio.fetch_coordinates(
             src_assembly=self.src_assembly,
             dst_assembly=self.dst_assembly,
-            search_field='probeset_id'
+            search_field='probeset_id',
+            chip_name=self.chip_name
         )
 
         # read ped files

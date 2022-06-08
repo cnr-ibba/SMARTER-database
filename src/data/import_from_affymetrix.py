@@ -173,7 +173,8 @@ def main(
     plinkio.fetch_coordinates(
         src_assembly=src_assembly,
         dst_assembly=dst_assembly,
-        search_field=search_field
+        search_field=search_field,
+        chip_name=illumina_chip.name
     )
 
     logger.info("Writing a new map file with updated coordinates")

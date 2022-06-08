@@ -30,6 +30,9 @@ class TestImportFromAffymetrix(
     # a different fixture file to load in VariantMixin
     variant_fixture = "affy_variants.json"
 
+    # a custom chip name
+    chip_name = "AffymetrixAxiomOviCan"
+
     @classmethod
     def setUpClass(cls):
         super().setUpClass()

@@ -293,6 +293,8 @@ def update_probesets(
 
     updated = False
 
+    logger.debug(f"Got variant: {variant_attr} and record: {record_attr}")
+
     # get the variant probeset
     variant_probeset = variant_attr[0]
 
@@ -337,8 +339,13 @@ def update_affymetrix_record(
         record_attr = getattr(record, key)
 
         if key == 'probesets' and variant_attr:
-            # this will make an update relying on object references
-            updated = update_probesets(variant_attr, record_attr)
+            if record_attr:
+                # this will make an update relying on object references
+                updated = update_probesets(variant_attr, record_attr)
+            else:
+                # this is when I add a probeset for an Illumina SNP
+                setattr(record, key, variant_attr)
+                updated = True
 
         elif key == 'cust_id':
             # only update cust_id if different from illumina name and
@@ -432,9 +439,18 @@ def update_rs_id(
 
     updated = False
 
-    if variant.rs_id and variant.rs_id != record.rs_id:
-        logger.warning(f"Update '{record}' with rs_id: '{variant.rs_id}'")
-        record.rs_id = variant.rs_id
-        updated = True
+    if variant.rs_id:
+        if not record.rs_id:
+            logger.warning(f"Setting '{variant.rs_id}' to '{record}'")
+            record.rs_id = variant.rs_id
+            updated = True
+
+        elif variant.rs_id[0] not in record.rs_id:
+            logger.warning(f"Appending '{variant.rs_id[0]}' to '{record}'")
+            record.rs_id.append(variant.rs_id[0])
+            updated = True
+
+        else:
+            logger.debug(f"Ignoring '{variant.rs_id[0]}: ({record})'")
 
     return record, updated

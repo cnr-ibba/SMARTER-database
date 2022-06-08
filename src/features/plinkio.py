@@ -312,6 +312,22 @@ class SmarterMixin():
             self.dst_locations.append(None)
             self.variants_name.append(None)
 
+        def make_additional_args(search_field, record, chip_name):
+            if search_field == 'probeset_id':
+                # construct a custom query to find the selected SNP
+                return {
+                    "probesets__match": {
+                        'chip_name': chip_name,
+                        'probeset_id': record.name
+                    }
+                }
+
+            else:
+                return {
+                    search_field: record.name,
+                    "chip_name": chip_name
+                }
+
         # construct the query arguments to search into database
         if dst_assembly:
             query = [Q(locations__match=src_assembly._asdict()) &
@@ -325,10 +341,8 @@ class SmarterMixin():
                 self.mapdata, file=tqdm_out, mininterval=1)):
             try:
                 # additional arguments used in query
-                additional_arguments = {
-                    search_field: record.name,
-                    "chip_name": chip_name
-                }
+                additional_arguments = make_additional_args(
+                    search_field, record, chip_name)
 
                 # remove empty additional arguments if any
                 variant = self.VariantSpecies.objects(

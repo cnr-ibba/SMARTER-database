@@ -18,9 +18,10 @@ from openpyxl import Workbook
 from src.data.common import (
     fetch_and_check_dataset, get_variant_species, get_sample_species,
     pandas_open, update_chip_name, update_sequence, update_affymetrix_record,
-    update_location, update_variant, update_rs_id)
+    update_location, update_variant, update_rs_id, update_probesets)
 from src.features.smarterdb import (
-    Dataset, VariantGoat, VariantSheep, SampleSheep, SampleGoat, Location)
+    Dataset, VariantGoat, VariantSheep, SampleSheep, SampleGoat, Location,
+    Probeset)
 
 from ..common import MongoMockMixin, SmarterIDMixin, VariantsMixin
 
@@ -306,6 +307,26 @@ class VariantUpdateTests(VariantsMixin, MongoMockMixin, unittest.TestCase):
         record, updated = update_rs_id(self.variant, self.record)
         self.assertTrue(updated)
 
+    def test_update_probeset(self):
+        record_attr = [Probeset(chip_name="test", probeset_id=["test"])]
+        variant_attr = [Probeset(chip_name="test2", probeset_id=['test'])]
+
+        # test for the same probe in a different chip
+        updated = update_probesets(variant_attr, record_attr)
+        self.assertTrue(updated)
+        self.assertEqual(len(record_attr), 2)
+        self.assertEqual(len(record_attr[0].probeset_id), 1)
+        self.assertEqual(len(record_attr[1].probeset_id), 1)
+
+        record_attr = [Probeset(chip_name="test", probeset_id=["test"])]
+        variant_attr = [Probeset(chip_name="test", probeset_id=['test2'])]
+
+        # test for a new probeset in the same chip
+        updated = update_probesets(variant_attr, record_attr)
+        self.assertTrue(updated)
+        self.assertEqual(len(record_attr), 1)
+        self.assertEqual(len(record_attr[0].probeset_id), 2)
+
     def test_update_variant_snp_mismatch(self):
         """No update if location.illumina_top is different from
         variant.illumina_top"""
@@ -347,7 +368,8 @@ class VariantUpdateTests(VariantsMixin, MongoMockMixin, unittest.TestCase):
         self.assertFalse(updated)
 
         # add affymetrix attribute
-        self.variant.probeset_id = "test"
+        self.variant.probesets = [
+            Probeset(chip_name="AffymetrixAxiomOviCan", probeset_id=["test"])]
         self.variant.affy_snp_id = "test"
         updated = update_variant(qs, self.variant, self.location)
         self.assertTrue(updated)

@@ -931,7 +931,7 @@ class VariantSpecies(mongoengine.Document):
 
     # Affymetryx specific fields
     probesets = mongoengine.ListField(
-        mongoengine.EmbeddedDocumentField(Probeset))
+        mongoengine.EmbeddedDocumentField(Probeset), default=None)
     affy_snp_id = mongoengine.StringField()
     cust_id = mongoengine.StringField()
 
