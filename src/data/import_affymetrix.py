@@ -159,7 +159,7 @@ def main(species, manifest, chip_name, version):
             rs_id=record.dbsnp_rs_id,
             probeset_id=[record.probe_set_id],
             affy_snp_id=record.affy_snp_id,
-            sequence={'affymetrix': record.flank},
+            sequence={chip_name: record.flank},
             cust_id=record.cust_id,
         )
 

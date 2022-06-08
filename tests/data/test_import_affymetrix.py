@@ -98,7 +98,7 @@ class ImportManifestTest(
         self.assertEqual(test.chip_name, [self.chip_name])
         self.assertEqual(test.probeset_id, ["AX-124359447"])
         self.assertEqual(test.affy_snp_id, "Affx-122835222")
-        self.assertIn('affymetrix', test.sequence)
+        self.assertIn(self.chip_name, test.sequence)
         self.assertEqual(test.cust_id, "250506CS3900176800001_906_01")
         self.assertEqual(location.chrom, "7")
         self.assertEqual(location.position, 81590897)
@@ -152,8 +152,10 @@ class UpdateManifestTest(
         ])
         self.assertEqual(test.probeset_id, ["test", "AX-124359447"])
         self.assertEqual(test.affy_snp_id, "Affx-122835222")
-        self.assertIn('illumina', test.sequence)
-        self.assertIn('affymetrix', test.sequence)
+        self.assertEqual(len(test.sequence), 3)
+        self.assertIn('IlluminaOvineSNP50', test.sequence)
+        self.assertIn('IlluminaOvineHDSNP', test.sequence)
+        self.assertIn(self.chip_name, test.sequence)
         self.assertEqual(test.cust_id, "250506CS3900176800001_906_01")
 
         # test updated location
@@ -170,8 +172,8 @@ class UpdateManifestTest(
         self.assertEqual(test.chip_name, [self.chip_name])
         self.assertEqual(test.probeset_id, ["AX-104088695"])
         self.assertEqual(test.affy_snp_id, "Affx-293815543")
-        self.assertNotIn('illumina', test.sequence)
-        self.assertIn('affymetrix', test.sequence)
+        self.assertEqual(len(test.sequence), 1)
+        self.assertIn(self.chip_name, test.sequence)
         self.assertIsNone(test.cust_id)
 
         # test updated location
