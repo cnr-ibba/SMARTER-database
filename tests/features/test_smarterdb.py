@@ -424,7 +424,7 @@ class VariantSheepTestCase(VariantMixin, MongoMockMixin, unittest.TestCase):
     def test__str(self):
         self.assertEqual(
             str(self.variant),
-            "name='250506CS3900065000002_1238.1', rs_id='rs55630613', "
+            "name='250506CS3900065000002_1238.1', rs_id='['rs55630613']', "
             "illumina_top='A/G'"
         )
 
@@ -481,7 +481,7 @@ class AffyVariantTestCase(VariantMixin, MongoMockMixin, unittest.TestCase):
     def test__str(self):
         self.assertEqual(
             str(self.variant),
-            "name='250506CS3900176800001_906.1', rs_id='rs55630654', "
+            "name='250506CS3900176800001_906.1', rs_id='['rs55630654']', "
             "illumina_top='A/G'"
         )
 
@@ -490,7 +490,7 @@ class AffyVariantTestCase(VariantMixin, MongoMockMixin, unittest.TestCase):
 
         self.assertEqual(
             str(self.variant),
-            "affy_snp_id='Affx-122835222', rs_id='rs55630654', "
+            "affy_snp_id='Affx-122835222', rs_id='['rs55630654']', "
             "illumina_top='A/G'"
         )
 

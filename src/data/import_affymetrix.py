@@ -154,9 +154,14 @@ def main(species, manifest, chip_name, version):
             date=record.date,
         )
 
+        rs_id = None
+
+        if record.dbsnp_rs_id:
+            rs_id = [record.dbsnp_rs_id]
+
         variant = VariantSpecie(
             chip_name=[chip_name],
-            rs_id=record.dbsnp_rs_id,
+            rs_id=rs_id,
             probesets=[
                 Probeset(
                     chip_name=chip_name,

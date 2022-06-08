@@ -441,12 +441,12 @@ def update_rs_id(
 
     if variant.rs_id:
         if not record.rs_id:
-            logger.warning(f"Setting '{variant.rs_id}' to '{record}'")
+            logger.debug(f"Setting '{variant.rs_id}' to '{record}'")
             record.rs_id = variant.rs_id
             updated = True
 
         elif variant.rs_id[0] not in record.rs_id:
-            logger.warning(f"Appending '{variant.rs_id[0]}' to '{record}'")
+            logger.debug(f"Appending '{variant.rs_id[0]}' to '{record}'")
             record.rs_id.append(variant.rs_id[0])
             updated = True
 

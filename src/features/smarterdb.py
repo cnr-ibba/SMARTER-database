@@ -912,7 +912,7 @@ class Probeset(mongoengine.EmbeddedDocument):
 
 
 class VariantSpecies(mongoengine.Document):
-    rs_id = mongoengine.StringField()
+    rs_id = mongoengine.ListField(mongoengine.StringField(), default=None)
     chip_name = mongoengine.ListField(mongoengine.StringField())
 
     name = mongoengine.StringField(unique=True)

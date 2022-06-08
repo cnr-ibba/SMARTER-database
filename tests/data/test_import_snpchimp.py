@@ -81,7 +81,7 @@ class ImportSNPChimpTest(VariantsMixin, MongoMockMixin, unittest.TestCase):
         self.assertEqual(location.chrom, "15")
         self.assertEqual(location.position, 5859890)
         self.assertEqual(location.illumina_top, "A/G")
-        self.assertEqual(self.variant.rs_id, "rs55630613")
+        self.assertEqual(self.variant.rs_id, ["rs55630613"])
 
     def test_import_snpchimp_clean_chrom(self):
         self.import_data()

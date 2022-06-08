@@ -38,7 +38,7 @@
       }
     ],
     "sender": "AGR_BS",
-    "rs_id": "rs55630613"
+    "rs_id": ["rs55630613"]
   },
   {
     "_id": {
@@ -81,7 +81,7 @@
       }
     ],
     "sender": "AGR_BS",
-    "rs_id": "rs55630642"
+    "rs_id": ["rs55630642"]
   },
   {
     "_id": {
@@ -140,7 +140,7 @@
       }
     ],
     "sender": "AGR_BS",
-    "rs_id": "rs55630654",
+    "rs_id": ["rs55630654"],
     "probesets": [{
       "chip_name": "AffymetrixAxiomOviCan",
       "probeset_id": [
