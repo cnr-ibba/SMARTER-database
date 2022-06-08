@@ -387,10 +387,10 @@ class LocationTestCase(VariantMixin, MongoMockMixin, unittest.TestCase):
                 msg=f"{genotype} is not in affymetrix coordinates!"
             )
 
-        # is not in not if contains an allele not in top format
+        # this is false, for example with top coding
         for genotype in ["A/A", "A/G", "G/A", "G/G"]:
             self.assertFalse(
-                self.location.is_forward(genotype),
+                self.affy_location.is_affymetrix(genotype),
                 msg=f"{genotype} is in affymetrix coordinates!"
             )
 
@@ -472,6 +472,39 @@ class VariantSheepTestCase(VariantMixin, MongoMockMixin, unittest.TestCase):
             version="Oar_v4.1",
             imported_from='SNPchiMp v.3'
         )
+
+
+class AffyVariantTestCase(VariantMixin, MongoMockMixin, unittest.TestCase):
+    def setUp(self):
+        self.variant = VariantSheep.from_json(json.dumps(self.affy_data))
+
+    def test__str(self):
+        self.assertEqual(
+            str(self.variant),
+            "name='250506CS3900176800001_906.1', rs_id='rs55630654', "
+            "illumina_top='A/G'"
+        )
+
+        # with no name, str representation has affy_id
+        self.variant.name = None
+
+        self.assertEqual(
+            str(self.variant),
+            "affy_snp_id='Affx-122835222', rs_id='rs55630654', "
+            "illumina_top='A/G'"
+        )
+
+        # with no name, str representation has affy_id
+        self.variant.name = None
+
+    def test_probesets(self):
+        probeset = next(
+            filter(
+                lambda probeset: probeset.chip_name == 'AffymetrixAxiomOviCan',
+                self.variant.probesets
+            )
+        )
+        self.assertIn('AX-124359447', probeset.probeset_id)
 
 
 class GetSmarterIdTestCase(SmarterIDMixin, MongoMockMixin, unittest.TestCase):

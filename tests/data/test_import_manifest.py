@@ -40,7 +40,7 @@ class ManifestMixin():
             ]
         )
 
-        self.assertEqual(0, result.exit_code, msg=result.exception)
+        self.assertEqual(0, result.exit_code, msg=result.exc_info)
 
 
 class ImportManifestTest(

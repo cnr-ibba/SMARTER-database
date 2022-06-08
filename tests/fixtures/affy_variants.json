@@ -141,9 +141,12 @@
     ],
     "sender": "AGR_BS",
     "rs_id": "rs55630654",
-    "probeset_id": [
-      "AX-124359447"
-    ],
+    "probesets": [{
+      "chip_name": "AffymetrixAxiomOviCan",
+      "probeset_id": [
+        "AX-124359447"
+      ]
+    }],
     "affy_snp_id": "Affx-122835222",
     "cust_id": "250506CS3900176800001_906_01"
   },
@@ -151,9 +154,9 @@
     "_id": {
       "$oid": "60c8c3a8334e2c735342ebca"
     },
-    "chip_name": [                                                                                                                                              
-      "IlluminaOvineSNP50",                                                                                                                                     
-      "AffymetrixAxiomOviCan"                                                                                                                                   
+    "chip_name": [
+      "IlluminaOvineSNP50",
+      "AffymetrixAxiomOviCan"
     ],
     "name": "250506CS3900435700001_1658.1",
     "sequence": {
@@ -197,9 +200,12 @@
       }
     ],
     "sender": "AGR_BS",
-    "probeset_id": [
-      "AX-124372958"
-    ],
+    "probesets": [{
+      "chip_name": "AffymetrixAxiomOviCan",
+      "probeset_id": [
+        "AX-124372958"
+      ]
+    }],
     "affy_snp_id": "Affx-122818990",
     "cust_id": "250506CS3900435700001_1658_01"
   },
@@ -230,9 +236,12 @@
         }
       }
     ],
-    "probeset_id": [
-      "AX-106736140"
-    ],
+    "probesets": [{
+      "chip_name": "AffymetrixAxiomOviCan",
+      "probeset_id": [
+        "AX-106736140"
+      ]
+    }],
     "affy_snp_id": "Affx-139959201"
   }
 ]

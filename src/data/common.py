@@ -20,7 +20,7 @@ import pandas as pd
 
 from src.features.smarterdb import (
     Dataset, VariantGoat, VariantSheep, SampleSheep, SampleGoat, Location,
-    SmarterDBException)
+    Probeset, SmarterDBException)
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -285,6 +285,46 @@ def update_sequence(
     return record, updated
 
 
+def update_probesets(
+        variant_attr: list[Probeset],
+        record_attr: list[Probeset]
+        ) -> bool:
+    """Update probeset relying on object references"""
+
+    updated = False
+
+    # get the variant probeset
+    variant_probeset = variant_attr[0]
+
+    # now, try to get the variant probesed for the same chip
+    record_probesets = list(
+        filter(
+            lambda probeset: probeset.chip_name == variant_probeset.chip_name,
+            record_attr)
+    )
+
+    if not record_probesets:
+        # I don't have this probeset_id for this chip
+        record_attr.append(variant_probeset)
+        updated = True
+
+    else:
+        # get the first item
+        record_probeset = record_probesets[0]
+        record_set = set(record_probeset.probeset_id)
+        variant_set = set(variant_probeset.probeset_id)
+
+        # get new items as a difference of two sets
+        new_probeset_ids = variant_set - record_set
+
+        if len(new_probeset_ids) > 0:
+            # this will append the resulting set as a list
+            record_probeset.probeset_id += list(new_probeset_ids)
+            updated = True
+
+    return updated
+
+
 def update_affymetrix_record(
         variant: Union[VariantSheep, VariantGoat],
         record: Union[VariantSheep, VariantGoat]
@@ -292,21 +332,13 @@ def update_affymetrix_record(
 
     updated = False
 
-    for key in ['probeset_id', 'affy_snp_id', 'cust_id']:
+    for key in ['probesets', 'affy_snp_id', 'cust_id']:
         variant_attr = getattr(variant, key)
         record_attr = getattr(record, key)
 
-        if key == 'probeset_id':
-            variant_set = set(variant_attr)
-            record_set = set(record_attr)
-
-            # get new items as a difference of two sets
-            new_probeset_ids = variant_set - record_set
-
-            if len(new_probeset_ids) > 0:
-                # this will append the resulting set as a list
-                record.probeset_id += list(new_probeset_ids)
-                updated = True
+        if key == 'probesets' and variant_attr:
+            # this will make an update relying on object references
+            updated = update_probesets(variant_attr, record_attr)
 
         elif key == 'cust_id':
             # only update cust_id if different from illumina name and

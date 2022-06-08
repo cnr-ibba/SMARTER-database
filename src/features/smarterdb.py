@@ -899,6 +899,18 @@ class Location(mongoengine.EmbeddedDocument):
         return result
 
 
+class Probeset(mongoengine.EmbeddedDocument):
+    chip_name = mongoengine.StringField(required=True)
+
+    # more probe could be assigned to the same SNP
+    probeset_id = mongoengine.ListField(mongoengine.StringField())
+
+    def __str__(self):
+        return (
+            f"{self.chip_name}: {self.probeset_id}"
+        )
+
+
 class VariantSpecies(mongoengine.Document):
     rs_id = mongoengine.StringField()
     chip_name = mongoengine.ListField(mongoengine.StringField())
@@ -918,8 +930,8 @@ class VariantSpecies(mongoengine.Document):
     sender = mongoengine.StringField()
 
     # Affymetryx specific fields
-    # more probe could be assigned to the same SNP
-    probeset_id = mongoengine.ListField(mongoengine.StringField())
+    probesets = mongoengine.ListField(
+        mongoengine.EmbeddedDocumentField(Probeset))
     affy_snp_id = mongoengine.StringField()
     cust_id = mongoengine.StringField()
 
@@ -942,7 +954,7 @@ class VariantSpecies(mongoengine.Document):
                     }
                 }
             },
-            'probeset_id',
+            "probesets.probeset_id",
             'rs_id',
         ]
     }

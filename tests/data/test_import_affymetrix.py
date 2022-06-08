@@ -15,7 +15,7 @@ from click.testing import CliRunner
 from src.data.import_affymetrix import (
     main as import_affymetrix, search_database)
 from src.features.affymetrix import read_Manifest
-from src.features.smarterdb import VariantSheep, SupportedChip
+from src.features.smarterdb import VariantSheep, SupportedChip, Probeset
 
 from ..common import MongoMockMixin, VariantsMixin, SupportedChipMixin
 
@@ -96,7 +96,16 @@ class ImportManifestTest(
         # test inserted fields for first object
         self.assertEqual(test.name, "Affx-122835222")
         self.assertEqual(test.chip_name, [self.chip_name])
-        self.assertEqual(test.probeset_id, ["AX-124359447"])
+
+        # test probeset
+        probeset = next(
+            filter(
+                lambda probeset: probeset.chip_name == 'AffymetrixAxiomOviCan',
+                test.probesets
+            )
+        )
+        self.assertIn('AX-124359447', probeset.probeset_id)
+
         self.assertEqual(test.affy_snp_id, "Affx-122835222")
         self.assertIn(self.chip_name, test.sequence)
         self.assertEqual(test.cust_id, "250506CS3900176800001_906_01")
@@ -128,7 +137,8 @@ class UpdateManifestTest(
 
         # assign a fake probeset id to a variant. Test updating list
         variant = VariantSheep.objects.get(name="250506CS3900176800001_906.1")
-        variant.probeset_id = ["test"]
+        variant.probesets = [
+            Probeset(chip_name='AffymetrixAxiomOviCan', probeset_id=["test"])]
         variant.save()
 
     def test_import_manifest(self):
@@ -150,7 +160,17 @@ class UpdateManifestTest(
             "IlluminaOvineHDSNP",
             self.chip_name
         ])
-        self.assertEqual(test.probeset_id, ["test", "AX-124359447"])
+
+        # test probeset
+        probeset = next(
+            filter(
+                lambda probeset: probeset.chip_name == 'AffymetrixAxiomOviCan',
+                test.probesets
+            )
+        )
+        self.assertIn('test', probeset.probeset_id)
+        self.assertIn('AX-124359447', probeset.probeset_id)
+
         self.assertEqual(test.affy_snp_id, "Affx-122835222")
         self.assertEqual(len(test.sequence), 3)
         self.assertIn('IlluminaOvineSNP50', test.sequence)
@@ -158,7 +178,7 @@ class UpdateManifestTest(
         self.assertIn(self.chip_name, test.sequence)
         self.assertEqual(test.cust_id, "250506CS3900176800001_906_01")
 
-        # test updated location
+        # test an updated location
         location = test.get_location(
             version="Oar_v3.1",
             imported_from="affymetrix")
@@ -170,7 +190,16 @@ class UpdateManifestTest(
 
         self.assertEqual(test.name, "Affx-293815543")
         self.assertEqual(test.chip_name, [self.chip_name])
-        self.assertEqual(test.probeset_id, ["AX-104088695"])
+
+        # test probeset
+        probeset = next(
+            filter(
+                lambda probeset: probeset.chip_name == 'AffymetrixAxiomOviCan',
+                test.probesets
+            )
+        )
+        self.assertIn('AX-104088695', probeset.probeset_id)
+
         self.assertEqual(test.affy_snp_id, "Affx-293815543")
         self.assertEqual(len(test.sequence), 1)
         self.assertIn(self.chip_name, test.sequence)

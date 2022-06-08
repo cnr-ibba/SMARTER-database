@@ -14,7 +14,7 @@ from mongoengine.queryset import Q
 
 from src.features.illumina import IlluSNP, IlluSNPException
 from src.features.smarterdb import (
-    global_connection, SupportedChip, Location, SmarterDBException)
+    global_connection, SupportedChip, Location, Probeset, SmarterDBException)
 from src.features.affymetrix import read_Manifest
 from src.data.common import get_variant_species, update_variant, new_variant
 
@@ -157,7 +157,11 @@ def main(species, manifest, chip_name, version):
         variant = VariantSpecie(
             chip_name=[chip_name],
             rs_id=record.dbsnp_rs_id,
-            probeset_id=[record.probe_set_id],
+            probesets=[
+                Probeset(
+                    chip_name=chip_name,
+                    probeset_id=[record.probe_set_id]
+                )],
             affy_snp_id=record.affy_snp_id,
             sequence={chip_name: record.flank},
             cust_id=record.cust_id,
