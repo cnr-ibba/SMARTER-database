@@ -12,12 +12,13 @@ TODO
 * Rename objects (use names in a consistent way)
 * Generate output files for *OARV4* and *CHIR1*
 * Check coordinates with sheep and goat genome projects
-* Release a *smarter* coordinate version with information on every variant defined 
+* Release a *smarter* coordinate version with information on every variant defined
   in database (which will be used as reference)
 * Map affymetrix snps in OARV3 coordinates
 * if ``src_dataset`` and ``dst_dataset`` are equals, provide only ``dst_dataset``
   both in *import_samples* and *import_metadata* scripts
 * define a collection for all available *purpose* phenotypes
+* Check if ``rs_id`` is still valid or not (with EVA)
 
 0.4.5.dev
 ---------
@@ -26,7 +27,7 @@ TODO
 * Import data from Hungary `#53 <https://github.com/cnr-ibba/SMARTER-database/issues/53>`__
 * Create a new sample when having the same ``original_id`` in dataset but for a different breed
 * ``illumina_top`` is an attribute of variant, and is set when the first location
-  is loaded. 
+  is loaded.
 * Check variants data before update `#56 <https://github.com/cnr-ibba/SMARTER-database/issues/56>`__
 * Simplified ``import_affymetrix`` script
 * Import custom affymetrix chips (*Oar_v3.1*)
@@ -37,6 +38,13 @@ TODO
 * Update ``import_affymetrix.py`` script
 * Import data from Spain `#52 <https://github.com/cnr-ibba/SMARTER-database/issues/52>`__
 * Fix 20220503 dataset breed and churra chip name
+* Track manifest probe ``sequence``s by ``chip_name``
+* Track ``probeset_id`` by ``chip_name``
+* Search for affymetrix ``probeset_id`` in the proper ``chip_name`` while importing
+  samples
+* Track multiple ``rs_id``
+* Fetch *churra* coordinates by ``rs_id`` and ``probeset_id`` and filter out unmanaged
+  SNPs
 
 0.4.4 (2022-02-28)
 ------------------

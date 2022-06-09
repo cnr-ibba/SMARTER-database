@@ -119,7 +119,8 @@ def main(
 
     # fetch coordinates relying assembly configuration
     report.fetch_coordinates(
-        src_assembly=src_assembly
+        src_assembly=src_assembly,
+        chip_name=illumina_chip.name
     )
 
     logger.info("Writing a new map file with updated coordinates")

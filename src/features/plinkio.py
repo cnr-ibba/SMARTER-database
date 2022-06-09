@@ -387,7 +387,7 @@ class SmarterMixin():
             self.dst_locations = self.src_locations
 
         logger.debug(
-            f"collected {len(self.dst_locations)} with '{query}'"
+            f"collected {len(self.dst_locations)} with '{query}' "
             f"using '{additional_arguments}'")
 
     def _to_top(
