@@ -280,6 +280,53 @@ class SmarterMixin():
 
         return sample
 
+    # helper function
+    def skip_index(self, idx):
+        """Skip a certain SNP reling on its position"""
+
+        # skip this variant (even in ped)
+        self.filtered.add(idx)
+
+        # need to add an empty value in locations (or my indexes
+        # won't work properly). The same for variants name
+        self.src_locations.append(None)
+        self.dst_locations.append(None)
+        self.variants_name.append(None)
+
+    def make_query_args(
+            self, src_assembly: AssemblyConf, dst_assembly: AssemblyConf):
+        """Generate args to select variants from database"""
+
+        query = []
+
+        # construct the query arguments to search into database
+        if dst_assembly:
+            query = [Q(locations__match=src_assembly._asdict()) &
+                     Q(locations__match=dst_assembly._asdict())]
+        else:
+            query = [Q(locations__match=src_assembly._asdict())]
+
+        return query
+
+    def make_query_kwargs(
+            self, search_field: str, record: MapRecord, chip_name: str):
+        """Generate kwargs to select variants from database"""
+
+        if search_field == 'probeset_id':
+            # construct a custom query to find the selected SNP
+            return {
+                "probesets__match": {
+                    'chip_name': chip_name,
+                    'probeset_id': record.name
+                }
+            }
+
+        else:
+            return {
+                search_field: record.name,
+                "chip_name": chip_name
+            }
+
     def fetch_coordinates(
             self,
             src_assembly: AssemblyConf,
@@ -301,39 +348,8 @@ class SmarterMixin():
         self.filtered = set()
         self.variants_name = list()
 
-        # helper function
-        def skip_index(idx):
-            # skip this variant (even in ped)
-            self.filtered.add(idx)
-
-            # need to add an empty value in locations (or my indexes
-            # won't work properly). The same for variants name
-            self.src_locations.append(None)
-            self.dst_locations.append(None)
-            self.variants_name.append(None)
-
-        def make_additional_args(search_field, record, chip_name):
-            if search_field == 'probeset_id':
-                # construct a custom query to find the selected SNP
-                return {
-                    "probesets__match": {
-                        'chip_name': chip_name,
-                        'probeset_id': record.name
-                    }
-                }
-
-            else:
-                return {
-                    search_field: record.name,
-                    "chip_name": chip_name
-                }
-
-        # construct the query arguments to search into database
-        if dst_assembly:
-            query = [Q(locations__match=src_assembly._asdict()) &
-                     Q(locations__match=dst_assembly._asdict())]
-        else:
-            query = [Q(locations__match=src_assembly._asdict())]
+        # get the query arguments relying on assemblies
+        query = self.make_query_args(src_assembly, dst_assembly)
 
         tqdm_out = TqdmToLogger(logger, level=logging.INFO)
 
@@ -341,7 +357,7 @@ class SmarterMixin():
                 self.mapdata, file=tqdm_out, mininterval=1)):
             try:
                 # additional arguments used in query
-                additional_arguments = make_additional_args(
+                additional_arguments = self.make_query_kwargs(
                     search_field, record, chip_name)
 
                 # remove empty additional arguments if any
@@ -355,7 +371,7 @@ class SmarterMixin():
                     f"Couldn't find '{record.name}' with '{query}'"
                     f"using '{additional_arguments}': {e}")
 
-                skip_index(idx)
+                self.skip_index(idx)
 
                 # don't check location for missing SNP
                 continue
@@ -365,7 +381,7 @@ class SmarterMixin():
                     f"Got multiple {record.name} with '{query}'"
                     f"using '{additional_arguments}': {e}")
 
-                skip_index(idx)
+                self.skip_index(idx)
 
                 # don't check location for missing SNP
                 continue
