@@ -126,12 +126,12 @@ data: requirements
 	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Ojalada --code OJA --alias Assaf --dataset 20220503_Ovine.zip
 
 	## load breeds into database relying on dataset
-	$(PYTHON_INTERPRETER) src/data/import_breeds.py --species Sheep --dataset="High density genotypes of French Sheep populations.zip" \
+	$(PYTHON_INTERPRETER) src/data/import_breeds.py --species Sheep --src_dataset="High density genotypes of French Sheep populations.zip" \
 		--datafile Populations_infos_fix.xlsx --code_column Code --breed_column "Population Name"
-	$(PYTHON_INTERPRETER) src/data/import_breeds.py --species Sheep --dataset=ovine_SNP50HapMap_data.zip \
+	$(PYTHON_INTERPRETER) src/data/import_breeds.py --species Sheep --src_dataset=ovine_SNP50HapMap_data.zip \
 		--datafile ovine_SNP50HapMap_data/kijas2012_dataset_fix.xlsx --code_column code --breed_column Breed \
 		--fid_column Breed --country_column country
-	$(PYTHON_INTERPRETER) src/data/import_breeds.py --species Goat --dataset ADAPTmap_genotypeTOP_20161201.zip \
+	$(PYTHON_INTERPRETER) src/data/import_breeds.py --species Goat --src_dataset ADAPTmap_genotypeTOP_20161201.zip \
 		--datafile ADAPTmap_genotypeTOP_20161201/ADAPTmap_Breeds_20161201_fix.csv --breed_column Breed_fullname --code_column Breed_code
 	$(PYTHON_INTERPRETER) src/data/import_breeds.py --species Sheep --src_dataset Nativesheep_Hu_metadata.zip --dst_dataset NativesheepBreeds_Hu.zip \
 		--datafile nativesheeps_hu_fixed.xlsx --breed_column breed --code_column code --fid_column fid --country_column country
