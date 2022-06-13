@@ -15,8 +15,6 @@ TODO
 * Release a *smarter* coordinate version with information on every variant defined
   in database (which will be used as reference)
 * Map affymetrix snps in OARV3 coordinates
-* if ``src_dataset`` and ``dst_dataset`` are equals, provide only ``dst_dataset``
-  both in *import_samples* and *import_metadata* scripts
 * define a collection for all available *purpose* phenotypes
 * Check if ``rs_id`` is still valid or not (with EVA)
 
@@ -45,6 +43,7 @@ TODO
 * Track multiple ``rs_id``
 * Fetch *churra* coordinates by ``rs_id`` and ``probeset_id`` and filter out unmanaged
   SNPs
+* If ``src_dataset`` and ``dst_dataset`` are equals, provide only ``src_dataset``
 
 0.4.4 (2022-02-28)
 ------------------

@@ -153,7 +153,7 @@ data: requirements
 		--dataset "High density genotypes of French Sheep populations.zip" --chip_name IlluminaOvineHDSNP --assembly OAR3 --create_samples
 	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --file ovine_SNP50HapMap_data/SNP50_Breedv1/SNP50_Breedv1 \
 		--dataset ovine_SNP50HapMap_data.zip --chip_name IlluminaOvineSNP50 --assembly OAR3 --create_samples
-	$(PYTHON_INTERPRETER) src/data/import_samples.py --src_dataset Affymetrix_data_Plate_652_660.zip --dst_dataset Affymetrix_data_Plate_652_660.zip \
+	$(PYTHON_INTERPRETER) src/data/import_samples.py --src_dataset Affymetrix_data_Plate_652_660.zip \
 		--datafile Affymetrix_data_Plate_652_660/Uruguay_Corriedale_ID_GenotypedAnimals_fix.xlsx --code_all CRR --id_column "Sample Name" \
 		--chip_name AffymetrixAxiomOviCan --country_all Uruguay --alias_column "Sample Filename"
 	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --bfile SMARTER_OVIS_FRANCE \
@@ -182,7 +182,7 @@ data: requirements
 		--datafile greece_foreground_sheep/AUTH_OVN50KV2_CHI_FRZ.xlsx \
 		--code_column breed_code --id_column sample_name --chip_name IlluminaOvineSNP50 --country_column Country
 	$(PYTHON_INTERPRETER) src/data/import_samples.py --src_dataset NativesheepBreeds_Hu.zip \
-		--dst_dataset NativesheepBreeds_Hu.zip --datafile NativesheepBreeds_Hu/nativesheeps_hu_fixed.xlsx \
+		--datafile NativesheepBreeds_Hu/nativesheeps_hu_fixed.xlsx \
 		--code_column fid --id_column original_id --chip_name IlluminaOvineSNP50 --country_column country
 	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --file SMARTER-500-ASSAF --dataset SMARTER-500-ASSAF.zip \
 		--coding affymetrix --chip_name AffymetrixAxiomBGovisNP --assembly OAR3 --search_field probeset_id --create_samples \
@@ -249,12 +249,10 @@ data: requirements
 
 	## add additional metadata to samples
 	$(PYTHON_INTERPRETER) src/data/import_metadata.py --src_dataset "High density genotypes of French Sheep populations.zip" \
-		--dst_dataset "High density genotypes of French Sheep populations.zip" \
 		--datafile Populations_infos_fix.xlsx --breed_column "Population Name" \
 		--latitude_column Latitude --longitude_column Longitude --metadata_column Link \
 		--metadata_column POP_GROUP_CODE --metadata_column POP_GROUP_NAME
 	$(PYTHON_INTERPRETER) src/data/import_metadata.py --src_dataset=ovine_SNP50HapMap_data.zip \
-		--dst_dataset=ovine_SNP50HapMap_data.zip \
 		--datafile ovine_SNP50HapMap_data/kijas2012_dataset_fix.xlsx --breed_column Breed \
 		--latitude_column latitude --longitude_column longitude --metadata_column "Location/source" \
 		--metadata_column Remark
@@ -298,7 +296,6 @@ data: requirements
 		--latitude_column Latitude --longitude_column Longitude --metadata_column Region \
 		--metadata_column "Farm Coding" --metadata_column Note
 	$(PYTHON_INTERPRETER) src/data/import_metadata.py --src_dataset NativesheepBreeds_Hu.zip \
-		--dst_dataset NativesheepBreeds_Hu.zip \
 		--datafile NativesheepBreeds_Hu/nativesheeps_hu_fixed.xlsx --id_column original_id \
 		--latitude_column latitude --longitude_column longitude
 

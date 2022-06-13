@@ -22,7 +22,7 @@ from click_option_group import optgroup, RequiredMutuallyExclusiveOptionGroup
 import pycountry
 
 from src.data.common import (
-    fetch_and_check_dataset, pandas_open, get_sample_species)
+    deal_with_datasets, pandas_open, get_sample_species)
 from src.features.smarterdb import (
     global_connection, Breed, get_or_create_sample, SEX, get_sample_type)
 
@@ -104,17 +104,8 @@ def main(
         alias_column):
     logger.info(f"{Path(__file__).name} started")
 
-    # custom method to check a dataset and ensure that needed stuff exists
-    src_dataset, [datapath] = fetch_and_check_dataset(
-        archive=src_dataset,
-        contents=[datafile]
-    )
-
-    # this will be the dataset used to define samples
-    dst_dataset, _ = fetch_and_check_dataset(
-        archive=dst_dataset,
-        contents=[]
-    )
+    src_dataset, dst_dataset, datapath = deal_with_datasets(
+        src_dataset, dst_dataset, datafile)
 
     # mind dataset species
     SampleSpecie = get_sample_species(dst_dataset.species)

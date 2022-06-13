@@ -98,6 +98,32 @@ def fetch_and_check_dataset(
     return dataset, contents_path
 
 
+def deal_with_datasets(
+        src_dataset: str,
+        dst_dataset: str,
+        datafile: str) -> [Dataset, Dataset, Path]:
+    """Check source and destination dataset with its content"""
+
+    # custom method to check a dataset and ensure that needed stuff exists
+    src_dataset, [datapath] = fetch_and_check_dataset(
+        archive=src_dataset,
+        contents=[datafile]
+    )
+
+    if not dst_dataset:
+        # destination is the same of origin, if not provided
+        dst_dataset = src_dataset
+
+    else:
+        # this will be the dataset used to define samples
+        dst_dataset, _ = fetch_and_check_dataset(
+            archive=dst_dataset,
+            contents=[]
+        )
+
+    return src_dataset, dst_dataset, datapath
+
+
 def get_variant_species(species: str) -> Union[VariantSheep, VariantGoat]:
     """Get a species name in input. It return the proper VariantSpecies class
 

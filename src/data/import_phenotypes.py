@@ -15,7 +15,7 @@ import pandas as pd
 
 from src.features.smarterdb import global_connection, Dataset, Phenotype, Breed
 from src.data.common import (
-    fetch_and_check_dataset, pandas_open, get_sample_species)
+    deal_with_datasets, pandas_open, get_sample_species)
 from src.features.utils import sanitize
 
 logger = logging.getLogger(__name__)
@@ -222,17 +222,8 @@ def main(src_dataset, dst_dataset, datafile, sheet_name, breed_column,
     if additional_column:
         logger.debug(f"Got {additional_column} as additional phenotype")
 
-    # custom method to check a dataset and ensure that needed stuff exists
-    src_dataset, [datapath] = fetch_and_check_dataset(
-        archive=src_dataset,
-        contents=[datafile]
-    )
-
-    # this will be the dataset used to define samples
-    dst_dataset, _ = fetch_and_check_dataset(
-        archive=dst_dataset,
-        contents=[]
-    )
+    src_dataset, dst_dataset, datapath = deal_with_datasets(
+        src_dataset, dst_dataset, datafile)
 
     if sheet_name and sheet_name.isnumeric():
         sheet_name = int(sheet_name)
