@@ -133,8 +133,8 @@ data: requirements
 		--fid_column Breed --country_column country
 	$(PYTHON_INTERPRETER) src/data/import_breeds.py --species Goat --dataset ADAPTmap_genotypeTOP_20161201.zip \
 		--datafile ADAPTmap_genotypeTOP_20161201/ADAPTmap_Breeds_20161201_fix.csv --breed_column Breed_fullname --code_column Breed_code
-	$(PYTHON_INTERPRETER) src/data/import_breeds.py --species Sheep --dataset NativesheepBreeds_Hu.zip \
-		--datafile NativesheepBreeds_Hu/nativesheeps_hu_fixed.xlsx --breed_column breed --code_column code --fid_column fid --country_column country
+	$(PYTHON_INTERPRETER) src/data/import_breeds.py --species Sheep --src_dataset Nativesheep_Hu_metadata.zip --dst_dataset NativesheepBreeds_Hu.zip \
+		--datafile nativesheeps_hu_fixed.xlsx --breed_column breed --code_column code --fid_column fid --country_column country
 
 	## create SHEEP samples from raw data files or from XLS (orders matter)
 	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --file TEXEL_UY --dataset TEXEL_INIA_UY.zip --chip_name IlluminaOvineSNP50 \
@@ -181,8 +181,8 @@ data: requirements
 		--dst_dataset AUTH_OVN50KV2_CHI_FRZ.zip \
 		--datafile greece_foreground_sheep/AUTH_OVN50KV2_CHI_FRZ.xlsx \
 		--code_column breed_code --id_column sample_name --chip_name IlluminaOvineSNP50 --country_column Country
-	$(PYTHON_INTERPRETER) src/data/import_samples.py --src_dataset NativesheepBreeds_Hu.zip \
-		--datafile NativesheepBreeds_Hu/nativesheeps_hu_fixed.xlsx \
+	$(PYTHON_INTERPRETER) src/data/import_samples.py --src_dataset Nativesheep_Hu_metadata.zip \
+		--dst_dataset NativesheepBreeds_Hu.zip --datafile nativesheeps_hu_fixed.xlsx \
 		--code_column fid --id_column original_id --chip_name IlluminaOvineSNP50 --country_column country
 	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --file SMARTER-500-ASSAF --dataset SMARTER-500-ASSAF.zip \
 		--coding affymetrix --chip_name AffymetrixAxiomBGovisNP --assembly OAR3 --search_field probeset_id --create_samples \
@@ -295,8 +295,8 @@ data: requirements
 		--datafile greece_foreground_sheep/AUTH_OVN50KV2_CHI_FRZ.xlsx --id_column sample_name \
 		--latitude_column Latitude --longitude_column Longitude --metadata_column Region \
 		--metadata_column "Farm Coding" --metadata_column Note
-	$(PYTHON_INTERPRETER) src/data/import_metadata.py --src_dataset NativesheepBreeds_Hu.zip \
-		--datafile NativesheepBreeds_Hu/nativesheeps_hu_fixed.xlsx --id_column original_id \
+	$(PYTHON_INTERPRETER) src/data/import_metadata.py --src_dataset Nativesheep_Hu_metadata.zip \
+		--dst_dataset NativesheepBreeds_Hu.zip --datafile nativesheeps_hu_fixed.xlsx --id_column original_id \
 		--latitude_column latitude --longitude_column longitude
 
 	## add phenotypes to samples

@@ -86,7 +86,7 @@ class AddBreedTest(BreedMixin, MongoMockMixin, unittest.TestCase):
             ]
         )
 
-        self.assertEqual(0, result.exit_code)
+        self.assertEqual(0, result.exit_code, msg=result.exc_info)
 
         qs = Breed.objects()
         self.assertEqual(qs.count(), 1)
@@ -137,7 +137,7 @@ class ImportBreedsTest(BreedMixin, MongoMockMixin, unittest.TestCase):
                 [
                     "--species",
                     "sheep",
-                    "--dataset",
+                    "--src_dataset",
                     "test.zip",
                     "--datafile",
                     "breed.xlsx",
@@ -173,7 +173,7 @@ class ImportBreedsTest(BreedMixin, MongoMockMixin, unittest.TestCase):
                 [
                     "--species",
                     "sheep",
-                    "--dataset",
+                    "--src_dataset",
                     "test.zip",
                     "--datafile",
                     "breed.xlsx",
@@ -212,7 +212,7 @@ class ImportBreedsTest(BreedMixin, MongoMockMixin, unittest.TestCase):
                 [
                     "--species",
                     "sheep",
-                    "--dataset",
+                    "--src_dataset",
                     "test.zip",
                     "--datafile",
                     "breed.xlsx",

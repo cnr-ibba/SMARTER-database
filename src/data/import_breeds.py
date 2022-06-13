@@ -17,7 +17,7 @@ from mongoengine.errors import NotUniqueError
 from src.features.smarterdb import (
     global_connection, get_or_create_breed, SmarterDBException,
     BreedAlias)
-from src.data.common import fetch_and_check_dataset, pandas_open
+from src.data.common import deal_with_datasets, pandas_open
 
 logger = logging.getLogger(__name__)
 
@@ -25,23 +25,25 @@ logger = logging.getLogger(__name__)
 @click.command()
 @click.option('--species', type=str, required=True)
 @click.option(
-    '--dataset', type=str, required=True,
-    help="The raw dataset file name (zip archive)"
+    '--src_dataset', type=str, required=True,
+    help="The raw dataset file name (zip archive) in which search datafile"
+)
+@click.option(
+    '--dst_dataset', type=str, required=False,
+    help=("The raw dataset file name (zip archive) in which define breeds"
+          "(def. the 'src_dataset'")
 )
 @click.option('--datafile', type=str, required=True)
 @click.option('--code_column', type=str, default="code")
 @click.option('--breed_column', type=str, default="breed")
 @click.option('--fid_column', type=str)
 @click.option('--country_column', type=str)
-def main(species, dataset, datafile, code_column, breed_column, fid_column,
-         country_column):
+def main(species, src_dataset, dst_dataset, datafile, code_column,
+         breed_column, fid_column, country_column):
     logger.info(f"{Path(__file__).name} started")
 
-    # custom method to check a dataset and ensure that needed stuff exists
-    dataset, [datapath] = fetch_and_check_dataset(
-        archive=dataset,
-        contents=[datafile]
-    )
+    src_dataset, dst_dataset, datapath = deal_with_datasets(
+        src_dataset, dst_dataset, datafile)
 
     # read breed into data
     data = pandas_open(datapath)
@@ -69,7 +71,7 @@ def main(species, dataset, datafile, code_column, breed_column, fid_column,
 
         # need to define also an alias in order to retrieve such breed when
         # dealing with original file
-        alias = BreedAlias(fid=fid, dataset=dataset, country=country)
+        alias = BreedAlias(fid=fid, dataset=dst_dataset, country=country)
 
         try:
             breed, modified = get_or_create_breed(
