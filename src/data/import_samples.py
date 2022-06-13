@@ -56,8 +56,9 @@ def find_country(country: str):
     help="The raw dataset file name (zip archive) in which search datafile"
 )
 @click.option(
-    '--dst_dataset', type=str, required=True,
-    help="The raw dataset file name (zip archive) in which define samples"
+    '--dst_dataset', type=str, required=False,
+    help=("The raw dataset file name (zip archive) in which define samples"
+          "(def. the 'src_dataset')")
 )
 @click.option('--datafile', type=str, required=True)
 @optgroup.group(

@@ -31,7 +31,7 @@ logger = logging.getLogger(__name__)
 @click.option(
     '--dst_dataset', type=str, required=False,
     help=("The raw dataset file name (zip archive) in which define breeds"
-          "(def. the 'src_dataset'")
+          "(def. the 'src_dataset')")
 )
 @click.option('--datafile', type=str, required=True)
 @click.option('--code_column', type=str, default="code")

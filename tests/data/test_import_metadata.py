@@ -122,7 +122,6 @@ class MetaDataMixin(SmarterIDMixin, SupportedChipMixin, MongoMockMixin):
                 'type': 'MultiPoint',
                 'coordinates': [[9.18951, 45.46427]]
             }
-        
         )
 
     def check_sample2_locations(self):
@@ -130,7 +129,7 @@ class MetaDataMixin(SmarterIDMixin, SupportedChipMixin, MongoMockMixin):
         self.assertEqual(
             self.sample2.locations,
             {
-                'type': 'MultiPoint', 
+                'type': 'MultiPoint',
                 'coordinates': [[9.18951, 45.46427], [10.18951, 46.46427]]
             }
         )

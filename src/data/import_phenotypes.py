@@ -193,8 +193,9 @@ def add_phenotype_by_alias(
     help="The raw dataset file name (zip archive) in which search datafile"
 )
 @click.option(
-    '--dst_dataset', type=str, required=True,
-    help="The raw dataset file name (zip archive) in which add metadata"
+    '--dst_dataset', type=str, required=False,
+    help=("The raw dataset file name (zip archive) in which add metadata"
+          "(def. the 'src_dataset')")
 )
 @click.option('--datafile', type=str, required=True)
 @click.option('--sheet_name',
