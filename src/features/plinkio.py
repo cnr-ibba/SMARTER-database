@@ -8,16 +8,17 @@ Created on Fri Apr  9 15:58:40 2021
 Try to model data operations on plink files
 """
 
-import io
 import re
 import csv
 import logging
 
 from pathlib import Path
+from collections import namedtuple
 from dataclasses import dataclass
 
 from tqdm import tqdm
 from mongoengine.errors import DoesNotExist, MultipleObjectsReturned
+from mongoengine.queryset import Q
 from plinkio import plinkfile
 
 from .snpchimp import clean_chrom
@@ -27,9 +28,11 @@ from .smarterdb import (
 from .utils import TqdmToLogger
 from .illumina import read_snpList, read_illuminaRow
 
-
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
+
+# a generic class to deal with assemblies
+AssemblyConf = namedtuple('AssemblyConf', ['version', 'imported_from'])
 
 
 class CodingException(Exception):
@@ -57,22 +60,15 @@ class MapRecord():
         self.cm = float(self.cm)
 
 
-def get_reader(handle: io.TextIOWrapper):
-    logger.debug(f"Reading '{handle.name}' content")
-
-    sniffer = csv.Sniffer()
-    dialect = sniffer.sniff(handle.read(2048))
-    handle.seek(0)
-    return csv.reader(handle, dialect=dialect)
-
-
 class SmarterMixin():
     """Common features of a Smarter related dataset file"""
 
     _species = None
     mapdata = list()
-    locations = list()
+    src_locations = list()
+    dst_locations = list()
     filtered = set()
+    variants_name = list()
     VariantSpecies = None
     SampleSpecies = None
     chip_name = None
@@ -145,7 +141,7 @@ class SmarterMixin():
                     continue
 
                 # get a location relying on indexes
-                location = self.locations[idx]
+                location = self.dst_locations[idx]
 
                 # get the tracked variant name relying on indexes
                 variant_name = self.variants_name[idx]
@@ -284,40 +280,76 @@ class SmarterMixin():
 
         return sample
 
+    # helper function
+    def skip_index(self, idx):
+        """Skip a certain SNP reling on its position"""
+
+        # skip this variant (even in ped)
+        self.filtered.add(idx)
+
+        # need to add an empty value in locations (or my indexes
+        # won't work properly). The same for variants name
+        self.src_locations.append(None)
+        self.dst_locations.append(None)
+        self.variants_name.append(None)
+
+    def make_query_args(
+            self, src_assembly: AssemblyConf, dst_assembly: AssemblyConf):
+        """Generate args to select variants from database"""
+
+        query = []
+
+        # construct the query arguments to search into database
+        if dst_assembly:
+            query = [Q(locations__match=src_assembly._asdict()) &
+                     Q(locations__match=dst_assembly._asdict())]
+        else:
+            query = [Q(locations__match=src_assembly._asdict())]
+
+        return query
+
+    def make_query_kwargs(
+            self, search_field: str, record: MapRecord, chip_name: str):
+        """Generate kwargs to select variants from database"""
+
+        if search_field == 'probeset_id':
+            # construct a custom query to find the selected SNP
+            return {
+                "probesets__match": {
+                    'chip_name': chip_name,
+                    'probeset_id': record.name
+                }
+            }
+
+        else:
+            return {
+                search_field: record.name,
+                "chip_name": chip_name
+            }
+
     def fetch_coordinates(
-            self, version: str, imported_from: str,
+            self,
+            src_assembly: AssemblyConf,
+            dst_assembly: AssemblyConf = None,
             search_field: str = "name",
             chip_name: str = None):
         """Search for variants in smarter database
 
         Args:
-            version (str): the Location.version attribute
-            imported_from (str): the Location.imported_from attribute
+            src_assembly (AssemblyConf): the source data assembly version
+            dst_assembly (AssemblyConf): the destination data assembly version
             search_field (str): search variant by field (def. "name")
             chip_name (str): limit search to this chip_name
         """
 
         # reset meta informations
-        self.locations = list()
+        self.src_locations = list()
+        self.dst_locations = list()
         self.filtered = set()
         self.variants_name = list()
 
-        # helper function
-        def skip_index(idx):
-            # skip this variant (even in ped)
-            self.filtered.add(idx)
-
-            # need to add an empty value in locations (or my indexes
-            # won't work properly). The same for variants name
-            self.locations.append(None)
-            self.variants_name.append(None)
-
-        # this is required to search with the desidered coordinate system
-        # relying on mongodb elemMatch and projection
-        coordinate_system = {
-            "imported_from": imported_from,
-            "version": version
-        }
+        # get the query arguments relying on assemblies
+        query = self.make_query_args(src_assembly, dst_assembly)
 
         tqdm_out = TqdmToLogger(logger, level=logging.INFO)
 
@@ -325,56 +357,54 @@ class SmarterMixin():
                 self.mapdata, file=tqdm_out, mininterval=1)):
             try:
                 # additional arguments used in query
-                additional_arguments = {
-                    search_field: record.name,
-                    "chip_name": chip_name
-                }
+                additional_arguments = self.make_query_kwargs(
+                    search_field, record, chip_name)
 
-                # TODO: remember to project illumina_top if it become
-                # a VariantSpecies attribute
                 # remove empty additional arguments if any
                 variant = self.VariantSpecies.objects(
-                    locations__match=coordinate_system,
+                    *query,
                     **{k: v for k, v in additional_arguments.items() if v}
-                ).fields(
-                    elemMatch__locations=coordinate_system,
-                    name=1,
-                    rs_id=1
                 ).get()
 
             except DoesNotExist as e:
                 logger.warning(
-                    f"Couldn't find {record.name} in {coordinate_system}"
-                    f" assembly: {e}")
+                    f"Couldn't find '{record.name}' with '{query}'"
+                    f"using '{additional_arguments}': {e}")
 
-                skip_index(idx)
+                self.skip_index(idx)
 
                 # don't check location for missing SNP
                 continue
 
             except MultipleObjectsReturned as e:
                 logger.warning(
-                    f"Got multiple {record.name} in {coordinate_system}"
-                    f" assembly: {e}")
+                    f"Got multiple {record.name} with '{query}'"
+                    f"using '{additional_arguments}': {e}")
 
-                skip_index(idx)
+                self.skip_index(idx)
 
                 # don't check location for missing SNP
                 continue
 
-            # using projection I will have only one location if I could
-            # find a SNP
-            location = variant.locations[0]
+            # get the proper locations and track it
+            src_location = variant.get_location(**src_assembly._asdict())
+            self.src_locations.append(src_location)
 
-            # track data for this location
-            self.locations.append(location)
+            if dst_assembly:
+                dst_location = variant.get_location(**dst_assembly._asdict())
+                self.dst_locations.append(dst_location)
 
             # track variant.name read from database (useful when searching
             # using probeset_id)
             self.variants_name.append(variant.name)
 
+        # for simplicity
+        if not dst_assembly:
+            self.dst_locations = self.src_locations
+
         logger.debug(
-            f"collected {len(self.locations)} in '{version}' coordinates")
+            f"collected {len(self.dst_locations)} with '{query}' "
+            f"using '{additional_arguments}'")
 
     def _to_top(
             self, index: int, genotype: list, coding: str,
@@ -495,7 +525,7 @@ class SmarterMixin():
                 continue
 
             # get the proper position
-            location = self.locations[i]
+            location = self.src_locations[i]
 
             # check and return illumina top genotype
             top_genotype = self._to_top(i, genotype, coding, location)
@@ -686,26 +716,6 @@ class TextPlinkIO(SmarterMixin):
         """Read map data and track informations in memory. Useful to process
         data files"""
 
-        with open(self.mapfile) as handle:
-            reader = get_reader(handle)
-            self.mapdata = [MapRecord(*record) for record in reader]
-
-    def read_pedfile(self, *args, **kwargs):
-        """Open pedfile for reading return iterator"""
-
-        with open(self.pedfile) as handle:
-            reader = get_reader(handle)
-            for line in reader:
-                yield line
-
-
-# a new class for affymetrix plink files, which are slightly different from
-# plink text files
-class AffyPlinkIO(TextPlinkIO):
-    def read_mapfile(self):
-        """Read map data and track informations in memory. Useful to process
-        data files"""
-
         self.mapdata = []
 
         with open(self.mapfile) as handle:
@@ -717,6 +727,25 @@ class AffyPlinkIO(TextPlinkIO):
                 if not record[0].startswith("#"):
                     self.mapdata.append(MapRecord(*record))
 
+    def read_pedfile(self, *args, **kwargs):
+        """Open pedfile for reading return iterator"""
+
+        with open(self.pedfile) as handle:
+            # affy files has both " " and "\t" in their files
+            for record in handle:
+                # affy data may have comments in files
+                if record.startswith("#"):
+                    logger.info(f"Skipping {record}")
+                    continue
+
+                line = re.split('[ \t]+', record.strip())
+
+                yield line
+
+
+# a new class for affymetrix plink files, which are slightly different from
+# plink text files
+class AffyPlinkIO(TextPlinkIO):
     def get_breed(self, fid, *args, **kwargs):
         """Override the default get_breed method"""
 

@@ -199,11 +199,12 @@ class VariantsMixin():
 
 
 class SupportedChipMixin():
+    chip_name = "IlluminaOvineSNP50"
+
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
 
-        cls.chip_name = "IlluminaOvineSNP50"
         cls.chip = SupportedChip(name=cls.chip_name, species="Sheep")
         cls.chip.save()
 

@@ -17,7 +17,7 @@ from src.features.smarterdb import (
     VariantGoat)
 from src.features.plinkio import (
     TextPlinkIO, MapRecord, CodingException, IlluminaReportIO, BinaryPlinkIO,
-    AffyPlinkIO)
+    AffyPlinkIO, AssemblyConf)
 
 from ..common import (
     MongoMockMixin, SmarterIDMixin, VariantsMixin, SupportedChipMixin)
@@ -33,6 +33,9 @@ class TextPlinkIOMap(VariantsMixin, MongoMockMixin, unittest.TestCase):
         self.plinkio = TextPlinkIO(
             prefix=str(DATA_DIR / "plinktest"),
             species="Sheep")
+
+        self.src_assembly = AssemblyConf(
+            version="Oar_v3.1", imported_from="SNPchiMp v.3")
 
     def test_sheep_species(self):
         self.assertEqual(self.plinkio.VariantSpecies, VariantSheep)
@@ -63,10 +66,12 @@ class TextPlinkIOMap(VariantsMixin, MongoMockMixin, unittest.TestCase):
     def test_fetch_coordinates(self):
         self.plinkio.read_mapfile()
         self.plinkio.fetch_coordinates(
-            version="Oar_v3.1", imported_from="SNPchiMp v.3")
+            src_assembly=self.src_assembly)
 
-        self.assertIsInstance(self.plinkio.locations, list)
-        self.assertEqual(len(self.plinkio.locations), 4)
+        self.assertIsInstance(self.plinkio.src_locations, list)
+        self.assertEqual(len(self.plinkio.src_locations), 4)
+        self.assertIsInstance(self.plinkio.dst_locations, list)
+        self.assertEqual(len(self.plinkio.dst_locations), 4)
 
         self.assertIsInstance(self.plinkio.filtered, set)
         self.assertEqual(len(self.plinkio.filtered), 1)
@@ -74,7 +79,7 @@ class TextPlinkIOMap(VariantsMixin, MongoMockMixin, unittest.TestCase):
         # assert filtered items
         self.assertIn(3, self.plinkio.filtered)
 
-        for idx, record in enumerate(self.plinkio.locations):
+        for idx, record in enumerate(self.plinkio.dst_locations):
             if idx in self.plinkio.filtered:
                 self.assertIsNone(record)
             else:
@@ -85,8 +90,7 @@ class TextPlinkIOMap(VariantsMixin, MongoMockMixin, unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmpdirname:
             outfile = pathlib.Path(tmpdirname) / "plinktest_updated.map"
             self.plinkio.read_mapfile()
-            self.plinkio.fetch_coordinates(
-                version="Oar_v3.1", imported_from="SNPchiMp v.3")
+            self.plinkio.fetch_coordinates(src_assembly=self.src_assembly)
             self.plinkio.update_mapfile(str(outfile))
 
             # now open outputfile and test stuff
@@ -117,16 +121,18 @@ class TextPlinkIOMapRSID(VariantsMixin, MongoMockMixin, unittest.TestCase):
             pedfile=str(DATA_DIR / "plinktest.ped"),
             species="Sheep")
 
+        self.src_assembly = AssemblyConf(
+            version="Oar_v3.1", imported_from="SNPchiMp v.3")
+
     def test_fetch_coordinates_by_rs_id(self):
         self.plinkio.read_mapfile()
         self.plinkio.fetch_coordinates(
-            version="Oar_v3.1",
-            imported_from="SNPchiMp v.3",
+            src_assembly=self.src_assembly,
             search_field='rs_id'
         )
 
-        self.assertIsInstance(self.plinkio.locations, list)
-        self.assertEqual(len(self.plinkio.locations), 4)
+        self.assertIsInstance(self.plinkio.dst_locations, list)
+        self.assertEqual(len(self.plinkio.dst_locations), 4)
 
         self.assertIsInstance(self.plinkio.filtered, set)
         self.assertEqual(len(self.plinkio.filtered), 2)
@@ -135,7 +141,7 @@ class TextPlinkIOMapRSID(VariantsMixin, MongoMockMixin, unittest.TestCase):
         self.assertIn(0, self.plinkio.filtered)
         self.assertIn(3, self.plinkio.filtered)
 
-        for idx, record in enumerate(self.plinkio.locations):
+        for idx, record in enumerate(self.plinkio.dst_locations):
             if idx in self.plinkio.filtered:
                 self.assertIsNone(record)
             else:
@@ -152,10 +158,12 @@ class TextPlinkIOPed(
             prefix=str(DATA_DIR / "plinktest"),
             species="Sheep")
 
+        self.src_assembly = AssemblyConf(
+            version="Oar_v3.1", imported_from="SNPchiMp v.3")
+
         # read info from map
         self.plinkio.read_mapfile()
-        self.plinkio.fetch_coordinates(
-            version="Oar_v3.1", imported_from="SNPchiMp v.3")
+        self.plinkio.fetch_coordinates(src_assembly=self.src_assembly)
 
         # read first line of ped file
         self.lines = list(self.plinkio.read_pedfile())
@@ -651,10 +659,12 @@ class BinaryPlinkIOTest(
             prefix=str(DATA_DIR / "plinktest"),
             species="Sheep")
 
+        self.src_assembly = AssemblyConf(
+            version="Oar_v3.1", imported_from="SNPchiMp v.3")
+
         # read info from map
         self.plinkio.read_mapfile()
-        self.plinkio.fetch_coordinates(
-            version="Oar_v3.1", imported_from="SNPchiMp v.3")
+        self.plinkio.fetch_coordinates(src_assembly=self.src_assembly)
 
         # read first line of ped file
         self.lines = list(self.plinkio.read_pedfile())
@@ -701,6 +711,9 @@ class IlluminaReportIOMap(VariantsMixin, MongoMockMixin, unittest.TestCase):
 
         self.plinkio.read_snpfile()
 
+        self.src_assembly = AssemblyConf(
+            version="Oar_v3.1", imported_from="SNPchiMp v.3")
+
     def test_read_snpfile(self):
         self.assertIsInstance(self.plinkio.mapdata, list)
         self.assertEqual(len(self.plinkio.mapdata), 2)
@@ -708,16 +721,17 @@ class IlluminaReportIOMap(VariantsMixin, MongoMockMixin, unittest.TestCase):
             self.assertIsInstance(record, tuple)
 
     def test_fetch_coordinates(self):
-        self.plinkio.fetch_coordinates(
-            version="Oar_v3.1", imported_from="SNPchiMp v.3")
+        self.plinkio.fetch_coordinates(src_assembly=self.src_assembly)
 
-        self.assertIsInstance(self.plinkio.locations, list)
-        self.assertEqual(len(self.plinkio.locations), 2)
+        self.assertIsInstance(self.plinkio.src_locations, list)
+        self.assertEqual(len(self.plinkio.src_locations), 2)
+        self.assertIsInstance(self.plinkio.dst_locations, list)
+        self.assertEqual(len(self.plinkio.dst_locations), 2)
 
         self.assertIsInstance(self.plinkio.filtered, set)
         self.assertEqual(len(self.plinkio.filtered), 0)
 
-        for idx, record in enumerate(self.plinkio.locations):
+        for idx, record in enumerate(self.plinkio.dst_locations):
             self.assertIsInstance(record, Location)
 
     def test_update_mapfile(self):
@@ -726,8 +740,7 @@ class IlluminaReportIOMap(VariantsMixin, MongoMockMixin, unittest.TestCase):
             # this is the temporary output file
             outfile = pathlib.Path(tmpdirname) / "plinktest_updated.map"
 
-            self.plinkio.fetch_coordinates(
-                version="Oar_v3.1", imported_from="SNPchiMp v.3")
+            self.plinkio.fetch_coordinates(src_assembly=self.src_assembly)
             self.plinkio.update_mapfile(str(outfile))
 
             # now open outputfile and test stuff
@@ -760,10 +773,12 @@ class IlluminaReportIOPed(
             report=str(DATA_DIR / "finalreport.txt"),
             species="Sheep")
 
+        self.src_assembly = AssemblyConf(
+            version="Oar_v3.1", imported_from="SNPchiMp v.3")
+
         # read info from map
         self.plinkio.read_snpfile()
-        self.plinkio.fetch_coordinates(
-            version="Oar_v3.1", imported_from="SNPchiMp v.3")
+        self.plinkio.fetch_coordinates(src_assembly=self.src_assembly)
 
         # read first line of ped file
         self.lines = list(self.plinkio.read_reportfile(fid="TEX"))
@@ -839,14 +854,23 @@ class AffyPlinkIOMapTest(VariantsMixin, MongoMockMixin, unittest.TestCase):
     # load a custom fixture for this class
     variant_fixture = "affy_variants.json"
 
+    # custom chip
+    chip_name = "AffymetrixAxiomOviCan"
+
     def setUp(self):
         super().setUp()
 
         self.plinkio = AffyPlinkIO(
             prefix=str(DATA_DIR / "affytest"),
             species="Sheep",
-            chip_name="AffymetrixAxiomOviCan"
+            chip_name=self.chip_name
         )
+
+        # source and destination assemblies
+        self.src_assembly = AssemblyConf(
+            version="Oar_v4.0", imported_from="affymetrix")
+        self.dst_assembly = AssemblyConf(
+            version="Oar_v3.1", imported_from="SNPchiMp v.3")
 
     def test_read_mapfile(self):
         self.plinkio.read_mapfile()
@@ -858,13 +882,16 @@ class AffyPlinkIOMapTest(VariantsMixin, MongoMockMixin, unittest.TestCase):
     def test_fetch_coordinates(self):
         self.plinkio.read_mapfile()
         self.plinkio.fetch_coordinates(
-            version="Oar_v3.1",
-            imported_from="SNPchiMp v.3",
-            search_field='probeset_id'
+            src_assembly=self.src_assembly,
+            dst_assembly=self.dst_assembly,
+            search_field='probeset_id',
+            chip_name=self.chip_name
         )
 
-        self.assertIsInstance(self.plinkio.locations, list)
-        self.assertEqual(len(self.plinkio.locations), 4)
+        self.assertIsInstance(self.plinkio.src_locations, list)
+        self.assertEqual(len(self.plinkio.src_locations), 4)
+        self.assertIsInstance(self.plinkio.dst_locations, list)
+        self.assertEqual(len(self.plinkio.dst_locations), 4)
 
         self.assertIsInstance(self.plinkio.filtered, set)
         self.assertEqual(len(self.plinkio.filtered), 2)
@@ -873,7 +900,7 @@ class AffyPlinkIOMapTest(VariantsMixin, MongoMockMixin, unittest.TestCase):
         self.assertIn(2, self.plinkio.filtered)
         self.assertIn(3, self.plinkio.filtered)
 
-        for idx, record in enumerate(self.plinkio.locations):
+        for idx, record in enumerate(self.plinkio.dst_locations):
             if idx in self.plinkio.filtered:
                 self.assertIsNone(record)
             else:
@@ -885,9 +912,10 @@ class AffyPlinkIOMapTest(VariantsMixin, MongoMockMixin, unittest.TestCase):
             outfile = pathlib.Path(tmpdirname) / "affytest_updated.map"
             self.plinkio.read_mapfile()
             self.plinkio.fetch_coordinates(
-                version="Oar_v3.1",
-                imported_from="SNPchiMp v.3",
-                search_field='probeset_id'
+                src_assembly=self.src_assembly,
+                dst_assembly=self.dst_assembly,
+                search_field='probeset_id',
+                chip_name=self.chip_name
             )
             self.plinkio.update_mapfile(str(outfile))
 
@@ -912,6 +940,9 @@ class AffyPlinkIOPedTest(
     # load a custom fixture for this class
     variant_fixture = "affy_variants.json"
 
+    # custom chip
+    chip_name = "AffymetrixAxiomOviCan"
+
     def setUp(self):
         super().setUp()
 
@@ -924,26 +955,19 @@ class AffyPlinkIOPedTest(
         # read info from map
         self.plinkio.read_mapfile()
 
-        # need to read the destination coordinates once, to determine which
-        # SNPs don't have a position on the destination assembly
+        # source and destination assemblies
+        self.src_assembly = AssemblyConf(
+            version="Oar_v4.0", imported_from="affymetrix")
+        self.dst_assembly = AssemblyConf(
+            version="Oar_v3.1", imported_from="SNPchiMp v.3")
+
+        # collect info for source and destination assemblies
         self.plinkio.fetch_coordinates(
-            version="Oar_v3.1",
-            imported_from="SNPchiMp v.3",
-            search_field='probeset_id'
+            src_assembly=self.src_assembly,
+            dst_assembly=self.dst_assembly,
+            search_field='probeset_id',
+            chip_name=self.chip_name
         )
-
-        # need to track filtered SNPs
-        self.filtered_snps = self.plinkio.filtered
-
-        # now read the original coordinates
-        self.plinkio.fetch_coordinates(
-            version="Oar_v4.0",
-            imported_from="affymetrix",
-            search_field='probeset_id'
-        )
-
-        # then updated the filtered SNPs using the desiderate coordinate sys
-        self.plinkio.filtered.update(self.filtered_snps)
 
         # read ped files
         self.lines = list(self.plinkio.read_pedfile(fid="TEX"))

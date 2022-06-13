@@ -26,11 +26,15 @@ class ReadManifest(unittest.TestCase):
             self.assertEqual(len(skipped), 20)
 
     def test_search_manifactured_date(self):
-        with open(self.data_path) as handle:
-            position, skipped = skip_comments(handle)
-            test = search_manifactured_date(skipped)
+        data = ['#%create_date=2019-01-17 GMT-08:00 12:04:49']
+        test = search_manifactured_date(data)
+        reference = datetime.datetime(2019, 1, 17, 12, 4, 49)
 
-        reference = datetime.datetime(2019, 1, 17)
+        self.assertEqual(reference, test)
+
+        data = ['#%create_date=Tue Apr  4 11:40:20 2017']
+        test = search_manifactured_date(data)
+        reference = datetime.datetime(2017, 4, 4, 11, 40, 20)
 
         self.assertEqual(reference, test)
 

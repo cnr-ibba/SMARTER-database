@@ -14,7 +14,7 @@ from mongoengine.errors import DoesNotExist
 from src.features.snpchimp import read_snpChimp
 from src.features.smarterdb import (
     Location, global_connection)
-from src.data.common import get_variant_species, update_location
+from src.data.common import get_variant_species, update_location, update_rs_id
 
 logger = logging.getLogger(__name__)
 
@@ -55,13 +55,23 @@ def main(species, snpchimp, version):
             )
 
             # Should I update a location or not?
+            update_variant = False
+
             variant, updated = update_location(location, variant)
 
-            if snpchimp.rs and snpchimp.rs != variant.rs_id:
-                variant.rs_id = snpchimp.rs
-                updated = True
-
             if updated:
+                update_variant = True
+
+            if snpchimp.rs:
+                variant, updated = update_rs_id(
+                    # create a fake variant with rs_id to use this method
+                    VariantSpecie(rs_id=[snpchimp.rs]),
+                    variant)
+
+                if updated:
+                    update_variant = True
+
+            if update_variant:
                 # update variant with snpchimp data
                 variant.save()
 

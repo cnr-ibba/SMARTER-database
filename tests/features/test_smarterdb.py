@@ -367,6 +367,17 @@ class LocationTestCase(VariantMixin, MongoMockMixin, unittest.TestCase):
             ["A", "T"]
         )
 
+    def test_no_information(self):
+        """Get an exception while querying for affymetrix in a illumina
+        record"""
+
+        self.assertRaisesRegex(
+            SmarterDBException,
+            "There's no information for",
+            self.location.is_affymetrix,
+            "T/C"
+        )
+
     def test_is_affy(self):
         for genotype in ["T/C", "T/T", "C/T", "C/C", "0/0"]:
             genotype = genotype.split("/")
@@ -376,10 +387,10 @@ class LocationTestCase(VariantMixin, MongoMockMixin, unittest.TestCase):
                 msg=f"{genotype} is not in affymetrix coordinates!"
             )
 
-        # is not in not if contains an allele not in top format
+        # this is false, for example with top coding
         for genotype in ["A/A", "A/G", "G/A", "G/G"]:
             self.assertFalse(
-                self.location.is_forward(genotype),
+                self.affy_location.is_affymetrix(genotype),
                 msg=f"{genotype} is in affymetrix coordinates!"
             )
 
@@ -413,7 +424,7 @@ class VariantSheepTestCase(VariantMixin, MongoMockMixin, unittest.TestCase):
     def test__str(self):
         self.assertEqual(
             str(self.variant),
-            "name='250506CS3900065000002_1238.1', rs_id='rs55630613', "
+            "name='250506CS3900065000002_1238.1', rs_id='['rs55630613']', "
             "illumina_top='A/G'"
         )
 
@@ -447,7 +458,7 @@ class VariantSheepTestCase(VariantMixin, MongoMockMixin, unittest.TestCase):
             SmarterDBException,
             "Couldn't determine a unique location for",
             self.variant.get_location,
-            version="Oar_v4.0",
+            version="Oar_v4.1",
             imported_from='SNPchiMp v.3'
         )
 
@@ -458,9 +469,42 @@ class VariantSheepTestCase(VariantMixin, MongoMockMixin, unittest.TestCase):
             SmarterDBException,
             "is not in locations",
             self.variant.get_location_index,
-            version="Oar_v4.0",
+            version="Oar_v4.1",
             imported_from='SNPchiMp v.3'
         )
+
+
+class AffyVariantTestCase(VariantMixin, MongoMockMixin, unittest.TestCase):
+    def setUp(self):
+        self.variant = VariantSheep.from_json(json.dumps(self.affy_data))
+
+    def test__str(self):
+        self.assertEqual(
+            str(self.variant),
+            "name='250506CS3900176800001_906.1', rs_id='['rs55630654']', "
+            "illumina_top='A/G'"
+        )
+
+        # with no name, str representation has affy_id
+        self.variant.name = None
+
+        self.assertEqual(
+            str(self.variant),
+            "affy_snp_id='Affx-122835222', rs_id='['rs55630654']', "
+            "illumina_top='A/G'"
+        )
+
+        # with no name, str representation has affy_id
+        self.variant.name = None
+
+    def test_probesets(self):
+        probeset = next(
+            filter(
+                lambda probeset: probeset.chip_name == 'AffymetrixAxiomOviCan',
+                self.variant.probesets
+            )
+        )
+        self.assertIn('AX-124359447', probeset.probeset_id)
 
 
 class GetSmarterIdTestCase(SmarterIDMixin, MongoMockMixin, unittest.TestCase):

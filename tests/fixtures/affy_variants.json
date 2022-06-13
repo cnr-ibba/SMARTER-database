@@ -8,7 +8,7 @@
     ],
     "name": "250506CS3900065000002_1238.1",
     "sequence": {
-      "illumina": "NNNNNNNNNNNNNNNNCTGCTTCCGTATTTGGGTCTTCTCTCAACTTCTCTTCTTCTCCC[T/C]TGCTGAGGAGGAGGCACTTTCAGATGTATTATGTTAATGGAGAGAAAAAGCATAATATTG"
+      "IlluminaOvineSNP50": "NNNNNNNNNNNNNNNNCTGCTTCCGTATTTGGGTCTTCTCTCAACTTCTCTTCTTCTCCC[T/C]TGCTGAGGAGGAGGCACTTTCAGATGTATTATGTTAATGGAGAGAAAAAGCATAATATTG"
     },
     "illumina_top": "A/G",
     "locations": [
@@ -38,7 +38,7 @@
       }
     ],
     "sender": "AGR_BS",
-    "rs_id": "rs55630613"
+    "rs_id": ["rs55630613"]
   },
   {
     "_id": {
@@ -50,7 +50,8 @@
     ],
     "name": "250506CS3900140500001_312.1",
     "sequence": {
-      "illumina": "TATGCATGTACATTTTCTTGCCCTTTCCGGGCTTGCACTGTGTGCTTCTCACACCTTCTG[T/C]TTGAAAACTTATGTTACTTGGTATGCTCTGGAAGAGTATGTGAGGGAGTCAGGGATTGTG"
+      "IlluminaOvineSNP50": "TATGCATGTACATTTTCTTGCCCTTTCCGGGCTTGCACTGTGTGCTTCTCACACCTTCTG[T/C]TTGAAAACTTATGTTACTTGGTATGCTCTGGAAGAGTATGTGAGGGAGTCAGGGATTGTG",
+      "IlluminaOvineHDSNP": "TTCTTGCCCTTTCCGGGCTTGCACTGTGTGCTTCTCACACCTTCTG[T/C]TTGAAAACTTATGTTACTTGGTATGCTCTGGAAGAGTATGTGAGGGAGTCAGGGATTGTG"
     },
     "illumina_top": "A/G",
     "locations": [
@@ -80,7 +81,7 @@
       }
     ],
     "sender": "AGR_BS",
-    "rs_id": "rs55630642"
+    "rs_id": ["rs55630642"]
   },
   {
     "_id": {
@@ -93,8 +94,9 @@
     ],
     "name": "250506CS3900176800001_906.1",
     "sequence": {
-      "illumina": "ACCTTAGTGTTAAAGGATTAACATAAGGAAACTGCAGCAGTATAGAAAAGACAAGACATT[T/C]TCTATTTAGATTGAACCCATTAAAATAATGACATTACAGGTGTAAAACCAAGACAATACT",
-      "affymetrix": "AGGAAACTGCAGCAGTATAGAAAAGACAAGACATT[C/T]TCTATTTAGATTGAACCCATTAAAATAATGACATT"
+      "IlluminaOvineSNP50": "ACCTTAGTGTTAAAGGATTAACATAAGGAAACTGCAGCAGTATAGAAAAGACAAGACATT[T/C]TCTATTTAGATTGAACCCATTAAAATAATGACATTACAGGTGTAAAACCAAGACAATACT",
+      "IlluminaOvineHDSNP": "ACCTTAGTGTTAAAGGATTAACATAAGGAAACTGCAGCAGTATAGAAAAGACAAGACATT[T/C]TCTATTTAGATTGAACCCATTAAAATAATGACATTACAGGTGTAAAACCAAGACAATACT",
+      "AffymetrixAxiomOviCan": "AGGAAACTGCAGCAGTATAGAAAAGACAAGACATT[C/T]TCTATTTAGATTGAACCCATTAAAATAATGACATT"
     },
     "illumina_top": "A/G",
     "locations": [
@@ -138,10 +140,13 @@
       }
     ],
     "sender": "AGR_BS",
-    "rs_id": "rs55630654",
-    "probeset_id": [
-      "AX-124359447"
-    ],
+    "rs_id": ["rs55630654"],
+    "probesets": [{
+      "chip_name": "AffymetrixAxiomOviCan",
+      "probeset_id": [
+        "AX-124359447"
+      ]
+    }],
     "affy_snp_id": "Affx-122835222",
     "cust_id": "250506CS3900176800001_906_01"
   },
@@ -149,14 +154,14 @@
     "_id": {
       "$oid": "60c8c3a8334e2c735342ebca"
     },
-    "chip_name": [                                                                                                                                              
-      "IlluminaOvineSNP50",                                                                                                                                     
-      "AffymetrixAxiomOviCan"                                                                                                                                   
+    "chip_name": [
+      "IlluminaOvineSNP50",
+      "AffymetrixAxiomOviCan"
     ],
     "name": "250506CS3900435700001_1658.1",
     "sequence": {
-      "manifest": "GTGCCAGCGTGCAGGGAGGAGAATCAGGTTAATGAGGTACAGGCTTTTCGGGTATTCCCG[A/G]AGCTTTTCTTTGGGTAAGGGCCACATCGCCAGTTCCCTCCAATTAATAAATTGTCAGGAG",
-      "affymetrix": "AGGTTAATGAGGTACAGGCTTTTCGGGTATTCCCG[A/G]AGCTTTTCTTTGGGTAAGGGCCACATCGCCAGTTC"
+      "IlluminaOvineSNP50": "GTGCCAGCGTGCAGGGAGGAGAATCAGGTTAATGAGGTACAGGCTTTTCGGGTATTCCCG[A/G]AGCTTTTCTTTGGGTAAGGGCCACATCGCCAGTTCCCTCCAATTAATAAATTGTCAGGAG",
+      "AffymetrixAxiomOviCan": "AGGTTAATGAGGTACAGGCTTTTCGGGTATTCCCG[A/G]AGCTTTTCTTTGGGTAAGGGCCACATCGCCAGTTC"
     },
     "illumina_top": "A/G",
     "locations": [
@@ -195,9 +200,12 @@
       }
     ],
     "sender": "AGR_BS",
-    "probeset_id": [
-      "AX-124372958"
-    ],
+    "probesets": [{
+      "chip_name": "AffymetrixAxiomOviCan",
+      "probeset_id": [
+        "AX-124372958"
+      ]
+    }],
     "affy_snp_id": "Affx-122818990",
     "cust_id": "250506CS3900435700001_1658_01"
   },
@@ -210,7 +218,7 @@
     ],
     "name": "Affx-139959201",
     "sequence": {
-      "affymetrix": "CCAATAAGTAGCTATCATGGAACCTGGGCCCCTGC[A/G]TTGGTGATGGACTATCTGCCCATTGTCATCCCTTG"
+      "AffymetrixAxiomOviCan": "CCAATAAGTAGCTATCATGGAACCTGGGCCCCTGC[A/G]TTGGTGATGGACTATCTGCCCATTGTCATCCCTTG"
     },
     "illumina_top": "A/G",
     "locations": [
@@ -228,9 +236,12 @@
         }
       }
     ],
-    "probeset_id": [
-      "AX-106736140"
-    ],
+    "probesets": [{
+      "chip_name": "AffymetrixAxiomOviCan",
+      "probeset_id": [
+        "AX-106736140"
+      ]
+    }],
     "affy_snp_id": "Affx-139959201"
   }
 ]

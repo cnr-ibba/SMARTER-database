@@ -12,8 +12,10 @@ import datetime
 
 from click.testing import CliRunner
 
-from src.data.import_affymetrix import main as import_affymetrix
-from src.features.smarterdb import VariantSheep, SupportedChip
+from src.data.import_affymetrix import (
+    main as import_affymetrix, search_database)
+from src.features.affymetrix import read_Manifest
+from src.features.smarterdb import VariantSheep, SupportedChip, Probeset
 
 from ..common import MongoMockMixin, VariantsMixin, SupportedChipMixin
 
@@ -32,9 +34,13 @@ class ManifestMixin():
 
         # custom attributes
         cls.version = "Oar_v3.1"
+        cls.manifest_file = DATA_DIR / "test_affy.csv"
+
+        # read manifest data
+        cls.manifest_data = list(read_Manifest(cls.manifest_file))
 
     def import_data(self):
-        manifest_file = DATA_DIR / "test_affy.csv"
+        """import affy data after defining import function"""
 
         result = self.runner.invoke(
             self.main_function,
@@ -42,7 +48,7 @@ class ManifestMixin():
                 "--species",
                 "Sheep",
                 "--manifest",
-                str(manifest_file),
+                str(self.manifest_file),
                 "--chip_name",
                 self.chip_name,
                 "--version",
@@ -90,16 +96,27 @@ class ImportManifestTest(
         # test inserted fields for first object
         self.assertEqual(test.name, "Affx-122835222")
         self.assertEqual(test.chip_name, [self.chip_name])
-        self.assertEqual(test.probeset_id, ["AX-124359447"])
+
+        # test probeset
+        probeset = next(
+            filter(
+                lambda probeset: probeset.chip_name == 'AffymetrixAxiomOviCan',
+                test.probesets
+            )
+        )
+        self.assertIn('AX-124359447', probeset.probeset_id)
+
         self.assertEqual(test.affy_snp_id, "Affx-122835222")
-        self.assertIn('affymetrix', test.sequence)
+        self.assertIn(self.chip_name, test.sequence)
         self.assertEqual(test.cust_id, "250506CS3900176800001_906_01")
         self.assertEqual(location.chrom, "7")
         self.assertEqual(location.position, 81590897)
         self.assertEqual(location.illumina_top, "A/G")
         self.assertEqual(location.affymetrix_ab, "T/C")
         self.assertEqual(location.alleles, "C/T")
-        self.assertEqual(location.date, datetime.datetime(2019, 1, 17))
+        self.assertEqual(
+            location.date,
+            datetime.datetime(2019, 1, 17, 12, 4, 49))
 
 
 class UpdateManifestTest(
@@ -120,14 +137,14 @@ class UpdateManifestTest(
 
         # assign a fake probeset id to a variant. Test updating list
         variant = VariantSheep.objects.get(name="250506CS3900176800001_906.1")
-        variant.probeset_id = ["test"]
+        variant.probesets = [
+            Probeset(chip_name='AffymetrixAxiomOviCan', probeset_id=["test"])]
         variant.save()
 
     def test_import_manifest(self):
         """test update illumina data with affymetrix"""
         self.import_data()
 
-        # affychip should report 2 snps
         self.chip.reload()
         self.assertEqual(self.chip.n_of_snps, 3)
 
@@ -143,13 +160,25 @@ class UpdateManifestTest(
             "IlluminaOvineHDSNP",
             self.chip_name
         ])
-        self.assertEqual(test.probeset_id, ["test", "AX-124359447"])
+
+        # test probeset
+        probeset = next(
+            filter(
+                lambda probeset: probeset.chip_name == 'AffymetrixAxiomOviCan',
+                test.probesets
+            )
+        )
+        self.assertIn('test', probeset.probeset_id)
+        self.assertIn('AX-124359447', probeset.probeset_id)
+
         self.assertEqual(test.affy_snp_id, "Affx-122835222")
-        self.assertIn('illumina', test.sequence)
-        self.assertIn('affymetrix', test.sequence)
+        self.assertEqual(len(test.sequence), 3)
+        self.assertIn('IlluminaOvineSNP50', test.sequence)
+        self.assertIn('IlluminaOvineHDSNP', test.sequence)
+        self.assertIn(self.chip_name, test.sequence)
         self.assertEqual(test.cust_id, "250506CS3900176800001_906_01")
 
-        # test updated location
+        # test an updated location
         location = test.get_location(
             version="Oar_v3.1",
             imported_from="affymetrix")
@@ -161,10 +190,19 @@ class UpdateManifestTest(
 
         self.assertEqual(test.name, "Affx-293815543")
         self.assertEqual(test.chip_name, [self.chip_name])
-        self.assertEqual(test.probeset_id, ["AX-104088695"])
+
+        # test probeset
+        probeset = next(
+            filter(
+                lambda probeset: probeset.chip_name == 'AffymetrixAxiomOviCan',
+                test.probesets
+            )
+        )
+        self.assertIn('AX-104088695', probeset.probeset_id)
+
         self.assertEqual(test.affy_snp_id, "Affx-293815543")
-        self.assertNotIn('illumina', test.sequence)
-        self.assertIn('affymetrix', test.sequence)
+        self.assertEqual(len(test.sequence), 1)
+        self.assertIn(self.chip_name, test.sequence)
         self.assertIsNone(test.cust_id)
 
         # test updated location
@@ -188,6 +226,19 @@ class UpdateManifestTest(
         self.assertEqual(location.chrom, "0")
         self.assertEqual(location.position, 0)
         self.assertEqual(location.illumina_top, "A/G")
+
+    def test_search_database(self):
+        """Test getting snp while updating manifest"""
+
+        self.import_data()
+
+        # get a snp available only in affymetrix manifest
+        record = self.manifest_data[1]
+        qs = search_database(record, VariantSheep)
+
+        self.assertEqual(qs.count(), 1)
+        variant = qs.get()
+        self.assertEqual(variant.name, record.affy_snp_id)
 
 
 if __name__ == '__main__':

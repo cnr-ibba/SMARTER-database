@@ -40,7 +40,7 @@ class ManifestMixin():
             ]
         )
 
-        self.assertEqual(0, result.exit_code, msg=result.exception)
+        self.assertEqual(0, result.exit_code, msg=result.exc_info)
 
 
 class ImportManifestTest(
@@ -79,6 +79,8 @@ class ImportManifestTest(
 
         # test inserted fields for first object
         self.assertEqual(test.name, "250506CS3900065000002_1238.1")
+        self.assertEqual(len(test.sequence), 1)
+        self.assertIn(self.chip_name, test.sequence)
         self.assertEqual(location.chrom, "15")
         self.assertEqual(location.position, 5870057)
         self.assertEqual(location.illumina_top, "A/G")

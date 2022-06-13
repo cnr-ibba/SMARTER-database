@@ -730,6 +730,10 @@ class Location(mongoengine.EmbeddedDocument):
     def __check_coding(self, genotype: list, coding: str, missing: str):
         """Internal method to check genotype coding"""
 
+        if not getattr(self, coding):
+            raise SmarterDBException(
+                f"There's no information for '{coding}' in '{self}'")
+
         # get illumina data as an array
         data = getattr(self, coding).split("/")
 
@@ -895,8 +899,20 @@ class Location(mongoengine.EmbeddedDocument):
         return result
 
 
+class Probeset(mongoengine.EmbeddedDocument):
+    chip_name = mongoengine.StringField(required=True)
+
+    # more probe could be assigned to the same SNP
+    probeset_id = mongoengine.ListField(mongoengine.StringField())
+
+    def __str__(self):
+        return (
+            f"{self.chip_name}: {self.probeset_id}"
+        )
+
+
 class VariantSpecies(mongoengine.Document):
-    rs_id = mongoengine.StringField()
+    rs_id = mongoengine.ListField(mongoengine.StringField(), default=None)
     chip_name = mongoengine.ListField(mongoengine.StringField())
 
     name = mongoengine.StringField(unique=True)
@@ -914,8 +930,8 @@ class VariantSpecies(mongoengine.Document):
     sender = mongoengine.StringField()
 
     # Affymetryx specific fields
-    # more probe could be assigned to the same SNP
-    probeset_id = mongoengine.ListField(mongoengine.StringField())
+    probesets = mongoengine.ListField(
+        mongoengine.EmbeddedDocumentField(Probeset), default=None)
     affy_snp_id = mongoengine.StringField()
     cust_id = mongoengine.StringField()
 
@@ -930,12 +946,25 @@ class VariantSpecies(mongoengine.Document):
                     "locations.position"
                 ],
             },
-            'probeset_id',
-            'rs_id'
+            {
+                'fields': ["affy_snp_id"],
+                'partialFilterExpression': {
+                    "affy_snp_id": {
+                        "$exists": True
+                    }
+                }
+            },
+            "probesets.probeset_id",
+            'rs_id',
         ]
     }
 
     def __str__(self):
+        if not self.name and self.affy_snp_id:
+            return (
+                f"affy_snp_id='{self.affy_snp_id}', rs_id='{self.rs_id}', "
+                f"illumina_top='{self.illumina_top}'")
+
         return (
             f"name='{self.name}', rs_id='{self.rs_id}', "
             f"illumina_top='{self.illumina_top}'")

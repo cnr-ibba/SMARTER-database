@@ -10,8 +10,11 @@ import re
 import click
 import logging
 
+from mongoengine.queryset import Q
+
 from src.features.illumina import IlluSNP, IlluSNPException
-from src.features.smarterdb import global_connection, SupportedChip, Location
+from src.features.smarterdb import (
+    global_connection, SupportedChip, Location, Probeset, SmarterDBException)
 from src.features.affymetrix import read_Manifest
 from src.data.common import get_variant_species, update_variant, new_variant
 
@@ -23,44 +26,67 @@ def get_alleles(record):
 
     alleles = None
 
-    # A snp not in dbSNP could have no allele
-    if record.ref_allele and record.alt_allele:
-        # in dbSNP alleles order has no meaning: it's writtein in
-        # alphabetical order
-        # https://www.ncbi.nlm.nih.gov/books/NBK44476/#Reports.does_the_order_of_the_alleles_li
-        alleles = sorted([record.ref_allele, record.alt_allele])
-        alleles = "/".join(alleles)
+    if hasattr(record, "ref_allele") and hasattr(record, "alt_allele"):
+        # A snp not in dbSNP could have no allele
+        if record.ref_allele and record.alt_allele:
+            # in dbSNP alleles order has no meaning: it's writtein in
+            # alphabetical order
+            # https://www.ncbi.nlm.nih.gov/books/NBK44476/#Reports.does_the_order_of_the_alleles_li
+            alleles = sorted([record.ref_allele, record.alt_allele])
+            alleles = "/".join(alleles)
 
     return alleles
 
 
-def search_database(record, VariantSpecie):
-    # try to read the cust_id like illumina name:
-    illumina_name = None
+def fix_illumina_args(record):
+    tmp = record.cust_id.split("_")
 
-    if record.cust_id:
-        tmp = record.cust_id.split("_")
+    args = {}
 
-        # last element is a number
+    # last element is a number
+    try:
         tmp[-1] = str(int(tmp[-1]))
 
         # recode the illumina name and define a re.pattern
-        illumina_name = "_".join(tmp[:-1]) + "." + tmp[-1]
-        illumina_pattern = re.compile(".".join(tmp))
+        args["name"] = "_".join(tmp[:-1]) + "." + tmp[-1]
 
-    # search for a snp in database (relying on illumina name first)
-    if illumina_name:
-        qs = VariantSpecie.objects.filter(name=illumina_name)
+    except ValueError as exc:
+        logger.debug(
+            f"Attempt to convert {tmp[-1]} as integer failed: "
+            f"{exc}"
+        )
+
+        args["name"] = re.compile(".".join(tmp))
+
+    logger.debug(f"Try to search with {args}")
+
+    return args
+
+
+def search_database(record, VariantSpecie):
+    # if I have a cust_id, search with it
+    if record.cust_id:
+        # search for cust_id or affy_snp_id
+        # (private Affy SNP with unmatched cust_id)
+        qs = VariantSpecie.objects.filter(
+            Q(name=record.cust_id) | Q(affy_snp_id=record.affy_snp_id))
 
         if qs.count() == 0:
-            logger.debug(
-                f"Couldn't find a variant with '{illumina_name}'. "
-                f"Trying with '{illumina_pattern}' pattern")
-            # ok make an attempt with pattern
-            qs = VariantSpecie.objects.filter(name=illumina_pattern)
+            logger.debug(f"Can't find a Variant using {record.cust_id}")
+
+            args = fix_illumina_args(record)
+            qs = VariantSpecie.objects.filter(**args)
+
+            if qs.count() == 0:
+                logger.debug(f"Can't find a Variant using {args}")
 
     else:
-        qs = VariantSpecie.objects.filter(name=record.affy_snp_id)
+        # search by affy id
+        qs = VariantSpecie.objects.filter(
+            Q(name=record.affy_snp_id) | Q(affy_snp_id=record.affy_snp_id))
+
+        if qs.count() == 0:
+            logger.debug(f"Can't find a Variant using {record.affy_snp_id}")
 
     return qs
 
@@ -128,12 +154,21 @@ def main(species, manifest, chip_name, version):
             date=record.date,
         )
 
+        rs_id = None
+
+        if record.dbsnp_rs_id:
+            rs_id = [record.dbsnp_rs_id]
+
         variant = VariantSpecie(
             chip_name=[chip_name],
-            rs_id=record.dbsnp_rs_id,
-            probeset_id=[record.probe_set_id],
+            rs_id=rs_id,
+            probesets=[
+                Probeset(
+                    chip_name=chip_name,
+                    probeset_id=[record.probe_set_id]
+                )],
             affy_snp_id=record.affy_snp_id,
-            sequence={'affymetrix': record.flank},
+            sequence={chip_name: record.flank},
             cust_id=record.cust_id,
         )
 
@@ -142,7 +177,12 @@ def main(species, manifest, chip_name, version):
         qs = search_database(record, VariantSpecie)
 
         if qs.count() == 1:
-            update_variant(qs, variant, location)
+            try:
+                update_variant(qs, variant, location)
+
+            except SmarterDBException as exc:
+                # TODO: remove this exception handling
+                logger.warn(f"Error with {variant}: {exc} - ignoring snp")
 
         elif qs.count() == 0:
             new_variant(variant, location)
