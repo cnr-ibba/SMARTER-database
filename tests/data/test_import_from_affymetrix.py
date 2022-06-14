@@ -30,6 +30,9 @@ class TestImportFromAffymetrix(
     # a different fixture file to load in VariantMixin
     variant_fixture = "affy_variants.json"
 
+    # a custom chip name
+    chip_name = "AffymetrixAxiomOviCan"
+
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
@@ -92,7 +95,11 @@ class TestImportFromAffymetrix(
                     "TEX",
                     "--sample_field",
                     "alias",
-                    "--create_samples"
+                    "--create_samples",
+                    "--src_version",
+                    "Oar_v4.0",
+                    "--src_imported_from",
+                    "affymetrix"
                 ]
             )
 
@@ -163,7 +170,11 @@ class TestImportFromAffymetrix(
                     "TEX",
                     "--sample_field",
                     "alias",
-                    "--create_samples"
+                    "--create_samples",
+                    "--src_version",
+                    "Oar_v4.0",
+                    "--src_imported_from",
+                    "affymetrix"
                 ]
             )
 

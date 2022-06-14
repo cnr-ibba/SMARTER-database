@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 def sanitize(
         word: str,
-        chars=['.', ",", "-", "/"],
+        chars=['.', ",", "-", "/", "#"],
         check_mongoengine=True) -> str:
     """Sanitize a word by removing unwanted characters and lowercase it.
 
@@ -39,8 +39,13 @@ def sanitize(
     # remove spaces from column name and lowercase all
     sanitized = re.sub(r"\s+", "_", tmp).lower()
 
-    if sanitized in ['size', 'type']:
-        sanitized += "_"
+    if check_mongoengine:
+        if sanitized in ['size', 'type']:
+            sanitized += "_"
+
+    # remove starting sanitized char (can't be used with namedtuple)
+    if sanitized.startswith("_"):
+        sanitized = sanitized[1:]
 
     return sanitized
 

@@ -20,7 +20,7 @@ import pandas as pd
 
 from src.features.smarterdb import (
     Dataset, VariantGoat, VariantSheep, SampleSheep, SampleGoat, Location,
-    SmarterDBException)
+    Probeset, SmarterDBException)
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -96,6 +96,32 @@ def fetch_and_check_dataset(
             f"Couldn't find '{not_found}'")
 
     return dataset, contents_path
+
+
+def deal_with_datasets(
+        src_dataset: str,
+        dst_dataset: str,
+        datafile: str) -> [Dataset, Dataset, Path]:
+    """Check source and destination dataset with its content"""
+
+    # custom method to check a dataset and ensure that needed stuff exists
+    src_dataset, [datapath] = fetch_and_check_dataset(
+        archive=src_dataset,
+        contents=[datafile]
+    )
+
+    if not dst_dataset:
+        # destination is the same of origin, if not provided
+        dst_dataset = src_dataset
+
+    else:
+        # this will be the dataset used to define samples
+        dst_dataset, _ = fetch_and_check_dataset(
+            archive=dst_dataset,
+            contents=[]
+        )
+
+    return src_dataset, dst_dataset, datapath
 
 
 def get_variant_species(species: str) -> Union[VariantSheep, VariantGoat]:
@@ -186,6 +212,9 @@ def new_variant(
 
     variant.locations.append(location)
 
+    # set the illumina_top attribute relying on the first location
+    variant.illumina_top = location.illumina_top
+
     logger.debug(f"adding {variant} to database")
 
     variant.save()
@@ -201,6 +230,15 @@ def update_variant(
     logger.debug(f"found {record} in database")
 
     update_record = False
+
+    # check that the snp I want to update has the same illumina_top
+    # allele with the new location: if not no update!
+    if record.illumina_top != location.illumina_top:
+        logger.error(
+            f"illumina_top alleles between variant and new location don't "
+            f"match: {record.illumina_top} <> {location.illumina_top}")
+        logger.warning(f"ignoring {variant}")
+        return update_record
 
     # check chip_name in variant list
     record, updated = update_chip_name(variant, record)
@@ -273,6 +311,48 @@ def update_sequence(
     return record, updated
 
 
+def update_probesets(
+        variant_attr: list[Probeset],
+        record_attr: list[Probeset]
+        ) -> bool:
+    """Update probeset relying on object references"""
+
+    updated = False
+
+    logger.debug(f"Got variant: {variant_attr} and record: {record_attr}")
+
+    # get the variant probeset
+    variant_probeset = variant_attr[0]
+
+    # now, try to get the variant probesed for the same chip
+    record_probesets = list(
+        filter(
+            lambda probeset: probeset.chip_name == variant_probeset.chip_name,
+            record_attr)
+    )
+
+    if not record_probesets:
+        # I don't have this probeset_id for this chip
+        record_attr.append(variant_probeset)
+        updated = True
+
+    else:
+        # get the first item
+        record_probeset = record_probesets[0]
+        record_set = set(record_probeset.probeset_id)
+        variant_set = set(variant_probeset.probeset_id)
+
+        # get new items as a difference of two sets
+        new_probeset_ids = variant_set - record_set
+
+        if len(new_probeset_ids) > 0:
+            # this will append the resulting set as a list
+            record_probeset.probeset_id += list(new_probeset_ids)
+            updated = True
+
+    return updated
+
+
 def update_affymetrix_record(
         variant: Union[VariantSheep, VariantGoat],
         record: Union[VariantSheep, VariantGoat]
@@ -280,27 +360,37 @@ def update_affymetrix_record(
 
     updated = False
 
-    for key in ['probeset_id', 'affy_snp_id', 'cust_id']:
+    for key in ['probesets', 'affy_snp_id', 'cust_id']:
         variant_attr = getattr(variant, key)
         record_attr = getattr(record, key)
 
-        if key == 'probeset_id':
-            variant_set = set(variant_attr)
-            record_set = set(record_attr)
-
-            # get new items as a difference of two sets
-            new_probeset_ids = variant_set - record_set
-
-            if len(new_probeset_ids) > 0:
-                # this will append the resulting set as a list
-                record.probeset_id += list(new_probeset_ids)
+        if key == 'probesets' and variant_attr:
+            if record_attr:
+                # this will make an update relying on object references
+                updated = update_probesets(variant_attr, record_attr)
+            else:
+                # this is when I add a probeset for an Illumina SNP
+                setattr(record, key, variant_attr)
                 updated = True
 
-        else:
-            if variant_attr and variant_attr != record_attr:
+        elif key == 'cust_id':
+            # only update cust_id if different from illumina name and
+            # if necessary
+            if variant_attr and variant_attr not in [record.name, record_attr]:
                 if record_attr:
                     logger.warning(
-                        f"Updating {key} {variant_attr} with {record_attr}")
+                        f"Updating {key}: '{variant_attr}' with "
+                        f"'{record_attr}'")
+
+                setattr(record, key, variant_attr)
+                updated = True
+
+        elif key == 'affy_snp_id':
+            if variant_attr and variant_attr != record_attr:
+                if record_attr:
+                    raise SmarterDBException(
+                        f"Error with {key}: '{variant_attr}' and "
+                        f"'{record_attr}': 'affy_snp_id' already defined!")
 
                 setattr(record, key, variant_attr)
                 updated = True
@@ -321,16 +411,39 @@ def update_location(
             version=location.version, imported_from=location.imported_from)
 
         # ok get the old location and check with the new one
-        if variant.locations[index] == location:
+        old_location = variant.locations[index]
+
+        if old_location == location:
             logger.debug("Locations match")
 
-        # HINT: should I update location? maybe relying on date and
-        # __gt__ method?
+        # upgrade locations relying dates
         else:
             logger.warning(
                 f"Locations differ for '{variant.name}': {location} <> "
-                f"{variant.locations[index]}"
+                f"{old_location}"
             )
+
+            # check if values are defined
+            if old_location.date and location.date:
+                # make location.date offset-naive
+                # https://stackoverflow.com/a/796019
+                location.date = location.date.replace(tzinfo=None)
+
+                if old_location.date < location.date:
+                    # update location
+                    logger.warning(
+                        f"Replacing location for '{variant}' since is newer")
+                    variant.locations[index] = location
+                    updated = True
+
+                else:
+                    logger.debug(
+                        f"New location is not more recent than the old "
+                        f"({location.date.date()}"
+                        f" <> {old_location.date.date()}), ignoring location")
+
+            else:
+                logger.debug("Skip location comparison: dates not set")
 
     except SmarterDBException as exc:
         # if a index does not exist, then insert feature without warnings
@@ -352,9 +465,18 @@ def update_rs_id(
 
     updated = False
 
-    if variant.rs_id and variant.rs_id != record.rs_id:
-        logger.warning(f"Update '{record}' with '{variant.rs_id}'")
-        record.rs_id = variant.rs_id
-        updated = True
+    if variant.rs_id:
+        if not record.rs_id:
+            logger.debug(f"Setting '{variant.rs_id}' to '{record}'")
+            record.rs_id = variant.rs_id
+            updated = True
+
+        elif variant.rs_id[0] not in record.rs_id:
+            logger.debug(f"Appending '{variant.rs_id[0]}' to '{record}'")
+            record.rs_id.append(variant.rs_id[0])
+            updated = True
+
+        else:
+            logger.debug(f"Ignoring '{variant.rs_id[0]}: ({record})'")
 
     return record, updated

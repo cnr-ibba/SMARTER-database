@@ -7,6 +7,7 @@ Created on Fri Apr 30 15:45:36 2021
 """
 
 import pathlib
+import datetime
 import unittest
 import tempfile
 
@@ -17,9 +18,10 @@ from openpyxl import Workbook
 from src.data.common import (
     fetch_and_check_dataset, get_variant_species, get_sample_species,
     pandas_open, update_chip_name, update_sequence, update_affymetrix_record,
-    update_location, update_variant, update_rs_id)
+    update_location, update_variant, update_rs_id, update_probesets)
 from src.features.smarterdb import (
-    Dataset, VariantGoat, VariantSheep, SampleSheep, SampleGoat, Location)
+    Dataset, VariantGoat, VariantSheep, SampleSheep, SampleGoat, Location,
+    Probeset)
 
 from ..common import MongoMockMixin, SmarterIDMixin, VariantsMixin
 
@@ -265,15 +267,31 @@ class VariantUpdateTests(VariantsMixin, MongoMockMixin, unittest.TestCase):
         record, updated = update_location(self.location, self.record)
         self.assertTrue(updated)
 
-    def test_update_location_mismatch(self):
-        # test a location mismatch
-        # HINT: should I overwrite the location?
+    def test_update_location_no_update(self):
+        """Test a location mismatch"""
         self.location.chrom = "test"
         record, updated = update_location(self.location, self.record)
         self.assertFalse(updated)
 
-        # no location added
-        self.assertEqual(len(self.record.locations), 2)
+        # no location added if the new location is older
+        self.assertEqual(len(record.locations), 3)
+
+    def test_update_location_new_location(self):
+        """Test a location mismatch with a new location"""
+
+        # now update location date
+        self.location.chrom = "test"
+        self.location.date = datetime.datetime(2022, 5, 27)
+        record, updated = update_location(self.location, self.record)
+        self.assertTrue(updated)
+
+        # now location is updated
+        self.assertEqual(len(record.locations), 3)
+
+        location = record.get_location(
+            version="Oar_v3.1", imported_from="manifest")
+        self.assertEqual(location.chrom, "test")
+        self.assertEqual(location.date, datetime.datetime(2022, 5, 27))
 
     def test_update_rs_id(self):
         record, updated = update_rs_id(self.variant, self.record)
@@ -288,6 +306,38 @@ class VariantUpdateTests(VariantsMixin, MongoMockMixin, unittest.TestCase):
         self.variant.rs_id = "test"
         record, updated = update_rs_id(self.variant, self.record)
         self.assertTrue(updated)
+
+    def test_update_probeset(self):
+        record_attr = [Probeset(chip_name="test", probeset_id=["test"])]
+        variant_attr = [Probeset(chip_name="test2", probeset_id=['test'])]
+
+        # test for the same probe in a different chip
+        updated = update_probesets(variant_attr, record_attr)
+        self.assertTrue(updated)
+        self.assertEqual(len(record_attr), 2)
+        self.assertEqual(len(record_attr[0].probeset_id), 1)
+        self.assertEqual(len(record_attr[1].probeset_id), 1)
+
+        record_attr = [Probeset(chip_name="test", probeset_id=["test"])]
+        variant_attr = [Probeset(chip_name="test", probeset_id=['test2'])]
+
+        # test for a new probeset in the same chip
+        updated = update_probesets(variant_attr, record_attr)
+        self.assertTrue(updated)
+        self.assertEqual(len(record_attr), 1)
+        self.assertEqual(len(record_attr[0].probeset_id), 2)
+
+    def test_update_variant_snp_mismatch(self):
+        """No update if location.illumina_top is different from
+        variant.illumina_top"""
+
+        qs = VariantSheep.objects.filter(
+            name="250506CS3900065000002_1238.1")
+
+        self.location.illumina_top = "A/C"
+
+        updated = update_variant(qs, self.variant, self.location)
+        self.assertFalse(updated)
 
     def test_update_variant_chip_name(self):
         qs = VariantSheep.objects.filter(
@@ -318,7 +368,8 @@ class VariantUpdateTests(VariantsMixin, MongoMockMixin, unittest.TestCase):
         self.assertFalse(updated)
 
         # add affymetrix attribute
-        self.variant.probeset_id = "test"
+        self.variant.probesets = [
+            Probeset(chip_name="AffymetrixAxiomOviCan", probeset_id=["test"])]
         self.variant.affy_snp_id = "test"
         updated = update_variant(qs, self.variant, self.location)
         self.assertTrue(updated)

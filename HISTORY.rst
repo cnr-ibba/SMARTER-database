@@ -5,9 +5,6 @@ History
 TODO
 ^^^^
 
-* ``illumina_top`` attribute should be referred to variants, while
-  in ``locations`` should be stored the read value from data source. 
-  illumina_top shouldn't change within the same SNP, independently from data source
 * Check chromosomes in *Variants locations*: mind to **scaffold**, **null**, and
   **non-autosomal** chromosomes for *Goat* and *Sheep*
 * Enable continuous integration
@@ -15,12 +12,38 @@ TODO
 * Rename objects (use names in a consistent way)
 * Generate output files for *OARV4* and *CHIR1*
 * Check coordinates with sheep and goat genome projects
-* Release a *smarter* coordinate version with information on every variant defined 
+* Release a *smarter* coordinate version with information on every variant defined
   in database (which will be used as reference)
-* Have an ``update_breed`` script to add an alias to an existent breed
-* if ``src_dataset`` and ``dst_dataset`` are equals, provide only ``dst_dataset``
-  both in *import_samples* and *import_metadata* scripts
+* Map affymetrix snps in OARV3 coordinates
 * define a collection for all available *purpose* phenotypes
+* Check if ``rs_id`` is still valid or not (with EVA)
+
+0.4.5.dev
+---------
+
+* Update requirements
+* Import data from Hungary `#53 <https://github.com/cnr-ibba/SMARTER-database/issues/53>`__
+* Create a new sample when having the same ``original_id`` in dataset but for a different breed
+* ``illumina_top`` is an attribute of variant, and is set when the first location
+  is loaded.
+* Check variants data before update `#56 <https://github.com/cnr-ibba/SMARTER-database/issues/56>`__
+* Simplified ``import_affymetrix`` script
+* Import custom affymetrix chips (*Oar_v3.1*)
+* Support *source* and *destination* assemblies when importing from *plink* or
+  *affymetrix* source files
+* Deal with spaces in filenames while importing from plink
+* Add ``affy_snp_id`` primary key
+* Update ``import_affymetrix.py`` script
+* Import data from Spain `#52 <https://github.com/cnr-ibba/SMARTER-database/issues/52>`__
+* Fix 20220503 dataset breed and churra chip name
+* Track manifest probe ``sequence``s by ``chip_name``
+* Track ``probeset_id`` by ``chip_name``
+* Search for affymetrix ``probeset_id`` in the proper ``chip_name`` while importing
+  samples
+* Track multiple ``rs_id``
+* Fetch *churra* coordinates by ``rs_id`` and ``probeset_id`` and filter out unmanaged
+  SNPs
+* If ``src_dataset`` and ``dst_dataset`` are equals, provide only ``src_dataset``
 
 0.4.4 (2022-02-28)
 ------------------
@@ -89,6 +112,7 @@ TODO
 * Clearly state when creating samples (ignore samples if not defined in database)
 * Track sample aliases for ``original_id``
 * Import samples from file by providing *country* and *breeds* values as parameters
+* Import sheep coordinates from genome project
 * Security updates
 * Fix github Workflow
 

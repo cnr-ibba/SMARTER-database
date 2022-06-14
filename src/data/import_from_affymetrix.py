@@ -23,7 +23,7 @@ from pathlib import Path
 from src.features.plinkio import (
     AffyPlinkIO, plink_binary_exists)
 from src.features.smarterdb import Dataset, global_connection, SupportedChip
-from src.data.common import WORKING_ASSEMBLIES, PLINK_SPECIES_OPT
+from src.data.common import WORKING_ASSEMBLIES, PLINK_SPECIES_OPT, AssemblyConf
 
 logger = logging.getLogger(__name__)
 
@@ -36,11 +36,11 @@ def get_output_files(prefix: str, working_dir: Path, assembly: str):
     # determine map outputfile. get the basename of the prefix
     prefix = Path(prefix)
 
-    output_map = f"{prefix.name}_updated.map"
+    output_map = f"{prefix.name}_updated.map".replace(" ", "_")
     output_map = output_dir / output_map
 
     # determine ped outputfile
-    output_ped = f"{prefix.name}_updated.ped"
+    output_ped = f"{prefix.name}_updated.ped".replace(" ", "_")
     output_ped = output_dir / output_ped
 
     return output_dir, output_map, output_ped
@@ -99,9 +99,25 @@ def deal_with_affymetrix(file_: str, dataset: Dataset, assembly: str):
     default="original_id",
     help="Search samples using this attribute"
 )
+@click.option(
+    '--search_field',
+    type=str,
+    default="probeset_id",
+    show_default=True,
+    help='search variants using this field')
+@click.option(
+    '--src_version',
+    type=str,
+    help="Source assembly version",
+    required=True)
+@click.option(
+    '--src_imported_from',
+    type=str,
+    help="Source assembly imported_from",
+    required=True)
 def main(
-        file_, dataset, breed_code, chip_name, assembly,
-        create_samples, sample_field):
+        file_, dataset, breed_code, chip_name, assembly, create_samples,
+        sample_field, search_field, src_version, src_imported_from):
     """
     Read sample names from map/ped files and updata smarter database (insert
     a record if necessary and define a smarter id for each sample)
@@ -113,7 +129,10 @@ def main(
     if assembly not in WORKING_ASSEMBLIES:
         raise Exception(f"assembly {assembly} not managed by smarter")
 
-    assembly_conf = WORKING_ASSEMBLIES[assembly]
+    # define assemblies
+    src_assembly = AssemblyConf(src_version, src_imported_from)
+    logger.info(f"Got '{src_assembly} as source assembly'")
+    dst_assembly = WORKING_ASSEMBLIES[assembly]
 
     # get the dataset object
     dataset = Dataset.objects(file=dataset).get()
@@ -152,35 +171,14 @@ def main(
 
     # fetch coordinates relying assembly configuration. Mind affy probeset_id
     plinkio.fetch_coordinates(
-        version=assembly_conf.version,
-        imported_from=assembly_conf.imported_from,
-        search_field="probeset_id"
+        src_assembly=src_assembly,
+        dst_assembly=dst_assembly,
+        search_field=search_field,
+        chip_name=illumina_chip.name
     )
 
     logger.info("Writing a new map file with updated coordinates")
     plinkio.update_mapfile(str(output_map))
-
-    # now track the filtered SNPs in the destination assemply
-    filtered_snps = plinkio.filtered
-
-    logging.info(
-        f"Track {len(filtered_snps)} SNPs to remove from desidered assembly")
-    logging.info(
-        "Reading affymetrix original coordinates to determine"
-        "original genotypes")
-
-    # ok get coordinates again, this time from the original affymetrix system
-    plinkio.fetch_coordinates(
-        version="Oar_v4.0",
-        imported_from="affymetrix",
-        search_field="probeset_id"
-    )
-
-    logging.info("Merging filtered SNPs from both coordinate system")
-
-    # merge the filtered SNPs set with the other set of filtered SNPs of the
-    # desidered assembly
-    plinkio.filtered.update(filtered_snps)
 
     logger.info("Writing a new ped file with fixed genotype (illumina TOP)")
     plinkio.update_pedfile(
