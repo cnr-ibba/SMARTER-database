@@ -18,8 +18,8 @@ TODO
 * define a collection for all available *purpose* phenotypes
 * Check if ``rs_id`` is still valid or not (with EVA)
 
-0.4.5.dev
----------
+0.4.5 (2022-06-14)
+------------------
 
 * Update requirements
 * Import data from Hungary `#53 <https://github.com/cnr-ibba/SMARTER-database/issues/53>`__
