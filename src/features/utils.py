@@ -11,6 +11,7 @@ import re
 import gzip
 import logging
 import pathlib
+import collections
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -125,7 +126,9 @@ def get_processed_dir() -> pathlib.PosixPath:
     return get_project_dir() / "data/processed"
 
 
-def text_or_gzip_open(path: str, mode=None):
+def text_or_gzip_open(path: str, mode: str = None):
+    """Open a file which can be compressed or not. Returns file handle"""
+
     if pathlib.Path(path).suffix == '.gz':
         if not mode:
             mode = 'rt'
@@ -138,3 +141,31 @@ def text_or_gzip_open(path: str, mode=None):
             mode = 'r'
 
         return open(path, mode=mode)
+
+
+def find_duplicates(header: list) -> list:
+    """Find duplicate columns in list. Returns index to remove after the first
+    occurence
+
+    Args:
+        header (list): a list like the header read from a CSV file
+
+    Returns:
+        list: a list of index (numeric)
+    """
+
+    to_remove = []
+
+    # count columns and find duplicates
+    counts = collections.Counter(header)
+    duplicated_cols = [key for key, value in counts.items() if value > 1]
+
+    # now iterate and get duplicates indexes
+    for duplicated in duplicated_cols:
+        # get all duplicated index
+        tmp = [i for i, col in enumerate(header) if col == duplicated]
+
+        # track only from the 2nd occurrence
+        to_remove += tmp[1:]
+
+    return to_remove
