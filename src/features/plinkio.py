@@ -82,6 +82,10 @@ class SmarterMixin():
 
     @species.setter
     def species(self, species):
+        if not species:
+            # avoid to check a None value
+            return
+
         # determine the SampleClass
         if species == 'Sheep':
             self.VariantSpecies = VariantSheep
@@ -99,6 +103,8 @@ class SmarterMixin():
         self._species = species
 
     def get_breed(self, fid, dataset, *args, **kwargs):
+        """Get breed relying aliases and dataset"""
+
         # this is a $elemMatch query
         breed = Breed.objects(
             aliases__match={'fid': fid, 'dataset': dataset}).get()
@@ -683,6 +689,21 @@ class SmarterMixin():
         # input file block
 
 
+class FakePedMixin():
+    """Class which override SmarterMixin when creating a PED file from a
+    non-plink file format. In this case the FID is already correct and I don't
+    need to look for dataset aliases"""
+
+    def get_breed(self, fid, *args, **kwargs):
+        """Get breed relying on provided FID and species class attribute"""
+
+        breed = Breed.objects(code=fid, species=self.species).get()
+
+        logger.debug(f"Found breed {breed}")
+
+        return breed
+
+
 class TextPlinkIO(SmarterMixin):
     mapfile = None
     pedfile = None
@@ -706,11 +727,8 @@ class TextPlinkIO(SmarterMixin):
             self.mapfile = mapfile
             self.pedfile = pedfile
 
-        if species:
-            self.species = species
-
-        if chip_name:
-            self.chip_name = chip_name
+        self.species = species
+        self.chip_name = chip_name
 
     def read_mapfile(self):
         """Read map data and track informations in memory. Useful to process
@@ -743,17 +761,9 @@ class TextPlinkIO(SmarterMixin):
                 yield line
 
 
-# a new class for affymetrix plink files, which are slightly different from
-# plink text files
-class AffyPlinkIO(TextPlinkIO):
-    def get_breed(self, fid, *args, **kwargs):
-        """Override the default get_breed method"""
-
-        breed = Breed.objects(code=fid, species=self.species).get()
-
-        logger.debug(f"Found breed {breed}")
-
-        return breed
+class AffyPlinkIO(FakePedMixin, TextPlinkIO):
+    """a new class for affymetrix plink files, which are slightly different
+    from plink text files"""
 
     def read_pedfile(self, fid: str, *args, **kwargs):
         """Open pedfile for reading return iterator"""
@@ -791,14 +801,9 @@ class BinaryPlinkIO(SmarterMixin):
         # need to be set in order to write a genotype
         self.read_genotype_method = self.read_pedfile
 
-        if prefix:
-            self.prefix = prefix
-
-        if species:
-            self.species = species
-
-        if chip_name:
-            self.chip_name = chip_name
+        self.prefix = prefix
+        self.species = species
+        self.chip_name = chip_name
 
     @property
     def prefix(self):
@@ -875,7 +880,7 @@ class BinaryPlinkIO(SmarterMixin):
             yield line
 
 
-class IlluminaReportIO(SmarterMixin):
+class IlluminaReportIO(FakePedMixin, SmarterMixin):
     snpfile = None
     report = None
 
@@ -889,24 +894,10 @@ class IlluminaReportIO(SmarterMixin):
         # need to be set in order to write a genotype
         self.read_genotype_method = self.read_reportfile
 
-        if snpfile or report:
-            self.snpfile = snpfile
-            self.report = report
-
-        if species:
-            self.species = species
-
-        if chip_name:
-            self.chip_name = chip_name
-
-    def get_breed(self, fid, *args, **kwargs):
-        """Override the default get_breed method"""
-
-        breed = Breed.objects(code=fid, species=self.species).get()
-
-        logger.debug(f"Found breed {breed}")
-
-        return breed
+        self.snpfile = snpfile
+        self.report = report
+        self.species = species
+        self.chip_name = chip_name
 
     def read_snpfile(self):
         """Read snp data and track informations in memory. Useful to process
