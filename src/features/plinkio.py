@@ -27,6 +27,7 @@ from .smarterdb import (
     VariantGoat, SampleGoat, Location, get_sample_type)
 from .utils import TqdmToLogger
 from .illumina import read_snpList, read_illuminaRow
+from .affymetrix import read_affymetrixRow
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -56,8 +57,13 @@ class MapRecord():
 
     def __post_init__(self):
         # types are annotations. So, enforce position type:
-        self.position = int(self.position)
-        self.cm = float(self.cm)
+        if isinstance(self.position, str):
+            if self.position.isnumeric():
+                self.position = int(self.position)
+
+        if isinstance(self.cm, str):
+            if self.cm.isnumeric():
+                self.cm = float(self.cm)
 
 
 class SmarterMixin():
@@ -87,7 +93,7 @@ class SmarterMixin():
             return
 
         # determine the SampleClass
-        if species == 'Sheep':
+        elif species == 'Sheep':
             self.VariantSpecies = VariantSheep
             self.SampleSpecies = SampleSheep
 
@@ -925,7 +931,7 @@ class IlluminaReportIO(FakePedMixin, SmarterMixin):
         # this is the snp position index
         idx = 0
 
-        # tray to returns something like a ped row
+        # try to returns something like a ped row
         for row in read_illuminaRow(self.report):
             if row.sample_id != last_sample:
                 logger.debug(f"Reading sample {row.sample_id}")
@@ -982,6 +988,99 @@ class IlluminaReportIO(FakePedMixin, SmarterMixin):
 
         # after completing rows, I need to return last one
         yield line
+
+
+class AffyReportIO(FakePedMixin, SmarterMixin):
+    """In this type of file there are both genotypes and informations. Moreover
+    genotypes are *transposed*, traking SNP for all samples in a simple line"""
+
+    report = None
+    peddata = []
+
+    def __init__(
+            self,
+            report: str = None,
+            species: str = None,
+            chip_name: str = None):
+
+        # need to be set in order to write a genotype
+        self.read_genotype_method = self.read_peddata
+
+        self.report = report
+        self.species = species
+        self.chip_name = chip_name
+
+    def read_reportfile(self):
+        """
+        Read reportfile once and generate mapdata and pedata, with genotype
+        informations by sample.
+
+        Raises
+        ------
+        NotImplementedError
+            Method need to be implemented.
+        """
+
+        self.mapdata = []
+        self.peddata = []
+
+        # those informations are required to define the pedfile
+        n_samples = None
+        n_snps = None
+        size = None
+
+        # an index to track SNP accross peddata
+        snp_idx = 0
+
+        # try to returns something like a ped row and derive map data in the
+        # same time
+        for row in read_affymetrixRow(self.report):
+            # first determine how many SNPs and samples I have
+            if not n_samples and not n_snps:
+                n_samples = row.n_samples
+                n_snps = row.n_snps
+
+                # ok create a ped data object with the required dimensions
+                size = 6 + 2 * n_snps
+                self.peddata = [[0] * size for i in range(n_samples)]
+
+                # track sample names in row. First column is probeset id
+                for i in range(n_samples):
+                    self.peddata[i][1] = row._fields[i+1]
+
+            # track SNP in mapdata
+            self.mapdata.append(MapRecord(
+                row.chr_id, row.probeset_id, 0, row.start))
+
+            # track genotypes in the proper column (skip the first 6 columns)
+            for i in range(n_samples):
+                genotype = list(row[i+1])
+                self.peddata[i][6+snp_idx*2] = genotype[0]
+                self.peddata[i][6+snp_idx*2+1] = genotype[1]
+
+            # update SNP column
+            snp_idx += 1
+
+    def read_peddata(
+            self, fid: str = None, dataset: Dataset = None, *args, **kwargs):
+        """
+        Yields over genotype record.
+
+        Parameters
+        ----------
+        fid : str, optional
+            The FID of the sample. If not provided will be detected by sample
+            name and dataset. The default is None.
+        dataset : Dataset, optional
+            The source dataset. The default is None.
+
+        Yields
+        ------
+        line : list
+            a PED record.
+        """
+        for line in self.peddata:
+            yield line
 
 
 def plink_binary_exists(prefix: Path):

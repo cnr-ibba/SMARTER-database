@@ -17,7 +17,7 @@ from src.features.smarterdb import (
     VariantGoat)
 from src.features.plinkio import (
     TextPlinkIO, MapRecord, CodingException, IlluminaReportIO, BinaryPlinkIO,
-    AffyPlinkIO, AssemblyConf)
+    AffyPlinkIO, AssemblyConf, AffyReportIO)
 
 from ..common import (
     MongoMockMixin, SmarterIDMixin, VariantsMixin, SupportedChipMixin)
@@ -850,7 +850,9 @@ class IlluminaReportIOPed(
             self.assertEqual(len(list(test.read_pedfile())), 2)
 
 
-class AffyPlinkIOMapTest(VariantsMixin, MongoMockMixin, unittest.TestCase):
+class AffyMixin():
+    """Common stuff for affymetrix tests"""
+
     # load a custom fixture for this class
     variant_fixture = "affy_variants.json"
 
@@ -860,17 +862,24 @@ class AffyPlinkIOMapTest(VariantsMixin, MongoMockMixin, unittest.TestCase):
     def setUp(self):
         super().setUp()
 
-        self.plinkio = AffyPlinkIO(
-            prefix=str(DATA_DIR / "affytest"),
-            species="Sheep",
-            chip_name=self.chip_name
-        )
-
         # source and destination assemblies
         self.src_assembly = AssemblyConf(
             version="Oar_v4.0", imported_from="affymetrix")
         self.dst_assembly = AssemblyConf(
             version="Oar_v3.1", imported_from="SNPchiMp v.3")
+
+
+class AffyPlinkIOMapTest(
+        AffyMixin, VariantsMixin, MongoMockMixin, unittest.TestCase):
+
+    def setUp(self):
+        super().setUp()
+
+        self.plinkio = AffyPlinkIO(
+            prefix=str(DATA_DIR / "affytest"),
+            species="Sheep",
+            chip_name=self.chip_name
+        )
 
     def test_read_mapfile(self):
         self.plinkio.read_mapfile()
@@ -935,13 +944,8 @@ class AffyPlinkIOMapTest(VariantsMixin, MongoMockMixin, unittest.TestCase):
 
 
 class AffyPlinkIOPedTest(
-        VariantsMixin, SmarterIDMixin, MongoMockMixin, unittest.TestCase):
-
-    # load a custom fixture for this class
-    variant_fixture = "affy_variants.json"
-
-    # custom chip
-    chip_name = "AffymetrixAxiomOviCan"
+        AffyMixin, VariantsMixin, SmarterIDMixin, MongoMockMixin,
+        unittest.TestCase):
 
     def setUp(self):
         super().setUp()
@@ -954,12 +958,6 @@ class AffyPlinkIOPedTest(
 
         # read info from map
         self.plinkio.read_mapfile()
-
-        # source and destination assemblies
-        self.src_assembly = AssemblyConf(
-            version="Oar_v4.0", imported_from="affymetrix")
-        self.dst_assembly = AssemblyConf(
-            version="Oar_v3.1", imported_from="SNPchiMp v.3")
 
         # collect info for source and destination assemblies
         self.plinkio.fetch_coordinates(
@@ -1023,6 +1021,28 @@ class AffyPlinkIOPedTest(
 
             # assert two records written
             self.assertEqual(len(list(test.read_pedfile())), 2)
+
+
+class AffyReportIOMapTest(
+        AffyMixin, VariantsMixin, MongoMockMixin, unittest.TestCase):
+
+    def setUp(self):
+        super().setUp()
+
+        self.plinkio = AffyReportIO(
+            report=DATA_DIR / "affyreport.txt",
+            species="Sheep",
+            chip_name=self.chip_name
+        )
+
+    def test_mapdata(self):
+        """Test for mapdata after reading reportfile"""
+
+        self.plinkio.read_reportfile()
+        self.assertIsInstance(self.plinkio.mapdata, list)
+        self.assertEqual(len(self.plinkio.mapdata), 3)
+        for record in self.plinkio.mapdata:
+            self.assertIsInstance(record, MapRecord)
 
 
 if __name__ == '__main__':
