@@ -1044,6 +1044,60 @@ class AffyReportIOMapTest(
         for record in self.plinkio.mapdata:
             self.assertIsInstance(record, MapRecord)
 
+    def test_fetch_coordinates(self):
+        self.plinkio.read_reportfile()
+        self.plinkio.fetch_coordinates(
+            src_assembly=self.src_assembly,
+            dst_assembly=self.dst_assembly,
+            search_field='probeset_id',
+            chip_name=self.chip_name
+        )
+
+        self.assertIsInstance(self.plinkio.src_locations, list)
+        self.assertEqual(len(self.plinkio.src_locations), 3)
+        self.assertIsInstance(self.plinkio.dst_locations, list)
+        self.assertEqual(len(self.plinkio.dst_locations), 3)
+
+        self.assertIsInstance(self.plinkio.filtered, set)
+        self.assertEqual(len(self.plinkio.filtered), 2)
+
+        # assert filtered items
+        self.assertIn(1, self.plinkio.filtered)
+        self.assertIn(2, self.plinkio.filtered)
+
+        for idx, record in enumerate(self.plinkio.dst_locations):
+            if idx in self.plinkio.filtered:
+                self.assertIsNone(record)
+            else:
+                self.assertIsInstance(record, Location)
+
+    def test_update_mapfile(self):
+        # create a temporary directory using the context manager
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            outfile = pathlib.Path(tmpdirname) / "affytest_updated.map"
+            self.plinkio.read_reportfile()
+            self.plinkio.fetch_coordinates(
+                src_assembly=self.src_assembly,
+                dst_assembly=self.dst_assembly,
+                search_field='probeset_id',
+                chip_name=self.chip_name
+            )
+            self.plinkio.update_mapfile(str(outfile))
+
+            # now open outputfile and test stuff
+            test = TextPlinkIO(mapfile=str(outfile))
+            test.read_mapfile()
+
+            # one snp cannot be mapped
+            self.assertEqual(len(test.mapdata), 1)
+
+            for record in test.mapdata:
+                variant = VariantSheep.objects(name=record.name).get()
+                location = variant.get_location(
+                    version="Oar_v3.1", imported_from="SNPchiMp v.3")
+                self.assertEqual(location.chrom, record.chrom)
+                self.assertEqual(location.position, record.position)
+
 
 if __name__ == '__main__':
     unittest.main()

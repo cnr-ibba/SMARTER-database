@@ -48,6 +48,10 @@ class IlluminaReportException(Exception):
     pass
 
 
+class AffyReportException(Exception):
+    pass
+
+
 @dataclass
 class MapRecord():
     chrom: str
@@ -1024,6 +1028,10 @@ class AffyReportIO(FakePedMixin, SmarterMixin):
         self.mapdata = []
         self.peddata = []
 
+        # I want to track also the AB genotypes, to check them while fetching
+        # coordinates
+        self.genotypes = []
+
         # those informations are required to define the pedfile
         n_samples = None
         n_snps = None
@@ -1052,6 +1060,9 @@ class AffyReportIO(FakePedMixin, SmarterMixin):
             self.mapdata.append(MapRecord(
                 row.chr_id, row.probeset_id, 0, row.start))
 
+            # track A/B genotype
+            self.genotypes.append(f"{row.allele_a}/{row.allele_b}")
+
             # track genotypes in the proper column (skip the first 6 columns)
             for i in range(n_samples):
                 genotype = list(row[i+1])
@@ -1060,6 +1071,35 @@ class AffyReportIO(FakePedMixin, SmarterMixin):
 
             # update SNP column
             snp_idx += 1
+
+    def fetch_coordinates(
+            self,
+            src_assembly: AssemblyConf,
+            dst_assembly: AssemblyConf = None,
+            search_field: str = "name",
+            chip_name: str = None):
+        """Search for variants in smarter database
+
+        Args:
+            src_assembly (AssemblyConf): the source data assembly version
+            dst_assembly (AssemblyConf): the destination data assembly version
+            search_field (str): search variant by field (def. "name")
+            chip_name (str): limit search to this chip_name
+        """
+
+        # call base method
+        super().fetch_coordinates(
+            src_assembly, dst_assembly, search_field, chip_name)
+
+        # now check that genotypes read from report are equal to src_assembly
+        for idx, genotype in enumerate(self.genotypes):
+            if idx in self.filtered:
+                # this genotype is discared
+                continue
+
+            if genotype != self.src_locations[idx].affymetrix_ab:
+                raise AffyReportException(
+                    "Genotypes differ from reportfile and src_assembly")
 
     def read_peddata(
             self, fid: str = None, dataset: Dataset = None, *args, **kwargs):
