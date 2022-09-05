@@ -207,16 +207,16 @@ data: requirements
 		--src_version Oar_v3.1 --src_imported_from affymetrix
 	$(PYTHON_INTERPRETER) src/data/import_samples.py --src_dataset 20220809_105_Creole_Samples_INIA_Uruguay.zip \
 		--dst_dataset Placa_Junio_recommended.zip --datafile placa_junio_metadata.xlsx \
-		--code_all CRL --id_column id_column --chip_name AffymetrixAxiomOviCan --country_all Uruguay \
-		--sex_column Sex --alias_column Lab_ID
+		--code_all CRL --id_column Lab_ID --chip_name AffymetrixAxiomOviCan --country_all Uruguay \
+		--sex_column Sex --alias_column id_column
 	$(PYTHON_INTERPRETER) src/data/import_samples.py --src_dataset 20220809_105_Creole_Samples_INIA_Uruguay.zip \
 		--dst_dataset OP829-924_INIA_Abril.zip --datafile inia_abril_metadata.xlsx \
-		--code_all CRL --id_column id_column --chip_name AffymetrixAxiomOviCan --country_all Uruguay \
-		--sex_column Sex --alias_column Lab_ID
+		--code_all CRL --id_column Lab_ID --chip_name AffymetrixAxiomOviCan --country_all Uruguay \
+		--sex_column Sex --alias_column id_column
 	$(PYTHON_INTERPRETER) src/data/import_samples.py --src_dataset 20220809_105_Creole_Samples_INIA_Uruguay.zip \
 		--dst_dataset Placas1_4_genotyping.zip --datafile placas1_4_metadata.xlsx \
-		--code_all CRL --id_column id_column --chip_name AffymetrixAxiomOviCan --country_all Uruguay \
-		--sex_column Sex --alias_column Lab_ID
+		--code_all CRL --id_column Lab_ID --chip_name AffymetrixAxiomOviCan --country_all Uruguay \
+		--sex_column Sex --alias_column id_column
 
 	## convert genotypes without creating samples in database (SHEEP)
 	$(PYTHON_INTERPRETER) src/data/import_from_affymetrix.py --file Affymetrix_data_Plate_652_660/Affymetrix_data_Plate_652/Affymetrix_data_Plate_652 \
