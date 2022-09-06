@@ -1160,24 +1160,40 @@ class AffyReportIO(FakePedMixin, SmarterMixin):
                     "Genotypes differ from reportfile and src_assembly")
 
     def read_peddata(
-            self, fid: str = None, dataset: Dataset = None, *args, **kwargs):
+            self, breed: str = None, dataset: Dataset = None, *args, **kwargs):
         """
         Yields over genotype record.
 
         Parameters
         ----------
-        fid : str, optional
-            The FID of the sample. If not provided will be detected by sample
-            name and dataset. The default is None.
+        breed : str, optional
+            A breed to be assigned to all samples, or use the sample breed
+            stored in database if not provided. The default is None.
         dataset : Dataset, optional
-            The source dataset. The default is None.
+            A dataset in which search for sample breed identifier
 
         Yields
         ------
         line : list
-            a PED record.
+            A ped line read as a list.
         """
+
         for line in self.peddata:
+            # instantiate a new object in order to be modified
+            line = line.copy()
+
+            logger.debug(f"Prepare {line[:10]+ ['...']} to add FID")
+
+            if not breed:
+                fid = self.get_fid(line[1], dataset)
+
+            else:
+                fid = breed
+
+            # set values. I need to set a breed code in order to get a
+            # proper ped line
+            line[0], line[5] = fid, "-9"
+
             yield line
 
 

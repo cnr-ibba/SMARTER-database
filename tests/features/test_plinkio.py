@@ -1095,7 +1095,7 @@ class AffyReportIOMapTest(
     def test_update_mapfile(self):
         # create a temporary directory using the context manager
         with tempfile.TemporaryDirectory() as tmpdirname:
-            outfile = pathlib.Path(tmpdirname) / "affytest_updated.map"
+            outfile = pathlib.Path(tmpdirname) / "affyreport_updated.map"
             self.plinkio.read_reportfile()
             self.plinkio.fetch_coordinates(
                 src_assembly=self.src_assembly,
@@ -1118,6 +1118,105 @@ class AffyReportIOMapTest(
                     version="Oar_v3.1", imported_from="SNPchiMp v.3")
                 self.assertEqual(location.chrom, record.chrom)
                 self.assertEqual(location.position, record.position)
+
+
+class AffyReportIOPedTest(
+        AffyMixin, VariantsMixin, SmarterIDMixin, MongoMockMixin,
+        unittest.TestCase):
+
+    def setUp(self):
+        super().setUp()
+
+        self.plinkio = AffyReportIO(
+            report=str(DATA_DIR / "affyreport.txt"),
+            species="Sheep",
+            chip_name="AffymetrixAxiomOviCan"
+        )
+
+        # read info from map
+        self.plinkio.read_reportfile()
+
+        # collect info for source and destination assemblies
+        self.plinkio.fetch_coordinates(
+            src_assembly=self.src_assembly,
+            dst_assembly=self.dst_assembly,
+            search_field='probeset_id',
+            chip_name=self.chip_name
+        )
+
+        # read ped files
+        self.lines = list(self.plinkio.read_peddata(breed="TEX"))
+
+    def test_assert_filtered(self):
+        self.assertEqual(self.plinkio.filtered, {1, 2})
+
+    def test_read_reportfile(self):
+        test = self.plinkio.read_peddata(breed="TEX")
+        self.assertIsInstance(test, types.GeneratorType)
+
+        # consume data and count rows
+        test = list(test)
+        self.assertEqual(len(test), 2)
+
+    def test_read_reportfile_no_fid(self):
+        """Try to determine fid from database"""
+
+        # create two fake samples to colled fid relying on database
+        for sample_name in ["test_one", "test_two"]:
+            sample = SampleSheep(
+                original_id=sample_name,
+                country="Italy",
+                breed="Texel",
+                breed_code="TEX",
+                species="Sheep",
+                dataset=self.dataset,
+                type_="background",
+                chip_name=self.chip_name
+            )
+            sample.save()
+
+        test = self.plinkio.read_peddata(dataset=self.dataset)
+        self.assertIsInstance(test, types.GeneratorType)
+
+        # consume data and count rows
+        test = list(test)
+        self.assertEqual(len(test), 2)
+
+    def test_process_pedline(self):
+        # define reference
+        reference = [
+            'TEX', 'ITOA-TEX-000000001', '0', '0', '0', "-9", 'A', 'A']
+
+        # get a line for testing
+        line = self.lines[0]
+
+        # get a dataset
+        dataset = Dataset.objects(file="test.zip").get()
+
+        test = self.plinkio._process_pedline(line, dataset, 'ab', True)
+
+        self.assertEqual(reference, test)
+
+    def test_update_pedfile(self):
+        # get a dataset
+        dataset = Dataset.objects(file="test.zip").get()
+
+        # create a temporary directory using the context manager
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            pedfile = pathlib.Path(tmpdirname) / "affyreport_updated.ped"
+            mapfile = pathlib.Path(tmpdirname) / "affyreport_updated.map"
+
+            self.plinkio.update_mapfile(str(mapfile))
+            self.plinkio.update_pedfile(
+                str(pedfile), dataset, 'ab', breed="TEX", create_samples=True)
+
+            # now open outputfile and test stuff
+            test = TextPlinkIO(
+                mapfile=str(mapfile),
+                pedfile=str(pedfile))
+
+            # assert two records written
+            self.assertEqual(len(list(test.read_pedfile())), 2)
 
 
 if __name__ == '__main__':
