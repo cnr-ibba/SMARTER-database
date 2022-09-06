@@ -19,9 +19,10 @@ import logging
 import subprocess
 
 from pathlib import Path
+from click_option_group import optgroup, RequiredMutuallyExclusiveOptionGroup
 
 from src.features.plinkio import (
-    AffyPlinkIO, plink_binary_exists)
+    AffyPlinkIO, AffyReportIO, plink_binary_exists)
 from src.features.smarterdb import Dataset, global_connection, SupportedChip
 from src.data.common import WORKING_ASSEMBLIES, PLINK_SPECIES_OPT, AssemblyConf
 
@@ -80,8 +81,48 @@ def deal_with_prefix(prefix: str, dataset: Dataset, assembly: str):
     return plinkio, output_dir, output_map, output_ped
 
 
+def deal_with_report(report: str, dataset: Dataset, assembly: str):
+    # check file is in dataset
+    if report not in dataset.contents:
+        raise Exception(
+            "Couldn't find file in dataset: check for "
+            f"'{report}' in '{dataset}'")
+
+    # check for working directory
+    working_dir = dataset.working_dir
+
+    if not working_dir.exists():
+        raise Exception(f"Couldn't find dataset directory '{working_dir}'")
+
+    # determine full file paths
+    reportpath = working_dir / report
+
+    # instantiating a TextPlinkIO object
+    plinkio = AffyReportIO(
+        report=reportpath,
+        species=dataset.species
+    )
+
+    # determine output files
+    output_dir, output_map, output_ped = get_output_files(
+        Path(report).stem, working_dir, assembly)
+
+    return plinkio, output_dir, output_map, output_ped
+
+
 @click.command()
-@click.option('--prefix', type=str, help="File prefix (like plink does)")
+@optgroup.group(
+    'Affymetrix input files',
+    cls=RequiredMutuallyExclusiveOptionGroup
+)
+@optgroup.option(
+    '--prefix',
+    type=str,
+    help="File prefix for map and ped files (like plink does)")
+@optgroup.option(
+    '--report',
+    type=str,
+    help="Affymetrix report path")
 @click.option(
     '--dataset', type=str, required=True,
     help="The raw dataset file name (zip archive)"
@@ -89,7 +130,7 @@ def deal_with_prefix(prefix: str, dataset: Dataset, assembly: str):
 @click.option(
     '--breed_code',
     type=str,
-    required=True)
+    help="A breed code to be assigned on all samples while creating samples")
 @click.option('--chip_name', type=str, required=True)
 @click.option('--assembly', type=str, required=True)
 @click.option('--create_samples', is_flag=True)
@@ -116,8 +157,9 @@ def deal_with_prefix(prefix: str, dataset: Dataset, assembly: str):
     help="Source assembly imported_from",
     required=True)
 def main(
-        prefix, dataset, breed_code, chip_name, assembly, create_samples,
-        sample_field, search_field, src_version, src_imported_from):
+        prefix, report, dataset, breed_code, chip_name, assembly,
+        create_samples, sample_field, search_field, src_version,
+        src_imported_from):
     """
     Read sample names from affymetrix files and updata smarter database (insert
     a record if necessary and define a smarter id for each sample)
@@ -139,8 +181,13 @@ def main(
 
     logger.debug(f"Found {dataset}")
 
-    plinkio, output_dir, output_map, output_ped = deal_with_affymetrix(
-        prefix, dataset, assembly)
+    if prefix:
+        plinkio, output_dir, output_map, output_ped = deal_with_prefix(
+            prefix, dataset, assembly)
+
+    elif report:
+        plinkio, output_dir, output_map, output_ped = deal_with_report(
+            report, dataset, assembly)
 
     # check chip_name
     illumina_chip = SupportedChip.objects(name=chip_name).get()
@@ -167,7 +214,13 @@ def main(
     # if I arrive here, I can create output files
 
     # read mapdata and read updated coordinates from db
-    plinkio.read_mapfile()
+    if prefix:
+        # I have a .map file to read
+        plinkio.read_mapfile()
+
+    elif report:
+        # this is an affymetrix reportfile
+        plinkio.read_reportfile()
 
     # fetch coordinates relying assembly configuration. Mind affy probeset_id
     plinkio.fetch_coordinates(
@@ -185,7 +238,7 @@ def main(
         outputfile=output_ped,
         dataset=dataset,
         coding="affymetrix",
-        fid=breed_code,
+        breed=breed_code,
         create_samples=create_samples,
         sample_field=sample_field
     )
