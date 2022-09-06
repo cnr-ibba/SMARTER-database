@@ -85,7 +85,7 @@ class TestImportFromAffymetrix(
                 [
                     "--dataset",
                     "test.zip",
-                    "--file",
+                    "--prefix",
                     "affytest",
                     "--chip_name",
                     self.chip_name,
@@ -160,7 +160,7 @@ class TestImportFromAffymetrix(
                 [
                     "--dataset",
                     "test.zip",
-                    "--file",
+                    "--prefix",
                     "affytest",
                     "--chip_name",
                     self.chip_name,

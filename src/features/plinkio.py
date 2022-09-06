@@ -1078,7 +1078,8 @@ class AffyReportIO(FakePedMixin, SmarterMixin):
             dst_assembly: AssemblyConf = None,
             search_field: str = "name",
             chip_name: str = None):
-        """Search for variants in smarter database
+        """Search for variants in smarter database. Check if the provided
+        A/B information is equal to the database content
 
         Args:
             src_assembly (AssemblyConf): the source data assembly version

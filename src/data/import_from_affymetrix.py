@@ -46,9 +46,9 @@ def get_output_files(prefix: str, working_dir: Path, assembly: str):
     return output_dir, output_map, output_ped
 
 
-def deal_with_affymetrix(file_: str, dataset: Dataset, assembly: str):
-    mapfile = file_ + ".map"
-    pedfile = file_ + ".ped"
+def deal_with_prefix(prefix: str, dataset: Dataset, assembly: str):
+    mapfile = prefix + ".map"
+    pedfile = prefix + ".ped"
 
     # check files are in dataset
     if mapfile not in dataset.contents or pedfile not in dataset.contents:
@@ -60,7 +60,7 @@ def deal_with_affymetrix(file_: str, dataset: Dataset, assembly: str):
     working_dir = dataset.working_dir
 
     if not working_dir.exists():
-        raise Exception(f"Could find dataset directory {working_dir}")
+        raise Exception(f"Couldn't find dataset directory '{working_dir}'")
 
     # determine full file paths
     mappath = working_dir / mapfile
@@ -75,13 +75,13 @@ def deal_with_affymetrix(file_: str, dataset: Dataset, assembly: str):
 
     # determine output files
     output_dir, output_map, output_ped = get_output_files(
-        file_, working_dir, assembly)
+        prefix, working_dir, assembly)
 
     return plinkio, output_dir, output_map, output_ped
 
 
 @click.command()
-@click.option('--file', 'file_', type=str)
+@click.option('--prefix', type=str, help="File prefix (like plink does)")
 @click.option(
     '--dataset', type=str, required=True,
     help="The raw dataset file name (zip archive)"
@@ -116,10 +116,10 @@ def deal_with_affymetrix(file_: str, dataset: Dataset, assembly: str):
     help="Source assembly imported_from",
     required=True)
 def main(
-        file_, dataset, breed_code, chip_name, assembly, create_samples,
+        prefix, dataset, breed_code, chip_name, assembly, create_samples,
         sample_field, search_field, src_version, src_imported_from):
     """
-    Read sample names from map/ped files and updata smarter database (insert
+    Read sample names from affymetrix files and updata smarter database (insert
     a record if necessary and define a smarter id for each sample)
     """
 
@@ -140,7 +140,7 @@ def main(
     logger.debug(f"Found {dataset}")
 
     plinkio, output_dir, output_map, output_ped = deal_with_affymetrix(
-        file_, dataset, assembly)
+        prefix, dataset, assembly)
 
     # check chip_name
     illumina_chip = SupportedChip.objects(name=chip_name).get()
