@@ -968,13 +968,37 @@ class AffyPlinkIOPedTest(
         )
 
         # read ped files
-        self.lines = list(self.plinkio.read_pedfile(fid="TEX"))
+        self.lines = list(self.plinkio.read_pedfile(breed="TEX"))
 
     def test_assert_filtered(self):
         self.assertEqual(self.plinkio.filtered, {2, 3})
 
     def test_read_pedfile(self):
-        test = self.plinkio.read_pedfile(fid="TEX")
+        test = self.plinkio.read_pedfile(breed="TEX")
+        self.assertIsInstance(test, types.GeneratorType)
+
+        # consume data and count rows
+        test = list(test)
+        self.assertEqual(len(test), 2)
+
+    def test_read_pedfile_no_fid(self):
+        """Try to determine fid from database"""
+
+        # create two fake samples to colled fid relying on database
+        for sample_name in ["test-one", "test-two"]:
+            sample = SampleSheep(
+                original_id=sample_name,
+                country="Italy",
+                breed="Texel",
+                breed_code="TEX",
+                species="Sheep",
+                dataset=self.dataset,
+                type_="background",
+                chip_name=self.chip_name
+            )
+            sample.save()
+
+        test = self.plinkio.read_pedfile(dataset=self.dataset)
         self.assertIsInstance(test, types.GeneratorType)
 
         # consume data and count rows
@@ -997,9 +1021,6 @@ class AffyPlinkIOPedTest(
 
         self.assertEqual(reference, test)
 
-        for sample in SampleSheep.objects.all():
-            print(sample, sample.original_id)
-
     def test_update_pedfile(self):
         # get a dataset
         dataset = Dataset.objects(file="test.zip").get()
@@ -1011,7 +1032,7 @@ class AffyPlinkIOPedTest(
                 str(outfile),
                 dataset,
                 'affymetrix',
-                fid="TEX",
+                breed="TEX",
                 create_samples=True)
 
             # now open outputfile and test stuff

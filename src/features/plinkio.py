@@ -739,7 +739,7 @@ class FakePedMixin():
         )
 
         fid = sample.breed_code
-        logger.warning(
+        logger.debug(
             f"Found breed {fid} from {original_id}")
 
         return fid
@@ -806,8 +806,22 @@ class AffyPlinkIO(FakePedMixin, TextPlinkIO):
     """a new class for affymetrix plink files, which are slightly different
     from plink text files"""
 
-    def read_pedfile(self, fid: str, *args, **kwargs):
-        """Open pedfile for reading return iterator"""
+    def read_pedfile(
+            self, breed: str = None, dataset: Dataset = None, *args, **kwargs):
+        """
+        Open pedfile for reading return iterator
+
+        breed : str, optional
+            A breed to be assigned to all samples, or use the sample breed
+            stored in database if not provided. The default is None.
+        dataset : Dataset, optional
+            A dataset in which search for sample breed identifier
+
+        Yields
+        ------
+        line : list
+            A ped line read as a list.
+        """
 
         with open(self.pedfile) as handle:
             # affy files has both " " and "\t" in their files
@@ -818,6 +832,12 @@ class AffyPlinkIO(FakePedMixin, TextPlinkIO):
                     continue
 
                 line = re.split('[ \t]+', record.strip())
+
+                if not breed:
+                    fid = self.get_fid(line[0], dataset)
+
+                else:
+                    fid = breed
 
                 # affy ped lacks of plink columns. add such value to line
                 line.insert(0, fid)  # FID
