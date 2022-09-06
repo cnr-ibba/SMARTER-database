@@ -686,7 +686,7 @@ class BinaryPlinkIOTest(
     def test_process_pedline(self):
         # define reference
         reference = [
-            'TEX', 'ITOA-TEX-000000001', '0', '0', '0', -9,
+            'TEX', 'ITOA-TEX-000000001', '0', '0', '0', "-9",
             'A', 'A', 'A', 'G', 'G', 'G']
 
         # get a line for testing
@@ -818,7 +818,7 @@ class IlluminaReportIOPed(
     def test_process_pedline(self):
         # define reference
         reference = [
-            'TEX', 'ITOA-TEX-000000001', '0', '0', '0', -9,
+            'TEX', 'ITOA-TEX-000000001', '0', '0', '0', "-9",
             'A', 'A', 'G', 'G']
 
         # get a line for testing
@@ -1008,7 +1008,7 @@ class AffyPlinkIOPedTest(
     def test_process_pedline(self):
         # define reference
         reference = [
-            'TEX', 'ITOA-TEX-000000001', '0', '0', '0', -9,
+            'TEX', 'ITOA-TEX-000000001', '0', '0', '0', "-9",
             'A', 'G', 'A', 'A']
 
         # get a line for testing

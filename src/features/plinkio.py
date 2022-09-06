@@ -730,7 +730,7 @@ class FakePedMixin():
             The FID used in the generated .ped file
         """
 
-        logger.debug(f"Searching fid for sample '{original_id}'")
+        logger.debug(f"Searching fid for sample '{original_id}, {dataset}'")
 
         # determine fid from sample, if not received as argument
         sample = self.SampleSpecies.objects.get(
@@ -740,7 +740,7 @@ class FakePedMixin():
 
         fid = sample.breed_code
         logger.debug(
-            f"Found breed {fid} from {original_id}")
+            f"Found breed '{fid}' for '{original_id}'")
 
         return fid
 
@@ -844,7 +844,7 @@ class AffyPlinkIO(FakePedMixin, TextPlinkIO):
                 line.insert(2, '0')  # father
                 line.insert(3, '0')  # mother
                 line.insert(4, '0')  # SEX
-                line.insert(5, -9)  # phenotype
+                line.insert(5, '-9')  # phenotype
 
                 yield line
 
@@ -931,7 +931,7 @@ class BinaryPlinkIO(SmarterMixin):
                 sample.father_iid,
                 sample.mother_iid,
                 format_sex(sample.sex),
-                int(sample.phenotype)
+                str(int(sample.phenotype))
             ]
 
             for idx, locus in enumerate(locus_list):
@@ -1026,7 +1026,7 @@ class IlluminaReportIO(FakePedMixin, SmarterMixin):
 
                 # set values. I need to set a breed code in order to get a
                 # proper ped line
-                line[0], line[1], line[5] = fid, row.sample_id, -9
+                line[0], line[1], line[5] = fid, row.sample_id, "-9"
 
                 # track last sample
                 last_sample = row.sample_id
@@ -1107,7 +1107,7 @@ class AffyReportIO(FakePedMixin, SmarterMixin):
 
                 # ok create a ped data object with the required dimensions
                 size = 6 + 2 * n_snps
-                self.peddata = [[0] * size for i in range(n_samples)]
+                self.peddata = [["0"] * size for i in range(n_samples)]
 
                 # track sample names in row. First column is probeset id
                 for i in range(n_samples):
