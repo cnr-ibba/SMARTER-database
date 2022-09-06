@@ -713,6 +713,37 @@ class FakePedMixin():
 
         return breed
 
+    def get_fid(self, original_id: str, dataset: Dataset) -> str:
+        """
+        Determine FID from smarter SampleSpecies breed
+
+        Parameters
+        ----------
+        original_id : str
+            The sample original_id.
+        dataset : Dataset
+            The dataset where the sample comes from.
+
+        Returns
+        -------
+        fid : str
+            The FID used in the generated .ped file
+        """
+
+        logger.debug(f"Searching fid for sample '{original_id}'")
+
+        # determine fid from sample, if not received as argument
+        sample = self.SampleSpecies.objects.get(
+            original_id=original_id,
+            dataset=dataset
+        )
+
+        fid = sample.breed_code
+        logger.warning(
+            f"Found breed {fid} from {original_id}")
+
+        return fid
+
 
 class TextPlinkIO(SmarterMixin):
     mapfile = None
@@ -917,8 +948,28 @@ class IlluminaReportIO(FakePedMixin, SmarterMixin):
 
     # this will be called when calling read_genotype_method()
     def read_reportfile(
-            self, fid: str = None, dataset: Dataset = None, *args, **kwargs):
-        """Open illumina report returns iterator"""
+            self, breed: str = None, dataset: Dataset = None, *args, **kwargs):
+        """
+        Open and read an illumina report file. Returns iterator
+
+        Parameters
+        ----------
+        breed : str, optional
+            A breed to be assigned to all samples, or use the sample breed
+            stored in database if not provided. The default is None.
+        dataset : Dataset, optional
+            A dataset in which search for sample breed identifier
+
+        Raises
+        ------
+        IlluminaReportException
+            Raised when SNPs index doesn't match snpfile.
+
+        Yields
+        ------
+        line : list
+            A ped line read as a list.
+        """
 
         # determine genotype length
         size = 6 + 2*len(self.mapdata)
@@ -947,29 +998,15 @@ class IlluminaReportIO(FakePedMixin, SmarterMixin):
                 # initialize an empty array
                 line = ["0"] * size
 
-                logger.debug(f"Searching fid for sample '{row.sample_id}'")
+                if not breed:
+                    fid = self.get_fid(row.sample_id, dataset)
 
-                # determine fid from sample, if not received as argument
-                if not fid:
-                    try:
-                        sample = self.SampleSpecies.objects.get(
-                            original_id=row.sample_id,
-                            dataset=dataset
-                        )
-
-                        breed = sample.breed_code
-                        logger.debug(
-                            f"Found breed {breed} from {row.sample_id}")
-
-                    except DoesNotExist as e:
-                        logger.error(f"Couldn't find {row.sample_id}")
-                        raise e
                 else:
-                    breed = fid
+                    fid = breed
 
                 # set values. I need to set a breed code in order to get a
                 # proper ped line
-                line[0], line[1], line[5] = breed, row.sample_id, -9
+                line[0], line[1], line[5] = fid, row.sample_id, -9
 
                 # track last sample
                 last_sample = row.sample_id

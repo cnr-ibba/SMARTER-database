@@ -781,10 +781,10 @@ class IlluminaReportIOPed(
         self.plinkio.fetch_coordinates(src_assembly=self.src_assembly)
 
         # read first line of ped file
-        self.lines = list(self.plinkio.read_reportfile(fid="TEX"))
+        self.lines = list(self.plinkio.read_reportfile(breed="TEX"))
 
     def test_read_reportfile(self):
-        test = self.plinkio.read_reportfile(fid="TEX")
+        test = self.plinkio.read_reportfile(breed="TEX")
         self.assertIsInstance(test, types.GeneratorType)
 
         # consume data and count rows
@@ -839,7 +839,7 @@ class IlluminaReportIOPed(
         with tempfile.TemporaryDirectory() as tmpdirname:
             outfile = pathlib.Path(tmpdirname) / "plinktest_updated.ped"
             self.plinkio.update_pedfile(
-                str(outfile), dataset, 'ab', fid="TEX", create_samples=True)
+                str(outfile), dataset, 'ab', breed="TEX", create_samples=True)
 
             # now open outputfile and test stuff
             test = TextPlinkIO(
