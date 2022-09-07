@@ -1161,26 +1161,28 @@ class AffyReportIOPedTest(
     def test_read_reportfile_no_fid(self):
         """Try to determine fid from database"""
 
-        # create two fake samples to collect fid relying on database
-        for sample_name in ["test-one", "test-two"]:
-            sample = SampleSheep(
-                original_id=sample_name,
-                country="Italy",
-                breed="Texel",
-                breed_code="TEX",
-                species="Sheep",
-                dataset=self.dataset,
-                type_="background",
-                chip_name=self.chip_name
-            )
-            sample.save()
+        # create one fake samples to collect fid relying on database
+        sample = SampleSheep(
+            original_id="test-one",
+            country="Italy",
+            breed="Texel",
+            breed_code="TEX",
+            species="Sheep",
+            dataset=self.dataset,
+            type_="background",
+            chip_name=self.chip_name
+        )
+        sample.save()
 
+        # reportfile will have also test-two, but since is not in database
+        # will be ignored
         test = self.plinkio.read_peddata(dataset=self.dataset)
         self.assertIsInstance(test, types.GeneratorType)
 
         # consume data and count rows
         test = list(test)
-        self.assertEqual(len(test), 2)
+        self.assertEqual(len(test), 1)
+        self.assertEqual(test[0][1], "test-one")
 
     def test_process_pedline(self):
         # define reference

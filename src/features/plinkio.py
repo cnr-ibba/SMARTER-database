@@ -744,10 +744,17 @@ class FakePedMixin():
             "{dataset}'")
 
         # determine fid from sample, if not received as argument
-        sample = self.SampleSpecies.objects.get(
-            dataset=dataset,
-            **{sample_field: sample_name}
-        )
+        try:
+            sample = self.SampleSpecies.objects.get(
+                dataset=dataset,
+                **{sample_field: sample_name}
+            )
+        except DoesNotExist as e:
+            logger.debug(e)
+            raise SmarterDBException(
+                f"Couldn't find sample '{sample_name}' in file "
+                f"'{dataset.file}' using field'{sample_field}'"
+            )
 
         fid = sample.breed_code
         logger.debug(
@@ -1246,10 +1253,17 @@ class AffyReportIO(FakePedMixin, SmarterMixin):
             logger.debug(f"Prepare {line[:10]+ ['...']} to add FID")
 
             if not breed:
-                fid = self.get_fid(
-                    sample_name=line[1],
-                    dataset=dataset,
-                    sample_field=sample_field)
+                try:
+                    fid = self.get_fid(
+                        sample_name=line[1],
+                        dataset=dataset,
+                        sample_field=sample_field)
+
+                except SmarterDBException as e:
+                    logger.debug(e)
+                    logger.warning(
+                        f"Ignoring sample '{line[1]}': not in database")
+                    continue
 
             else:
                 fid = breed
