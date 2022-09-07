@@ -1162,7 +1162,7 @@ class AffyReportIOPedTest(
         """Try to determine fid from database"""
 
         # create two fake samples to colled fid relying on database
-        for sample_name in ["test_one", "test_two"]:
+        for sample_name in ["test-one", "test-two"]:
             sample = SampleSheep(
                 original_id=sample_name,
                 country="Italy",

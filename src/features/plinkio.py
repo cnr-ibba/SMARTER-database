@@ -25,7 +25,7 @@ from .snpchimp import clean_chrom
 from .smarterdb import (
     VariantSheep, SampleSheep, Breed, Dataset, SmarterDBException, SEX,
     VariantGoat, SampleGoat, Location, get_sample_type)
-from .utils import TqdmToLogger
+from .utils import TqdmToLogger, skip_comments, text_or_gzip_open
 from .illumina import read_snpList, read_illuminaRow
 from .affymetrix import read_affymetrixRow
 
@@ -1057,6 +1057,7 @@ class AffyReportIO(FakePedMixin, SmarterMixin):
 
     report = None
     peddata = []
+    delimiter = "\t"
 
     def __init__(
             self,
@@ -1070,6 +1071,22 @@ class AffyReportIO(FakePedMixin, SmarterMixin):
         self.report = report
         self.species = species
         self.chip_name = chip_name
+
+    def __get_header(self):
+        # sample names are sanitized through read_affymetrixRow: so read the
+        # first header of the report file to determine the original sample
+        # names
+        with text_or_gzip_open(self.report) as handle:
+            position, skipped = skip_comments(handle)
+
+            # go back to header section
+            handle.seek(position)
+
+            # now read csv file
+            reader = csv.reader(handle, delimiter=self.delimiter)
+
+            # get header
+            return next(reader)
 
     def read_reportfile(self):
         """
@@ -1093,25 +1110,30 @@ class AffyReportIO(FakePedMixin, SmarterMixin):
         n_samples = None
         n_snps = None
         size = None
+        header = None
 
         # an index to track SNP accross peddata
         snp_idx = 0
 
         # try to returns something like a ped row and derive map data in the
         # same time
-        for row in read_affymetrixRow(self.report):
+        for row in read_affymetrixRow(self.report, delimiter=self.delimiter):
             # first determine how many SNPs and samples I have
             if not n_samples and not n_snps:
                 n_samples = row.n_samples
                 n_snps = row.n_snps
+
+                # read the original header from report file
+                header = self.__get_header()
 
                 # ok create a ped data object with the required dimensions
                 size = 6 + 2 * n_snps
                 self.peddata = [["0"] * size for i in range(n_samples)]
 
                 # track sample names in row. First column is probeset id
+                # read them from the original header row
                 for i in range(n_samples):
-                    self.peddata[i][1] = row._fields[i+1]
+                    self.peddata[i][1] = header[i+1]
 
             # track SNP in mapdata
             self.mapdata.append(MapRecord(

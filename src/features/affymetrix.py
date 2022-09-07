@@ -15,32 +15,11 @@ from pathlib import Path
 from typing import Union
 from dateutil.parser import parse as parse_date
 
-from src.features.utils import sanitize, text_or_gzip_open, find_duplicates
+from src.features.utils import (
+    sanitize, text_or_gzip_open, find_duplicates, skip_comments)
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
-
-
-def skip_comments(handle) -> (int, list):
-    """Ignore comments lines"""
-
-    # track skipped lines
-    skipped = list()
-
-    # read first line
-    line = handle.readline().strip()
-
-    # search for comments in file
-    while line[0] == "#":
-        logger.warning(f"Skipping: {line}")
-        skipped.append(line)
-        position = handle.tell()
-
-        # read another line
-        line = handle.readline().strip()
-
-    # the position returned is the one before the one I want
-    return position, skipped
 
 
 def _search_in_header(header: list, term: str) -> list:
