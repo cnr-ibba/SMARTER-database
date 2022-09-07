@@ -1161,7 +1161,7 @@ class AffyReportIOPedTest(
     def test_read_reportfile_no_fid(self):
         """Try to determine fid from database"""
 
-        # create two fake samples to colled fid relying on database
+        # create two fake samples to collect fid relying on database
         for sample_name in ["test-one", "test-two"]:
             sample = SampleSheep(
                 original_id=sample_name,
@@ -1209,6 +1209,44 @@ class AffyReportIOPedTest(
             self.plinkio.update_mapfile(str(mapfile))
             self.plinkio.update_pedfile(
                 str(pedfile), dataset, 'ab', breed="TEX", create_samples=True)
+
+            # now open outputfile and test stuff
+            test = TextPlinkIO(
+                mapfile=str(mapfile),
+                pedfile=str(pedfile))
+
+            # assert two records written
+            self.assertEqual(len(list(test.read_pedfile())), 2)
+
+    def test_update_pedfile_using_alias_no_fid(self):
+        # create two fake samples to collect fid relying on database
+        for i, sample_name in enumerate(["test-one", "test-two"]):
+            sample = SampleSheep(
+                original_id=f"sample{i}",
+                country="Italy",
+                breed="Texel",
+                breed_code="TEX",
+                species="Sheep",
+                dataset=self.dataset,
+                type_="background",
+                chip_name=self.chip_name,
+                alias=sample_name
+            )
+            sample.save()
+
+        # create a temporary directory using the context manager
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            pedfile = pathlib.Path(tmpdirname) / "affyreport_updated.ped"
+            mapfile = pathlib.Path(tmpdirname) / "affyreport_updated.map"
+
+            self.plinkio.update_mapfile(str(mapfile))
+            self.plinkio.update_pedfile(
+                outputfile=str(pedfile),
+                dataset=self.dataset,
+                coding='affymetrix',
+                breed=None,
+                create_samples=False,
+                sample_field="alias")
 
             # now open outputfile and test stuff
             test = TextPlinkIO(

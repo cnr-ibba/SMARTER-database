@@ -671,7 +671,9 @@ class SmarterMixin():
             processed = 0
 
             for line in self.read_genotype_method(
-                    dataset=dataset, *args, **kwargs):
+                    dataset=dataset,
+                    sample_field=sample_field,
+                    *args, **kwargs):
 
                 # covert the ped line with the desidered format
                 new_line = self._process_pedline(
@@ -713,16 +715,23 @@ class FakePedMixin():
 
         return breed
 
-    def get_fid(self, original_id: str, dataset: Dataset) -> str:
+    def get_fid(
+            self,
+            sample_name: str,
+            dataset: Dataset,
+            sample_field: str = "original_id"
+            ) -> str:
         """
         Determine FID from smarter SampleSpecies breed
 
         Parameters
         ----------
-        original_id : str
-            The sample original_id.
+        sample_name : str
+            The sample name.
         dataset : Dataset
             The dataset where the sample comes from.
+        sample_field : str
+            The field use to search sample name
 
         Returns
         -------
@@ -730,17 +739,19 @@ class FakePedMixin():
             The FID used in the generated .ped file
         """
 
-        logger.debug(f"Searching fid for sample '{original_id}, {dataset}'")
+        logger.debug(
+            f"Searching fid for sample using {sample_field}: '{sample_name}, "
+            "{dataset}'")
 
         # determine fid from sample, if not received as argument
         sample = self.SampleSpecies.objects.get(
-            original_id=original_id,
-            dataset=dataset
+            dataset=dataset,
+            **{sample_field: sample_name}
         )
 
         fid = sample.breed_code
         logger.debug(
-            f"Found breed '{fid}' for '{original_id}'")
+            f"Found breed '{fid}' for '{sample_name}'")
 
         return fid
 
@@ -807,7 +818,11 @@ class AffyPlinkIO(FakePedMixin, TextPlinkIO):
     from plink text files"""
 
     def read_pedfile(
-            self, breed: str = None, dataset: Dataset = None, *args, **kwargs):
+            self,
+            breed: str = None,
+            dataset: Dataset = None,
+            sample_field: str = "original_id",
+            *args, **kwargs):
         """
         Open pedfile for reading return iterator
 
@@ -816,6 +831,8 @@ class AffyPlinkIO(FakePedMixin, TextPlinkIO):
             stored in database if not provided. The default is None.
         dataset : Dataset, optional
             A dataset in which search for sample breed identifier
+        sample_field : str, optional
+            Search samples using this field. The default is "original_id".
 
         Yields
         ------
@@ -968,7 +985,11 @@ class IlluminaReportIO(FakePedMixin, SmarterMixin):
 
     # this will be called when calling read_genotype_method()
     def read_reportfile(
-            self, breed: str = None, dataset: Dataset = None, *args, **kwargs):
+            self,
+            breed: str = None,
+            dataset: Dataset = None,
+            sample_field: str = "original_id",
+            *args, **kwargs):
         """
         Open and read an illumina report file. Returns iterator
 
@@ -979,6 +1000,8 @@ class IlluminaReportIO(FakePedMixin, SmarterMixin):
             stored in database if not provided. The default is None.
         dataset : Dataset, optional
             A dataset in which search for sample breed identifier
+        sample_field : str, optional
+            Search samples using this field. The default is "original_id".
 
         Raises
         ------
@@ -1182,7 +1205,11 @@ class AffyReportIO(FakePedMixin, SmarterMixin):
                     "Genotypes differ from reportfile and src_assembly")
 
     def read_peddata(
-            self, breed: str = None, dataset: Dataset = None, *args, **kwargs):
+            self,
+            breed: str = None,
+            dataset: Dataset = None,
+            sample_field: str = "original_id",
+            *args, **kwargs):
         """
         Yields over genotype record.
 
@@ -1193,6 +1220,8 @@ class AffyReportIO(FakePedMixin, SmarterMixin):
             stored in database if not provided. The default is None.
         dataset : Dataset, optional
             A dataset in which search for sample breed identifier
+        sample_field : str, optional
+            Search samples using this field. The default is "original_id".
 
         Yields
         ------
@@ -1207,7 +1236,10 @@ class AffyReportIO(FakePedMixin, SmarterMixin):
             logger.debug(f"Prepare {line[:10]+ ['...']} to add FID")
 
             if not breed:
-                fid = self.get_fid(line[1], dataset)
+                fid = self.get_fid(
+                    sample_name=line[1],
+                    dataset=dataset,
+                    sample_field=sample_field)
 
             else:
                 fid = breed
