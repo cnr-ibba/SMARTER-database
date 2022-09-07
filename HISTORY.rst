@@ -24,6 +24,8 @@ TODO
 * Update requirements
 * Read from affymetrix A/B reportfile
 * Import latest Uruguayan data `#65 <https://github.com/cnr-ibba/SMARTER-database/issues/65>`__
+* Configure database connection `#66 <https://github.com/cnr-ibba/SMARTER-database/issues/66>`__
+* Update sex in ped file if there are information in database
 
 0.4.5 (2022-06-14)
 ------------------
