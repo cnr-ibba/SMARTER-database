@@ -464,7 +464,7 @@ class SmarterMixin():
         if coding == 'top':
             if not location.is_top(genotype):
                 logger.critical(
-                    f"Error for SNP {index}:{self.mapdata[index].name}: "
+                    f"Error for SNP {index}: '{self.mapdata[index].name}': "
                     f"{a1}/{a2} <> {location.illumina_top}"
                 )
                 raise CodingException("Not illumina top format")
@@ -475,7 +475,7 @@ class SmarterMixin():
         elif coding == 'forward':
             if not location.is_forward(genotype):
                 logger.critical(
-                    f"Error for SNP {index}:{self.mapdata[index].name}: "
+                    f"Error for SNP {index}: '{self.mapdata[index].name}': "
                     f"{a1}/{a2} <> {location.illumina_forward}"
                 )
                 raise CodingException("Not illumina forward format")
@@ -486,7 +486,7 @@ class SmarterMixin():
         elif coding == 'ab':
             if not location.is_ab(genotype):
                 logger.critical(
-                    f"Error for SNP {index}:{self.mapdata[index].name}: "
+                    f"Error for SNP {index}: '{self.mapdata[index].name}': "
                     f"{a1}/{a2} <> A/B"
                 )
                 raise CodingException("Not illumina ab format")
@@ -497,7 +497,7 @@ class SmarterMixin():
         elif coding == 'affymetrix':
             if not location.is_affymetrix(genotype):
                 logger.critical(
-                    f"Error for SNP {index}:{self.mapdata[index].name}: "
+                    f"Error for SNP {index}: '{self.mapdata[index].name}': "
                     f"{a1}/{a2} <> {location.affymetrix_ab}"
                 )
                 raise CodingException("Not affymetrix format")
@@ -1167,7 +1167,17 @@ class AffyReportIO(FakePedMixin, SmarterMixin):
 
             # track genotypes in the proper column (skip the first 6 columns)
             for i in range(n_samples):
-                genotype = list(row[i+1])
+                call = row[i+1]
+
+                # mind to missing values
+                if call == "NoCall":
+                    logger.debug(
+                        f"Skipping SNP {snp_idx}: "
+                        f"'{self.mapdata[snp_idx].name}' for sample "
+                        f"'{header[i+1]}' ({call})")
+                    continue
+
+                genotype = list(call)
                 self.peddata[i][6+snp_idx*2] = genotype[0]
                 self.peddata[i][6+snp_idx*2+1] = genotype[1]
 

@@ -1185,7 +1185,7 @@ class AffyReportIOPedTest(
     def test_process_pedline(self):
         # define reference
         reference = [
-            'TEX', 'ITOA-TEX-000000001', '0', '0', '0', "-9", 'A', 'A']
+            'TEX', 'ITOA-TEX-000000001', '0', '0', '0', "-9", '0', '0']
 
         # get a line for testing
         line = self.lines[0]
