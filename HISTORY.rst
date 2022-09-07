@@ -18,6 +18,13 @@ TODO
 * define a collection for all available *purpose* phenotypes
 * Check if ``rs_id`` is still valid or not (with EVA)
 
+0.4.6.dev
+---------
+
+* Update requirements
+* Read from affymetrix A/B reportfile
+* Import latest Uruguayan data `#65 <https://github.com/cnr-ibba/SMARTER-database/issues/65>`__
+
 0.4.5 (2022-06-14)
 ------------------
 
