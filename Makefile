@@ -124,6 +124,9 @@ data: requirements
 	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Castellana --code CAS --alias SMARTER --dataset 20220326_resultados_SNP.zip
 	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Ojalada --code OJA --alias Smarter --dataset 20220428_Smarter_Ovine.zip
 	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Ojalada --code OJA --alias Assaf --dataset 20220503_Ovine.zip
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Creole --code CRL --alias CRL --dataset Placa_Junio_recommended.zip
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Creole --code CRL --alias CRL --dataset OP829-924_INIA_Abril.zip
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Creole --code CRL --alias CRL --dataset Placas1_4_genotyping.zip
 
 	## load breeds into database relying on dataset
 	$(PYTHON_INTERPRETER) src/data/import_breeds.py --species Sheep --src_dataset="High density genotypes of French Sheep populations.zip" \
@@ -202,12 +205,24 @@ data: requirements
 	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --file "20220503_Ovine/20220503_Ovine" --dataset 20220503_Ovine.zip \
 		--coding affymetrix --chip_name AffymetrixAxiomBGovisNP --assembly OAR3 --search_field probeset_id --create_samples \
 		--src_version Oar_v3.1 --src_imported_from affymetrix
+	$(PYTHON_INTERPRETER) src/data/import_samples.py --src_dataset 20220809_105_Creole_Samples_INIA_Uruguay.zip \
+		--dst_dataset Placa_Junio_recommended.zip --datafile placa_junio_metadata.xlsx \
+		--code_all CRL --id_column Lab_ID --chip_name AffymetrixAxiomOviCan --country_all Uruguay \
+		--sex_column Sex --alias_column id_column
+	$(PYTHON_INTERPRETER) src/data/import_samples.py --src_dataset 20220809_105_Creole_Samples_INIA_Uruguay.zip \
+		--dst_dataset OP829-924_INIA_Abril.zip --datafile inia_abril_metadata.xlsx \
+		--code_all CRL --id_column Lab_ID --chip_name AffymetrixAxiomOviCan --country_all Uruguay \
+		--sex_column Sex --alias_column id_column
+	$(PYTHON_INTERPRETER) src/data/import_samples.py --src_dataset 20220809_105_Creole_Samples_INIA_Uruguay.zip \
+		--dst_dataset Placas1_4_genotyping.zip --datafile placas1_4_metadata.xlsx \
+		--code_all CRL --id_column Lab_ID --chip_name AffymetrixAxiomOviCan --country_all Uruguay \
+		--sex_column Sex --alias_column id_column
 
 	## convert genotypes without creating samples in database (SHEEP)
-	$(PYTHON_INTERPRETER) src/data/import_from_affymetrix.py --file Affymetrix_data_Plate_652_660/Affymetrix_data_Plate_652/Affymetrix_data_Plate_652 \
+	$(PYTHON_INTERPRETER) src/data/import_from_affymetrix.py --prefix Affymetrix_data_Plate_652_660/Affymetrix_data_Plate_652/Affymetrix_data_Plate_652 \
 		--dataset Affymetrix_data_Plate_652_660.zip --breed_code CRR --chip_name AffymetrixAxiomOviCan --assembly OAR3 --sample_field alias \
 		--src_version Oar_v4.0 --src_imported_from affymetrix
-	$(PYTHON_INTERPRETER) src/data/import_from_affymetrix.py --file Affymetrix_data_Plate_652_660/Affymetrix_data_Plate_660/Affymetrix_data_Plate_660 \
+	$(PYTHON_INTERPRETER) src/data/import_from_affymetrix.py --prefix Affymetrix_data_Plate_652_660/Affymetrix_data_Plate_660/Affymetrix_data_Plate_660 \
 		--dataset Affymetrix_data_Plate_652_660.zip --breed_code CRR --chip_name AffymetrixAxiomOviCan --assembly OAR3 --sample_field alias \
 		--src_version Oar_v4.0 --src_imported_from affymetrix
 	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --bfile AUTH_OVN50KV2_CHIOS_FRIZARTA/AUTH_OVN50KV2_CHI_FRI \
@@ -226,6 +241,15 @@ data: requirements
 	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --file Churra/churra_fixed \
 		--dataset Churra.zip --coding affymetrix --chip_name AffymetrixAxiomBGovis2 --assembly OAR3 \
 		--src_version Oar_v3.1 --src_imported_from affymetrix
+	$(PYTHON_INTERPRETER) src/data/import_from_affymetrix.py --report Placa_Junio_recommended.txt \
+		--dataset Placa_Junio_recommended.zip --coding ab --chip_name AffymetrixAxiomOviCan --assembly OAR3 --sample_field alias \
+		--src_version Oar_v4.0 --src_imported_from affymetrix
+	$(PYTHON_INTERPRETER) src/data/import_from_affymetrix.py --report "OP829-924 INIA Abril.txt" \
+		--dataset OP829-924_INIA_Abril.zip --coding ab --chip_name AffymetrixAxiomOviCan --assembly OAR3 --sample_field alias \
+		--src_version Oar_v4.0 --src_imported_from affymetrix
+	$(PYTHON_INTERPRETER) src/data/import_from_affymetrix.py --report Placas1_4_genotyping.txt \
+		--dataset Placas1_4_genotyping.zip --coding ab --chip_name AffymetrixAxiomOviCan --assembly OAR3 --sample_field alias \
+		--src_version Oar_v4.0 --src_imported_from affymetrix
 
 	## create samples from custom files or genotypes for GOAT
 	$(PYTHON_INTERPRETER) src/data/import_samples.py --src_dataset ADAPTmap_phenotype_20161201.zip --dst_dataset ADAPTmap_genotypeTOP_20161201.zip \
@@ -298,6 +322,15 @@ data: requirements
 	$(PYTHON_INTERPRETER) src/data/import_metadata.py --src_dataset Nativesheep_Hu_metadata.zip \
 		--dst_dataset NativesheepBreeds_Hu.zip --datafile nativesheeps_hu_fixed.xlsx --id_column original_id \
 		--latitude_column latitude --longitude_column longitude
+	$(PYTHON_INTERPRETER) src/data/import_metadata.py --src_dataset 20220809_105_Creole_Samples_INIA_Uruguay.zip \
+		--dst_dataset Placa_Junio_recommended.zip --datafile placa_junio_metadata.xlsx --id_column Lab_ID \
+		--metadata_column Site
+	$(PYTHON_INTERPRETER) src/data/import_metadata.py --src_dataset 20220809_105_Creole_Samples_INIA_Uruguay.zip \
+		--dst_dataset OP829-924_INIA_Abril.zip --datafile inia_abril_metadata.xlsx --id_column Lab_ID \
+		--metadata_column Site
+	$(PYTHON_INTERPRETER) src/data/import_metadata.py --src_dataset 20220809_105_Creole_Samples_INIA_Uruguay.zip \
+		--dst_dataset Placas1_4_genotyping.zip --datafile placas1_4_metadata.xlsx --id_column Lab_ID \
+		--metadata_column Site
 
 	## add phenotypes to samples
 	$(PYTHON_INTERPRETER) src/data/import_phenotypes.py --src_dataset ADAPTmap_phenotype_20161201.zip \

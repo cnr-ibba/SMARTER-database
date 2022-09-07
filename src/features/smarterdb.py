@@ -600,7 +600,7 @@ def get_or_create_sample(
             type_=type_,
             chip_name=chip_name,
             sex=sex,
-            alias=alias
+            alias=str(alias)
         )
         sample.save()
 

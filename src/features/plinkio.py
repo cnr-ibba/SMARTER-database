@@ -25,8 +25,9 @@ from .snpchimp import clean_chrom
 from .smarterdb import (
     VariantSheep, SampleSheep, Breed, Dataset, SmarterDBException, SEX,
     VariantGoat, SampleGoat, Location, get_sample_type)
-from .utils import TqdmToLogger
+from .utils import TqdmToLogger, skip_comments, text_or_gzip_open
 from .illumina import read_snpList, read_illuminaRow
+from .affymetrix import read_affymetrixRow
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -47,6 +48,10 @@ class IlluminaReportException(Exception):
     pass
 
 
+class AffyReportException(Exception):
+    pass
+
+
 @dataclass
 class MapRecord():
     chrom: str
@@ -56,8 +61,13 @@ class MapRecord():
 
     def __post_init__(self):
         # types are annotations. So, enforce position type:
-        self.position = int(self.position)
-        self.cm = float(self.cm)
+        if isinstance(self.position, str):
+            if self.position.isnumeric():
+                self.position = int(self.position)
+
+        if isinstance(self.cm, str):
+            if self.cm.isnumeric():
+                self.cm = float(self.cm)
 
 
 class SmarterMixin():
@@ -82,8 +92,12 @@ class SmarterMixin():
 
     @species.setter
     def species(self, species):
+        if not species:
+            # avoid to check a None value
+            return
+
         # determine the SampleClass
-        if species == 'Sheep':
+        elif species == 'Sheep':
             self.VariantSpecies = VariantSheep
             self.SampleSpecies = SampleSheep
 
@@ -99,6 +113,8 @@ class SmarterMixin():
         self._species = species
 
     def get_breed(self, fid, dataset, *args, **kwargs):
+        """Get breed relying aliases and dataset"""
+
         # this is a $elemMatch query
         breed = Breed.objects(
             aliases__match={'fid': fid, 'dataset': dataset}).get()
@@ -448,7 +464,7 @@ class SmarterMixin():
         if coding == 'top':
             if not location.is_top(genotype):
                 logger.critical(
-                    f"Error for SNP {index}:{self.mapdata[index].name}: "
+                    f"Error for SNP {index}: '{self.mapdata[index].name}': "
                     f"{a1}/{a2} <> {location.illumina_top}"
                 )
                 raise CodingException("Not illumina top format")
@@ -459,7 +475,7 @@ class SmarterMixin():
         elif coding == 'forward':
             if not location.is_forward(genotype):
                 logger.critical(
-                    f"Error for SNP {index}:{self.mapdata[index].name}: "
+                    f"Error for SNP {index}: '{self.mapdata[index].name}': "
                     f"{a1}/{a2} <> {location.illumina_forward}"
                 )
                 raise CodingException("Not illumina forward format")
@@ -470,7 +486,7 @@ class SmarterMixin():
         elif coding == 'ab':
             if not location.is_ab(genotype):
                 logger.critical(
-                    f"Error for SNP {index}:{self.mapdata[index].name}: "
+                    f"Error for SNP {index}: '{self.mapdata[index].name}': "
                     f"{a1}/{a2} <> A/B"
                 )
                 raise CodingException("Not illumina ab format")
@@ -481,7 +497,7 @@ class SmarterMixin():
         elif coding == 'affymetrix':
             if not location.is_affymetrix(genotype):
                 logger.critical(
-                    f"Error for SNP {index}:{self.mapdata[index].name}: "
+                    f"Error for SNP {index}: '{self.mapdata[index].name}': "
                     f"{a1}/{a2} <> {location.affymetrix_ab}"
                 )
                 raise CodingException("Not affymetrix format")
@@ -655,7 +671,9 @@ class SmarterMixin():
             processed = 0
 
             for line in self.read_genotype_method(
-                    dataset=dataset, *args, **kwargs):
+                    dataset=dataset,
+                    sample_field=sample_field,
+                    *args, **kwargs):
 
                 # covert the ped line with the desidered format
                 new_line = self._process_pedline(
@@ -683,6 +701,68 @@ class SmarterMixin():
         # input file block
 
 
+class FakePedMixin():
+    """Class which override SmarterMixin when creating a PED file from a
+    non-plink file format. In this case the FID is already correct and I don't
+    need to look for dataset aliases"""
+
+    def get_breed(self, fid, *args, **kwargs):
+        """Get breed relying on provided FID and species class attribute"""
+
+        breed = Breed.objects(code=fid, species=self.species).get()
+
+        logger.debug(f"Found breed {breed}")
+
+        return breed
+
+    def get_fid(
+            self,
+            sample_name: str,
+            dataset: Dataset,
+            sample_field: str = "original_id"
+            ) -> str:
+        """
+        Determine FID from smarter SampleSpecies breed
+
+        Parameters
+        ----------
+        sample_name : str
+            The sample name.
+        dataset : Dataset
+            The dataset where the sample comes from.
+        sample_field : str
+            The field use to search sample name
+
+        Returns
+        -------
+        fid : str
+            The FID used in the generated .ped file
+        """
+
+        logger.debug(
+            f"Searching fid for sample using {sample_field}: '{sample_name}, "
+            "{dataset}'")
+
+        # determine fid from sample, if not received as argument
+        try:
+            sample = self.SampleSpecies.objects.get(
+                dataset=dataset,
+                **{sample_field: sample_name}
+            )
+        except DoesNotExist as e:
+            logger.debug(e)
+            raise SmarterDBException(
+                f"Couldn't find sample '{sample_name}' in file "
+                f"'{dataset.file}' using field'{sample_field}'"
+            )
+
+        fid = sample.breed_code
+        logger.debug(
+            f"Found breed '{fid}' for '{sample_name}'")
+
+        return fid
+
+
 class TextPlinkIO(SmarterMixin):
     mapfile = None
     pedfile = None
@@ -706,11 +786,8 @@ class TextPlinkIO(SmarterMixin):
             self.mapfile = mapfile
             self.pedfile = pedfile
 
-        if species:
-            self.species = species
-
-        if chip_name:
-            self.chip_name = chip_name
+        self.species = species
+        self.chip_name = chip_name
 
     def read_mapfile(self):
         """Read map data and track informations in memory. Useful to process
@@ -743,20 +820,32 @@ class TextPlinkIO(SmarterMixin):
                 yield line
 
 
-# a new class for affymetrix plink files, which are slightly different from
-# plink text files
-class AffyPlinkIO(TextPlinkIO):
-    def get_breed(self, fid, *args, **kwargs):
-        """Override the default get_breed method"""
+class AffyPlinkIO(FakePedMixin, TextPlinkIO):
+    """a new class for affymetrix plink files, which are slightly different
+    from plink text files"""
 
-        breed = Breed.objects(code=fid, species=self.species).get()
+    def read_pedfile(
+            self,
+            breed: str = None,
+            dataset: Dataset = None,
+            sample_field: str = "original_id",
+            *args, **kwargs):
+        """
+        Open pedfile for reading return iterator
 
-        logger.debug(f"Found breed {breed}")
+        breed : str, optional
+            A breed to be assigned to all samples, or use the sample breed
+            stored in database if not provided. The default is None.
+        dataset : Dataset, optional
+            A dataset in which search for sample breed identifier
+        sample_field : str, optional
+            Search samples using this field. The default is "original_id".
 
-        return breed
-
-    def read_pedfile(self, fid: str, *args, **kwargs):
-        """Open pedfile for reading return iterator"""
+        Yields
+        ------
+        line : list
+            A ped line read as a list.
+        """
 
         with open(self.pedfile) as handle:
             # affy files has both " " and "\t" in their files
@@ -768,12 +857,18 @@ class AffyPlinkIO(TextPlinkIO):
 
                 line = re.split('[ \t]+', record.strip())
 
+                if not breed:
+                    fid = self.get_fid(line[0], dataset)
+
+                else:
+                    fid = breed
+
                 # affy ped lacks of plink columns. add such value to line
                 line.insert(0, fid)  # FID
                 line.insert(2, '0')  # father
                 line.insert(3, '0')  # mother
                 line.insert(4, '0')  # SEX
-                line.insert(5, -9)  # phenotype
+                line.insert(5, '-9')  # phenotype
 
                 yield line
 
@@ -791,14 +886,9 @@ class BinaryPlinkIO(SmarterMixin):
         # need to be set in order to write a genotype
         self.read_genotype_method = self.read_pedfile
 
-        if prefix:
-            self.prefix = prefix
-
-        if species:
-            self.species = species
-
-        if chip_name:
-            self.chip_name = chip_name
+        self.prefix = prefix
+        self.species = species
+        self.chip_name = chip_name
 
     @property
     def prefix(self):
@@ -865,7 +955,7 @@ class BinaryPlinkIO(SmarterMixin):
                 sample.father_iid,
                 sample.mother_iid,
                 format_sex(sample.sex),
-                int(sample.phenotype)
+                str(int(sample.phenotype))
             ]
 
             for idx, locus in enumerate(locus_list):
@@ -875,7 +965,7 @@ class BinaryPlinkIO(SmarterMixin):
             yield line
 
 
-class IlluminaReportIO(SmarterMixin):
+class IlluminaReportIO(FakePedMixin, SmarterMixin):
     snpfile = None
     report = None
 
@@ -889,24 +979,10 @@ class IlluminaReportIO(SmarterMixin):
         # need to be set in order to write a genotype
         self.read_genotype_method = self.read_reportfile
 
-        if snpfile or report:
-            self.snpfile = snpfile
-            self.report = report
-
-        if species:
-            self.species = species
-
-        if chip_name:
-            self.chip_name = chip_name
-
-    def get_breed(self, fid, *args, **kwargs):
-        """Override the default get_breed method"""
-
-        breed = Breed.objects(code=fid, species=self.species).get()
-
-        logger.debug(f"Found breed {breed}")
-
-        return breed
+        self.snpfile = snpfile
+        self.report = report
+        self.species = species
+        self.chip_name = chip_name
 
     def read_snpfile(self):
         """Read snp data and track informations in memory. Useful to process
@@ -916,8 +992,34 @@ class IlluminaReportIO(SmarterMixin):
 
     # this will be called when calling read_genotype_method()
     def read_reportfile(
-            self, fid: str = None, dataset: Dataset = None, *args, **kwargs):
-        """Open illumina report returns iterator"""
+            self,
+            breed: str = None,
+            dataset: Dataset = None,
+            sample_field: str = "original_id",
+            *args, **kwargs):
+        """
+        Open and read an illumina report file. Returns iterator
+
+        Parameters
+        ----------
+        breed : str, optional
+            A breed to be assigned to all samples, or use the sample breed
+            stored in database if not provided. The default is None.
+        dataset : Dataset, optional
+            A dataset in which search for sample breed identifier
+        sample_field : str, optional
+            Search samples using this field. The default is "original_id".
+
+        Raises
+        ------
+        IlluminaReportException
+            Raised when SNPs index doesn't match snpfile.
+
+        Yields
+        ------
+        line : list
+            A ped line read as a list.
+        """
 
         # determine genotype length
         size = 6 + 2*len(self.mapdata)
@@ -934,7 +1036,7 @@ class IlluminaReportIO(SmarterMixin):
         # this is the snp position index
         idx = 0
 
-        # tray to returns something like a ped row
+        # try to returns something like a ped row
         for row in read_illuminaRow(self.report):
             if row.sample_id != last_sample:
                 logger.debug(f"Reading sample {row.sample_id}")
@@ -946,29 +1048,15 @@ class IlluminaReportIO(SmarterMixin):
                 # initialize an empty array
                 line = ["0"] * size
 
-                logger.debug(f"Searching fid for sample '{row.sample_id}'")
+                if not breed:
+                    fid = self.get_fid(row.sample_id, dataset)
 
-                # determine fid from sample, if not received as argument
-                if not fid:
-                    try:
-                        sample = self.SampleSpecies.objects.get(
-                            original_id=row.sample_id,
-                            dataset=dataset
-                        )
-
-                        breed = sample.breed_code
-                        logger.debug(
-                            f"Found breed {breed} from {row.sample_id}")
-
-                    except DoesNotExist as e:
-                        logger.error(f"Couldn't find {row.sample_id}")
-                        raise e
                 else:
-                    breed = fid
+                    fid = breed
 
                 # set values. I need to set a breed code in order to get a
                 # proper ped line
-                line[0], line[1], line[5] = breed, row.sample_id, -9
+                line[0], line[1], line[5] = fid, row.sample_id, "-9"
 
                 # track last sample
                 last_sample = row.sample_id
@@ -991,6 +1079,200 @@ class IlluminaReportIO(SmarterMixin):
 
         # after completing rows, I need to return last one
         yield line
+
+
+class AffyReportIO(FakePedMixin, SmarterMixin):
+    """In this type of file there are both genotypes and informations. Moreover
+    genotypes are *transposed*, traking SNP for all samples in a simple line"""
+
+    report = None
+    peddata = []
+    delimiter = "\t"
+
+    def __init__(
+            self,
+            report: str = None,
+            species: str = None,
+            chip_name: str = None):
+
+        # need to be set in order to write a genotype
+        self.read_genotype_method = self.read_peddata
+
+        self.report = report
+        self.species = species
+        self.chip_name = chip_name
+
+    def __get_header(self):
+        # sample names are sanitized through read_affymetrixRow: so read the
+        # first header of the report file to determine the original sample
+        # names
+        with text_or_gzip_open(self.report) as handle:
+            position, skipped = skip_comments(handle)
+
+            # go back to header section
+            handle.seek(position)
+
+            # now read csv file
+            reader = csv.reader(handle, delimiter=self.delimiter)
+
+            # get header
+            return next(reader)
+
+    def read_reportfile(self):
+        """
+        Read reportfile once and generate mapdata and pedata, with genotype
+        informations by sample.
+
+        Raises
+        ------
+        NotImplementedError
+            Method need to be implemented.
+        """
+
+        self.mapdata = []
+        self.peddata = []
+
+        # I want to track also the AB genotypes, to check them while fetching
+        # coordinates
+        self.genotypes = []
+
+        # those informations are required to define the pedfile
+        n_samples = None
+        n_snps = None
+        size = None
+        header = None
+
+        # an index to track SNP accross peddata
+        snp_idx = 0
+
+        # try to returns something like a ped row and derive map data in the
+        # same time
+        for row in read_affymetrixRow(self.report, delimiter=self.delimiter):
+            # first determine how many SNPs and samples I have
+            if not n_samples and not n_snps:
+                n_samples = row.n_samples
+                n_snps = row.n_snps
+
+                # read the original header from report file
+                header = self.__get_header()
+
+                # ok create a ped data object with the required dimensions
+                size = 6 + 2 * n_snps
+                self.peddata = [["0"] * size for i in range(n_samples)]
+
+                # track sample names in row. First column is probeset id
+                # read them from the original header row
+                for i in range(n_samples):
+                    self.peddata[i][1] = header[i+1]
+
+            # track SNP in mapdata
+            self.mapdata.append(MapRecord(
+                row.chr_id, row.probeset_id, 0, row.start))
+
+            # track A/B genotype
+            self.genotypes.append(f"{row.allele_a}/{row.allele_b}")
+
+            # track genotypes in the proper column (skip the first 6 columns)
+            for i in range(n_samples):
+                call = row[i+1]
+
+                # mind to missing values
+                if call == "NoCall":
+                    logger.debug(
+                        f"Skipping SNP {snp_idx}: "
+                        f"'{self.mapdata[snp_idx].name}' for sample "
+                        f"'{header[i+1]}' ({call})")
+                    continue
+
+                genotype = list(call)
+                self.peddata[i][6+snp_idx*2] = genotype[0]
+                self.peddata[i][6+snp_idx*2+1] = genotype[1]
+
+            # update SNP column
+            snp_idx += 1
+
+    def fetch_coordinates(
+            self,
+            src_assembly: AssemblyConf,
+            dst_assembly: AssemblyConf = None,
+            search_field: str = "name",
+            chip_name: str = None):
+        """Search for variants in smarter database. Check if the provided
+        A/B information is equal to the database content
+
+        Args:
+            src_assembly (AssemblyConf): the source data assembly version
+            dst_assembly (AssemblyConf): the destination data assembly version
+            search_field (str): search variant by field (def. "name")
+            chip_name (str): limit search to this chip_name
+        """
+
+        # call base method
+        super().fetch_coordinates(
+            src_assembly, dst_assembly, search_field, chip_name)
+
+        # now check that genotypes read from report are equal to src_assembly
+        for idx, genotype in enumerate(self.genotypes):
+            if idx in self.filtered:
+                # this genotype is discared
+                continue
+
+            if genotype != self.src_locations[idx].affymetrix_ab:
+                raise AffyReportException(
+                    "Genotypes differ from reportfile and src_assembly")
+
+    def read_peddata(
+            self,
+            breed: str = None,
+            dataset: Dataset = None,
+            sample_field: str = "original_id",
+            *args, **kwargs):
+        """
+        Yields over genotype record.
+
+        Parameters
+        ----------
+        breed : str, optional
+            A breed to be assigned to all samples, or use the sample breed
+            stored in database if not provided. The default is None.
+        dataset : Dataset, optional
+            A dataset in which search for sample breed identifier
+        sample_field : str, optional
+            Search samples using this field. The default is "original_id".
+
+        Yields
+        ------
+        line : list
+            A ped line read as a list.
+        """
+
+        for line in self.peddata:
+            # instantiate a new object in order to be modified
+            line = line.copy()
+
+            logger.debug(f"Prepare {line[:10]+ ['...']} to add FID")
+
+            if not breed:
+                try:
+                    fid = self.get_fid(
+                        sample_name=line[1],
+                        dataset=dataset,
+                        sample_field=sample_field)
+
+                except SmarterDBException as e:
+                    logger.debug(e)
+                    logger.warning(
+                        f"Ignoring sample '{line[1]}': not in database")
+                    continue
+
+            else:
+                fid = breed
+
+            # set values. I need to set a breed code in order to get a
+            # proper ped line
+            line[0], line[5] = fid, "-9"
+
+            yield line
 
 
 def plink_binary_exists(prefix: Path):

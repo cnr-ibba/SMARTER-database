@@ -60,7 +60,8 @@ class SmarterIDMixin():
                 "snplist.txt",
                 "finalreport.txt",
                 "affytest.map",
-                "affytest.ped"
+                "affytest.ped",
+                "affyreport.txt"
             ],
             type_=["background", "genotypes"]
         )

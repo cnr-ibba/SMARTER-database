@@ -131,7 +131,7 @@ def main(
         output_ped,
         dataset,
         coding,
-        fid=breed_code,
+        breed=breed_code,
         create_samples=create_samples
     )
 

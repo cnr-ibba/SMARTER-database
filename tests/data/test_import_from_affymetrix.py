@@ -23,9 +23,8 @@ from ..common import (
 DATA_DIR = pathlib.Path(__file__).parents[1] / "features/data"
 
 
-class TestImportFromAffymetrix(
-        VariantsMixin, SmarterIDMixin, SupportedChipMixin, MongoMockMixin,
-        unittest.TestCase):
+class AffyTestMixin(
+        VariantsMixin, SmarterIDMixin, SupportedChipMixin, MongoMockMixin):
 
     # a different fixture file to load in VariantMixin
     variant_fixture = "affy_variants.json"
@@ -46,6 +45,8 @@ class TestImportFromAffymetrix(
 
         super().tearDownClass()
 
+
+class TestImportFromAffyPrefix(AffyTestMixin, unittest.TestCase):
     def setUp(self):
         self.runner = CliRunner()
         self.mapfile = DATA_DIR / "affytest.map"
@@ -85,7 +86,7 @@ class TestImportFromAffymetrix(
                 [
                     "--dataset",
                     "test.zip",
-                    "--file",
+                    "--prefix",
                     "affytest",
                     "--chip_name",
                     self.chip_name,
@@ -160,7 +161,7 @@ class TestImportFromAffymetrix(
                 [
                     "--dataset",
                     "test.zip",
-                    "--file",
+                    "--prefix",
                     "affytest",
                     "--chip_name",
                     self.chip_name,
@@ -184,6 +185,79 @@ class TestImportFromAffymetrix(
 
             # no coordinate fetch (file not processed)
             self.assertFalse(my_fetch.called)
+
+
+class TestImportFromAffyReport(AffyTestMixin, unittest.TestCase):
+    def setUp(self):
+        self.runner = CliRunner()
+        self.report = DATA_DIR / "affyreport.txt"
+
+    def link_files(self, working_dir):
+        report = working_dir / "affyreport.txt"
+        report.symlink_to(self.report)
+
+    def test_help(self):
+        result = self.runner.invoke(import_from_affymetrix, ["--help"])
+        self.assertEqual(0, result.exit_code)
+        self.assertIn('Usage: main', result.output)
+
+    @patch('src.features.smarterdb.Dataset.result_dir',
+           new_callable=PropertyMock)
+    @patch('src.features.smarterdb.Dataset.working_dir',
+           new_callable=PropertyMock)
+    def test_import_from_affymetrix(self, my_working_dir, my_result_dir):
+        # create a temporary directory using the context manager
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            working_dir = pathlib.Path(tmpdirname)
+            results_dir = working_dir / "results"
+
+            # assign return value to mocked property
+            my_working_dir.return_value = working_dir
+            my_result_dir.return_value = results_dir
+
+            # copy test data files
+            self.link_files(working_dir)
+
+            result = self.runner.invoke(
+                import_from_affymetrix,
+                [
+                    "--dataset",
+                    "test.zip",
+                    "--report",
+                    "affyreport.txt",
+                    "--chip_name",
+                    self.chip_name,
+                    "--assembly",
+                    "OAR3",
+                    "--breed_code",
+                    "TEX",
+                    "--sample_field",
+                    "alias",
+                    "--create_samples",
+                    "--src_version",
+                    "Oar_v4.0",
+                    "--src_imported_from",
+                    "affymetrix",
+                    "--coding",
+                    "ab"
+                ]
+            )
+
+            self.assertEqual(0, result.exit_code, msg=result.exception)
+            self.assertEqual(SampleSheep.objects.count(), 2)
+
+            # check imported chip_name attribute
+            for sample in SampleSheep.objects:
+                self.assertEqual(sample.chip_name, self.chip_name)
+
+            plink_path = results_dir / "OAR3" / "affyreport_updated"
+            plink_file = plinkfile.open(str(plink_path))
+
+            sample_list = plink_file.get_samples()
+            locus_list = plink_file.get_loci()
+
+            self.assertEqual(len(sample_list), 2)
+            self.assertEqual(len(locus_list), 1)
 
 
 if __name__ == '__main__':
