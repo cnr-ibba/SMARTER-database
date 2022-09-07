@@ -46,6 +46,8 @@ def global_connection(database_name: str = SMARTERDB):
         database_name,
         username=os.getenv("MONGODB_SMARTER_USER"),
         password=os.getenv("MONGODB_SMARTER_PASS"),
+        host=os.getenv("MONGODB_SMARTER_HOST", default="localhost"),
+        port=os.getenv("MONGODB_SMARTER_PORT", default=27017),
         authentication_source='admin',
         alias=DB_ALIAS)
 
