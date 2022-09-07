@@ -128,6 +128,14 @@ def deal_with_report(report: str, dataset: Dataset, assembly: str):
     help="The raw dataset file name (zip archive)"
 )
 @click.option(
+    '--coding',
+    type=click.Choice(
+        ['ab', 'affymetrix'],
+        case_sensitive=False),
+    default="affymetrix", show_default=True,
+    help="Affymetrix coding format"
+)
+@click.option(
     '--breed_code',
     type=str,
     help="A breed code to be assigned on all samples while creating samples")
@@ -157,7 +165,7 @@ def deal_with_report(report: str, dataset: Dataset, assembly: str):
     help="Source assembly imported_from",
     required=True)
 def main(
-        prefix, report, dataset, breed_code, chip_name, assembly,
+        prefix, report, dataset, coding, breed_code, chip_name, assembly,
         create_samples, sample_field, search_field, src_version,
         src_imported_from):
     """
@@ -237,7 +245,7 @@ def main(
     plinkio.update_pedfile(
         outputfile=output_ped,
         dataset=dataset,
-        coding="affymetrix",
+        coding=coding,
         breed=breed_code,
         create_samples=create_samples,
         sample_field=sample_field

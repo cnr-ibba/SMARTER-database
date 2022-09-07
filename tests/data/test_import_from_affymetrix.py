@@ -237,7 +237,9 @@ class TestImportFromAffyReport(AffyTestMixin, unittest.TestCase):
                     "--src_version",
                     "Oar_v4.0",
                     "--src_imported_from",
-                    "affymetrix"
+                    "affymetrix",
+                    "--coding",
+                    "ab"
                 ]
             )
 

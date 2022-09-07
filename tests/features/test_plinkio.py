@@ -1243,7 +1243,7 @@ class AffyReportIOPedTest(
             self.plinkio.update_pedfile(
                 outputfile=str(pedfile),
                 dataset=self.dataset,
-                coding='affymetrix',
+                coding='ab',
                 breed=None,
                 create_samples=False,
                 sample_field="alias")
