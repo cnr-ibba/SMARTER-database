@@ -95,7 +95,7 @@ def read_Manifest(path: Path, delimiter: str = ",") -> collections.namedtuple:
     """
     Open an affymetrix manifest file and yields records as namedtuple. Add
     an additional column for manifacured date (when SNP is recorded in
-                                               datafile)
+    datafile)
 
     Parameters
     ----------

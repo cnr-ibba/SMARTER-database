@@ -1129,10 +1129,9 @@ class AffyReportIO(FakePedMixin, SmarterMixin):
         Read reportfile once and generate mapdata and pedata, with genotype
         informations by sample.
 
-        Raises
-        ------
-        NotImplementedError
-            Method need to be implemented.
+        Returns
+        -------
+        None.
         """
 
         self.mapdata = []
