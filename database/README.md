@@ -5,12 +5,12 @@ SMARTER MongoDB database
 This is the base folder of the *MongoDB* instance of the *SMARTER-database* project.
 Such database runs and its managed using `docker-compose`, which store all database
 related files in a local folder and will expose the standard `27017` *MongoDB* port
-to the system. Moreover, database could be accessed throgh *mongodb-express* at
-http://localhost:8081 .
+to the system. Moreover, database could be accessed through *mongodb-express* at
+<http://localhost:8081>.
 
 This directory is structured like this:
 
-```
+```text
 database
 ├── docker-compose.yml
 ├── docker-entrypoint-initdb.d
@@ -30,8 +30,8 @@ in or from database
 When you start the *docker-compose* image for the first time, the MongoDB database
 is initialized and all the scripts defined in the `docker-entrypoint-initdb.d` are
 executed using the mongodb root credentials stored in the `.env` configuration file.
-After that, you could stop, destroy, re-create the *MongoDB* container without worring
-about smarter data: all database informations are stored inside the `mongodb-data`
+After that, you could stop, destroy, re-create the *MongoDB* container without worrying
+about smarter data: all database information are stored inside the `mongodb-data`
 folder. If you want to wipe out the whole database and starting again from scratch,
 you could remove the `mongodb-data` folder.
 
@@ -40,12 +40,14 @@ Create the .env configuration file
 
 In order to work properly, you need to define some environment variables in a
 `.env` file inside this directory. This file is read by `docker-compose` when
-invocked and it's required by docker containers in order to work properly. Please
+invoked and it's required by docker containers in order to work properly. Please
 set those environment variables in `.env` file:
 
-```
+```text
 MONGODB_ROOT_USER=<smarter root database username>
 MONGODB_ROOT_PASS=<smarter root database password>
+MONGOEXPRESS_USER=<smarter mongoexpress username>
+MONGOEXPRESS_PASS=<smarter mongoexpress password>
 ```
 
 Fix permissions for mongodb-home folder
@@ -53,8 +55,8 @@ Fix permissions for mongodb-home folder
 
 In order to avoid annoying messages, set `mongodb-home` *sticky dir* permission
 
-```
-$ chmod o+wt mongodb-home/
+```bash
+chmod o+wt mongodb-home/
 ```
 
 Build images and start them up
@@ -62,10 +64,10 @@ Build images and start them up
 
 Initialize the smarter database with:
 
-```
-$ docker-compose pull
-$ docker-compose build
-$ docker-compose up -d
+```bash
+docker-compose pull
+docker-compose build
+docker-compose up -d
 ```
 
 This will start and initialize the database (if not yet initialized)
@@ -75,8 +77,8 @@ Turn database down
 
 In order to terminate *MongoDB* instance:
 
-```
-$ docker-compose down
+```bash
+docker-compose down
 ```
 
 This will terminate docker containers and remove them. Your data will persists in
@@ -87,8 +89,8 @@ Using smarter database
 
 Login with root credentials (inside this directory)
 
-```
-$ docker-compose run --rm --user mongodb mongo sh -c 'mongo --host mongo --username="${MONGO_INITDB_ROOT_USERNAME}" --password="${MONGO_INITDB_ROOT_PASSWORD}"'
+```bash
+docker-compose run --rm --user mongodb mongo sh -c 'mongo --host mongo --username="${MONGO_INITDB_ROOT_USERNAME}" --password="${MONGO_INITDB_ROOT_PASSWORD}"'
 ```
 
 Create a user for *smarter* database with `readWrite` permissions
@@ -100,8 +102,8 @@ db.createUser({user: "smarter", pwd: "<password>", roles: [{role: "readWrite", d
 
 Login with smarter credentials
 
-```
-$ docker-compose run --rm --user mongodb mongo mongo --host mongo -u smarter -p <password> --authenticationDatabase admin
+```bash
+docker-compose run --rm --user mongodb mongo mongo --host mongo -u smarter -p <password> --authenticationDatabase admin
 ```
 
 Or by starting a docker container and then login using console

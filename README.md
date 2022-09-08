@@ -6,7 +6,7 @@ SMARTER Database
 [![Coverage Status](https://coveralls.io/repos/github/cnr-ibba/SMARTER-database/badge.svg?branch=master)](https://coveralls.io/github/cnr-ibba/SMARTER-database?branch=master)
 [![Documentation Status](https://readthedocs.org/projects/smarter-database/badge/?version=latest)](https://smarter-database.readthedocs.io/en/latest/?badge=latest)
 
-SMARTER-database aims to collect data produced by the WP4 group if the context of
+SMARTER-database aims to collect data produced by the WP4 group in the context of
 the [SMARTER project](https://www.smarterproject.eu/) and to merge them with
 already available data.
 

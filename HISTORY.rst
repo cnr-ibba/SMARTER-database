@@ -3,7 +3,7 @@ History
 =======
 
 TODO
-^^^^
+----
 
 * Check chromosomes in *Variants locations*: mind to **scaffold**, **null**, and
   **non-autosomal** chromosomes for *Goat* and *Sheep*

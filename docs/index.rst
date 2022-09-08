@@ -30,6 +30,7 @@ Documentation Contents
    getting-started
    commands
    modules
+   history
 
 
 Indices and tables
