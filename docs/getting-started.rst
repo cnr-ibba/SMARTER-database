@@ -7,6 +7,8 @@ Getting started
   commands necessary to get the raw data (using the `sync_data_from_s3` command,
   for example), and then how to make the cleaned, final data sets.
 
+.. contents:: Table of Contents
+
 The SMARTER-database project
 ----------------------------
 
@@ -252,7 +254,7 @@ for *goat* and *sheep* respectively) and by data source (ie, ``SNPCHIMP``, ``ILL
 you need to ask to developer and to SMARTER WP4 coordinators to have access to this data.
 
 Process raw data and create the final dataset
----------------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 In order to process raw data, insert data into SMARTER database, generate the SMARTER ids
 an create the final genotype dataset files there are manly two steps that are
