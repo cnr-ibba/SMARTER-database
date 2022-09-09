@@ -1,0 +1,20 @@
+{
+    "esbonio.sphinx.confDir": "",
+    "cSpell.words": [
+        "affymetrix",
+        "BIOINFO",
+        "conda",
+        "Cookiecutter",
+        "dotenv",
+        "Ensembl",
+        "INITDB",
+        "mongodump",
+        "mongoexpress",
+        "mongorestore",
+        "pardir",
+        "SGID",
+        "SNPCHIMP",
+        "tabix",
+        "vcftools"
+    ]
+}
