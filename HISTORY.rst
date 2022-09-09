@@ -7,14 +7,12 @@ TODO
 
 * Check chromosomes in *Variants locations*: mind to **scaffold**, **null**, and
   **non-autosomal** chromosomes for *Goat* and *Sheep*
-* Enable continuous integration
-  - ReadTheDocs
 * Rename objects (use names in a consistent way)
 * Generate output files for *OARV4* and *CHIR1*
-* Check coordinates with sheep and goat genome projects
+* Check coordinates with *sheep* and *goat* genome projects
 * Release a *smarter* coordinate version with information on every variant defined
   in database (which will be used as reference)
-* Map affymetrix snps in OARV3 coordinates
+* Map affymetrix snps in *OARV3* coordinates
 * define a collection for all available *purpose* phenotypes
 * Check if ``rs_id`` is still valid or not (with EVA)
 
@@ -23,19 +21,21 @@ TODO
 
 * Update requirements
 * Read from affymetrix A/B reportfile
-* Import latest Uruguayan data `#65 <https://github.com/cnr-ibba/SMARTER-database/issues/65>`__
-* Configure database connection `#66 <https://github.com/cnr-ibba/SMARTER-database/issues/66>`__
+* Import latest Uruguayan data (`#65 <https://github.com/cnr-ibba/SMARTER-database/issues/65>`__)
+* Configure database connection (`#66 <https://github.com/cnr-ibba/SMARTER-database/issues/66>`__)
 * Update sex in ped file if there are information in database
+* Enable continuous integration for documentation (ReadTheDocs)
+* Update documentation
 
 0.4.5 (2022-06-14)
 ------------------
 
 * Update requirements
-* Import data from Hungary `#53 <https://github.com/cnr-ibba/SMARTER-database/issues/53>`__
+* Import data from Hungary (`#53 <https://github.com/cnr-ibba/SMARTER-database/issues/53>`__)
 * Create a new sample when having the same ``original_id`` in dataset but for a different breed
 * ``illumina_top`` is an attribute of variant, and is set when the first location
   is loaded.
-* Check variants data before update `#56 <https://github.com/cnr-ibba/SMARTER-database/issues/56>`__
+* Check variants data before update (`#56 <https://github.com/cnr-ibba/SMARTER-database/issues/56>`__)
 * Simplified ``import_affymetrix`` script
 * Import custom affymetrix chips (*Oar_v3.1*)
 * Support *source* and *destination* assemblies when importing from *plink* or
@@ -43,8 +43,8 @@ TODO
 * Deal with spaces in filenames while importing from plink
 * Add ``affy_snp_id`` primary key
 * Update ``import_affymetrix.py`` script
-* Import data from Spain `#52 <https://github.com/cnr-ibba/SMARTER-database/issues/52>`__
-* Fix 20220503 dataset breed and churra chip name
+* Import data from Spain (`#52 <https://github.com/cnr-ibba/SMARTER-database/issues/52>`__)
+* Fix *20220503* dataset breed and *churra* chip name
 * Track manifest probe ``sequence``s by ``chip_name``
 * Track ``probeset_id`` by ``chip_name``
 * Search for affymetrix ``probeset_id`` in the proper ``chip_name`` while importing
@@ -57,7 +57,7 @@ TODO
 0.4.4 (2022-02-28)
 ------------------
 
-* Model location with MultiPointField
+* Model location with ``MultiPointField``
 * Describe smarter metadata
 * Import sweden goat metadata
 * Import latest 290 samples greek dataset
@@ -69,7 +69,7 @@ TODO
 0.4.3 (2021-11-11)
 ------------------
 
-* Add 270 Frizarta background samples
+* Add 270 *Frizarta* background samples
 * Import from ab plink and support multiple missing letters
 * Track database status and constants
 * Add *foreground/background* type attribute in ``SampleSpecies``
@@ -150,6 +150,7 @@ TODO
 
 * Upgrade dependencies
 * Enable continuous integration
+
   - Github Workflow
   - Coverage
 
@@ -163,12 +164,15 @@ TODO
 * Import metadata (from a *source* dataset to a *destination* dataset)
 * Forcing ``plink`` **chrom** options when converting in binary formats
 * import data from *ADAPTmap* project
+
   - Import goat breeds (from a *source* dataset to a *destination* dataset)
   - Import goat data from plink files
-  * Import goat metadata
+  - Import goat metadata
+
 * Import goat data from manifest and snpchimp
 * configure ``mongodb-express`` credentials
 * Add Goat Related tables
+
   - add ``variantGoat`` collection
   - add ``sampleGoat`` collection
 
@@ -187,6 +191,7 @@ TODO
 * skip already processed file from import
 * Deal with ``mother_id`` and ``father_id`` (search for ``smarter_id`` in database)
 * Deal with multi-countries dataset
+
   - track country in aliases while importing breeds from dataset
 
 0.2.1 (2021-04-22)
@@ -195,8 +200,10 @@ TODO
 * Track ``chip_name`` with samples
 * Deal with binary plink files
 * Search breed by *aliases* used in ``dataset``:
+
   - match *fid* with breed *aliases* in ``dataset``
   - store *aliases* by ``dataset``
+
 * Add breeds from ``.xlsx`` files
 
 0.2.0 (2021-04-15)
