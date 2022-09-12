@@ -15,7 +15,7 @@ import mongoengine
 from enum import Enum
 from typing import Union
 
-from pymongo import database, ReturnDocument
+from pymongo import database, ReturnDocument, MongoClient
 from dotenv import find_dotenv, load_dotenv
 
 from .utils import get_project_dir
@@ -27,6 +27,7 @@ SPECIES2CODE = {
 
 SMARTERDB = "smarter"
 DB_ALIAS = "smarterdb"
+CONNECTION = None
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -36,20 +37,41 @@ class SmarterDBException(Exception):
     pass
 
 
-def global_connection(database_name: str = SMARTERDB):
-    # find .env automagically by walking up directories until it's found, then
-    # load up the .env entries as environment variables
-    load_dotenv(find_dotenv())
+def global_connection(database_name: str = SMARTERDB) -> MongoClient:
+    """
+    Establish a connection to the SMARTER database. Reads environment
+    parameters using :py:func:`load_dotenv`, returns a MongoClient object.
 
-    # TODO: track connection somewhere
-    return mongoengine.connect(
-        database_name,
-        username=os.getenv("MONGODB_SMARTER_USER"),
-        password=os.getenv("MONGODB_SMARTER_PASS"),
-        host=os.getenv("MONGODB_SMARTER_HOST", default="localhost"),
-        port=os.getenv("MONGODB_SMARTER_PORT", default=27017),
-        authentication_source='admin',
-        alias=DB_ALIAS)
+    Parameters
+    ----------
+    database_name : str, optional
+        The smarter database. The default is 'smarter'.
+
+    Returns
+    -------
+    CONNECTION : MongoClient
+        a mongoclient instance.
+    """
+
+    global CONNECTION
+
+    if not CONNECTION:
+        # find .env automagically by walking up directories until it's found,
+        # then load up the .env entries as environment variables
+        load_dotenv(find_dotenv())
+
+        # track connection somewhere
+        CONNECTION = mongoengine.connect(
+            database_name,
+            username=os.getenv("MONGODB_SMARTER_USER"),
+            password=os.getenv("MONGODB_SMARTER_PASS"),
+            host=os.getenv("MONGODB_SMARTER_HOST", default="localhost"),
+            port=os.getenv("MONGODB_SMARTER_PORT", default=27017),
+            authentication_source='admin',
+            alias=DB_ALIAS,
+            uuidRepresentation="standard")
+
+    return CONNECTION
 
 
 def complement(genotype: str):
@@ -337,6 +359,8 @@ def getNextSequenceValue(
 
 def getSmarterId(
         species: str, country: str, breed: str, mongodb: database.Database):
+    # this should be the connection I made
+    global CONNECTION
 
     # species, country and breed shold be defined in order to call this func
     if not species or not country or not breed:
@@ -357,14 +381,14 @@ def getSmarterId(
     country_code = country.alpha_2
 
     # get breed code from database
-    breed_code = mongodb.breeds.find_one(
+    breed_code = CONNECTION.breeds.find_one(
         {"species": species, "name": breed})["code"]
 
     # derive sequence_name from species
     sequence_name = f"sample{species}"
 
     # get the sequence number and define smarter id
-    sequence_id = getNextSequenceValue(sequence_name, mongodb)
+    sequence_id = getNextSequenceValue(sequence_name, CONNECTION)
 
     # padding numbers
     sequence_id = str(sequence_id).zfill(9)
@@ -490,9 +514,6 @@ class SampleSpecies(mongoengine.Document):
         if not self.smarter_id:
             logger.debug(f"Determining smarter id for {self.original_id}")
 
-            # get the pymongo connection object
-            conn = mongoengine.connection.get_db(alias=DB_ALIAS)
-
             # even is species, country and breed are required fields for
             # SampleSpecies document, their value will not be evaluated until
             # super().save() is called. I can't call it before determining
@@ -500,8 +521,7 @@ class SampleSpecies(mongoengine.Document):
             self.smarter_id = getSmarterId(
                 self.species,
                 self.country,
-                self.breed,
-                conn)
+                self.breed)
 
         # default save method
         super(SampleSpecies, self).save(*args, **kwargs)

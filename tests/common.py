@@ -14,6 +14,7 @@ from dateutil.parser import parse as parse_date
 
 from mongoengine import connect, disconnect, connection
 
+import src.features.smarterdb
 from src.features.smarterdb import (
     DB_ALIAS, Breed, BreedAlias, Counter, Dataset, SampleSheep, VariantSheep,
     SupportedChip)
@@ -33,6 +34,7 @@ class MongoMockMixin():
             alias=DB_ALIAS)
 
         cls.connection = connection.get_db(alias=DB_ALIAS)
+        src.features.smarterdb.CONNECTION = cls.connection
 
     @classmethod
     def tearDownClass(cls):
