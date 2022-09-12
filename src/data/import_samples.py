@@ -17,7 +17,9 @@ import logging
 import functools
 
 from pathlib import Path
-from click_option_group import optgroup, RequiredMutuallyExclusiveOptionGroup
+from click_option_group import (
+    optgroup, RequiredMutuallyExclusiveOptionGroup,
+    MutuallyExclusiveOptionGroup)
 
 import pycountry
 
@@ -91,6 +93,21 @@ def find_country(country: str):
     type=str,
     help="Country applied to all items in datafile"
 )
+@optgroup.group(
+    'Species',
+    cls=MutuallyExclusiveOptionGroup
+)
+@optgroup.option(
+    '--species_column',
+    type=str,
+    help="Species column in src datafile"
+)
+@optgroup.option(
+    '--species_all',
+    type=str,
+    default="Ovis aries",
+    help="Species applied to all items in datafile"
+)
 @click.option('--id_column', type=str, required=True,
               help="The 'original_id' column to place in smarter database")
 @click.option('--sex_column', type=str)
@@ -101,8 +118,8 @@ def find_country(country: str):
     help="An alias for original_id")
 def main(
         src_dataset, dst_dataset, datafile, code_column, code_all,
-        country_column, country_all, id_column, sex_column, chip_name,
-        alias_column):
+        country_column, country_all, species_column, species_all,
+        id_column, sex_column, chip_name, alias_column):
     logger.info(f"{Path(__file__).name} started")
 
     src_dataset, dst_dataset, datapath = deal_with_datasets(
@@ -153,6 +170,13 @@ def main(
         else:
             country = row.get(country_column)
 
+        # assign species from parameter or from datasource column
+        if species_column:
+            species = row.get(species_column)
+
+        else:
+            species = species_all
+
         # process a country by doing a fuzzy search
         # HINT: this function cache results relying arguments using lru_cache
         # see find country implementation for more informations
@@ -187,6 +211,7 @@ def main(
             type_=type_,
             breed=breed,
             country=country.name,
+            species=species,
             chip_name=chip_name,
             sex=sex,
             alias=alias)

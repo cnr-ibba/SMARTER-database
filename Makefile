@@ -254,7 +254,7 @@ data: requirements
 	## create samples from custom files or genotypes for GOAT
 	$(PYTHON_INTERPRETER) src/data/import_samples.py --src_dataset ADAPTmap_phenotype_20161201.zip --dst_dataset ADAPTmap_genotypeTOP_20161201.zip \
 		--datafile ADAPTmap_phenotype_20161201/ADAPTmap_InfoSample_20161201_fix.xlsx --code_column Breed_code --id_column ADAPTmap_code \
-		--chip_name IlluminaGoatSNP50 --country_column Sampling_Country --sex_column SEX
+		--chip_name IlluminaGoatSNP50 --country_column Sampling_Country --sex_column SEX --species_column Species
 	$(PYTHON_INTERPRETER) src/data/import_from_illumina.py --snpfile Swedish_Univ_Eriksson_GOAT53KV1_20200722/SNP_Map.txt \
 		--report Swedish_Univ_Eriksson_GOAT53KV1_20200722/Swedish_Univ_Eriksson_GOAT53KV1_20200722_FinalReport.txt \
 		--dataset Swedish_Univ_Eriksson_GOAT53KV1_20200722.zip --breed_code LNR --chip_name IlluminaGoatSNP50 --assembly ARS1 --create_samples
