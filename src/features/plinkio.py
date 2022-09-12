@@ -274,7 +274,6 @@ class SmarterMixin():
             sample = self.SampleSpecies(
                 original_id=line[1],
                 country=country,
-                species=dataset.species,
                 breed=breed.name,
                 breed_code=breed.code,
                 dataset=dataset,

@@ -520,7 +520,10 @@ class SampleSpecies(mongoengine.Document):
     smarter_id = mongoengine.StringField(required=True, unique=True)
 
     country = mongoengine.StringField(required=True)
-    species = mongoengine.StringField(required=True)
+
+    # generic species type (required to derive other stuff)
+    species_class = None
+
     breed = mongoengine.StringField(required=True)
     breed_code = mongoengine.StringField(min_length=3)
 
@@ -585,6 +588,11 @@ class SampleSpecies(mongoengine.Document):
 
 
 class SampleSheep(SampleSpecies):
+    species = mongoengine.StringField(required=True, default="Ovis aries")
+
+    # generic species type (required to derive other stuff)
+    species_class = "Sheep"
+
     # try to model relationship between samples
     father_id = mongoengine.LazyReferenceField(
         'SampleSheep',
@@ -605,6 +613,11 @@ class SampleSheep(SampleSpecies):
 
 
 class SampleGoat(SampleSpecies):
+    species = mongoengine.StringField(required=True, default="Capra hircus")
+
+    # generic species type (required to derive other stuff)
+    species_class = "Goat"
+
     # try to model relationship between samples
     father_id = mongoengine.LazyReferenceField(
         'SampleGoat',
@@ -631,26 +644,50 @@ def get_or_create_sample(
         type_: str,
         breed: Breed,
         country: str,
+        species: str = None,
         chip_name: str = None,
         sex: SEX = None,
-        alias: str = None) -> Union[SampleGoat, SampleSheep]:
-    """Get or create a sample providing attributes (search for original_id in
+        alias: str = None) -> list[Union[SampleGoat, SampleSheep], bool]:
+    """
+    Get or create a sample providing attributes (search for original_id in
     provided dataset
 
-    Args:
-        SampleSpecies: (Union[SampleGoat, SampleSheep]): the class required
-            for insert/update
-        original_id (str): The original_id in the dataset
-        dataset (Dataset): the dataset instance used to register sample
-        type_ (str): "background" or "foreground"
-        breed (Breed): A breed instance
-        country (str): Country as a string
-        chip_name (str): the chip name
-        sex (SEX): A SEX instance
-        alias (str): an original_id alias
+    Parameters
+    ----------
+    SampleSpecies : Union[SampleGoat, SampleSheep]
+        the class required for insert/update.
+    original_id : str
+        the original_id in the dataset.
+    dataset : Dataset
+        the dataset instance used to register sample.
+    type_ : str
+        sample type. "background" or "foreground" are the only values accepted
+    breed : Breed
+        a :py:class:`Breed` instance.
+    country : str
+        the country where the sample comes from.
+    species : str, optional
+        The sample species. If None, the default `species_class` attribute
+        will be used
+    chip_name : str, optional
+        the chip name. The default is None.
+    sex : SEX, optional
+        A :py:class:`SEX` instance. The default is None.
+    alias : str, optional
+         an original_id alias. Could be the name used in the genotype file,
+         which could be different from the original_id. The default is None.
 
-    Returns:
-        Union[SampleGoat, SampleSheep]: a SampleSpecies instance
+    Raises
+    ------
+    SmarterDBException
+        Raised multiple samples are returned (should never happen).
+
+    Returns
+    -------
+    Union[SampleGoat, SampleSheep]
+        a SampleSpecies instance.
+    created : bool
+        True is sample is created.
     """
 
     created = False
@@ -669,7 +706,7 @@ def get_or_create_sample(
         sample = SampleSpecies(
             original_id=original_id,
             country=country,
-            species=dataset.species,
+            species=species,
             breed=breed.name,
             breed_code=breed.code,
             dataset=dataset,

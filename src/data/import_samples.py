@@ -181,15 +181,15 @@ def main(
 
         # get or create a new Sample Obj
         sample, created = get_or_create_sample(
-            SampleSpecie,
-            original_id,
-            dst_dataset,
-            type_,
-            breed,
-            country.name,
-            chip_name,
-            sex,
-            alias)
+            SampleSpecies=SampleSpecie,
+            original_id=original_id,
+            dataset=dst_dataset,
+            type_=type_,
+            breed=breed,
+            country=country.name,
+            chip_name=chip_name,
+            sex=sex,
+            alias=alias)
 
         if created:
             logger.info(f"Sample '{sample}' added to database")

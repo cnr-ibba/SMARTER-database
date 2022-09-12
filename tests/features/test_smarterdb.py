@@ -596,7 +596,7 @@ class SampleSheepTestCase(SmarterIDMixin, MongoMockMixin, unittest.TestCase):
         # need country, breed and species in order to get a smarter_id
         self.sample.country = self.country
         self.sample.breed = "Texel"
-        self.sample.species = "Sheep"
+        self.sample.species = "Ovis aries"
 
         # add locations
         self.sample.locations = self.locations
@@ -622,37 +622,39 @@ class SampleSheepTestCase(SmarterIDMixin, MongoMockMixin, unittest.TestCase):
     def test_get_or_create_sample(self):
         # creating sample first
         sample, created = get_or_create_sample(
-            SampleSheep,
-            self.original_id,
-            self.dataset,
-            self.type_,
-            self.breed,
-            self.country,
-            self.chip_name,
-            self.sex,
-            self.alias
+            SampleSpecies=SampleSheep,
+            original_id=self.original_id,
+            dataset=self.dataset,
+            type_=self.type_,
+            breed=self.breed,
+            country=self.country,
+            chip_name=self.chip_name,
+            sex=self.sex,
+            alias=self.alias
         )
 
         self.assertIsInstance(sample, SampleSheep)
         self.assertEqual(sample.smarter_id, self.smarter_id)
+        self.assertEqual(sample.species, "Ovis aries")
         self.assertEqual(SampleSheep.objects.count(), 1)
         self.assertTrue(created)
 
         # calling the same function again, retrieve the same object
         sample, created = get_or_create_sample(
-            SampleSheep,
-            self.original_id,
-            self.dataset,
-            self.type_,
-            self.breed,
-            self.country,
-            self.chip_name,
-            self.sex,
-            self.alias
+            SampleSpecies=SampleSheep,
+            original_id=self.original_id,
+            dataset=self.dataset,
+            type_=self.type_,
+            breed=self.breed,
+            country=self.country,
+            chip_name=self.chip_name,
+            sex=self.sex,
+            alias=self.alias
         )
 
         self.assertIsInstance(sample, SampleSheep)
         self.assertEqual(sample.smarter_id, self.smarter_id)
+        self.assertEqual(sample.species, "Ovis aries")
         self.assertEqual(SampleSheep.objects.count(), 1)
         self.assertFalse(created)
 
@@ -661,32 +663,33 @@ class SampleSheepTestCase(SmarterIDMixin, MongoMockMixin, unittest.TestCase):
 
         # creating sample first
         sample, created = get_or_create_sample(
-            SampleSheep,
-            self.original_id,
-            self.dataset,
-            self.type_,
-            self.breed,
-            self.country,
-            self.chip_name,
-            self.sex,
-            self.alias
+            SampleSpecies=SampleSheep,
+            original_id=self.original_id,
+            dataset=self.dataset,
+            type_=self.type_,
+            breed=self.breed,
+            country=self.country,
+            chip_name=self.chip_name,
+            sex=self.sex,
+            alias=self.alias
         )
 
         # calling the same function again, but with a new breed
         sample, created = get_or_create_sample(
-            SampleSheep,
-            self.original_id,
-            self.dataset,
-            self.type_,
-            Breed.objects.get(species="Sheep", code="MER"),
-            self.country,
-            self.chip_name,
-            self.sex,
-            self.alias
+            SampleSpecies=SampleSheep,
+            original_id=self.original_id,
+            dataset=self.dataset,
+            type_=self.type_,
+            breed=Breed.objects.get(species="Sheep", code="MER"),
+            country=self.country,
+            chip_name=self.chip_name,
+            sex=self.sex,
+            alias=self.alias
         )
 
         self.assertIsInstance(sample, SampleSheep)
         self.assertEqual(sample.smarter_id, "ITOA-MER-000000002")
+        self.assertEqual(sample.species, "Ovis aries")
         self.assertEqual(SampleSheep.objects.count(), 2)
         self.assertTrue(created)
 
