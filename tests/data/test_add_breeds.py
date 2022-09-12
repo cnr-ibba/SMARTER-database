@@ -71,7 +71,7 @@ class AddBreedTest(BreedMixin, MongoMockMixin, unittest.TestCase):
         result = self.runner.invoke(
             self.main_function,
             [
-                "--species",
+                "--species_class",
                 "sheep",
                 "--name",
                 "Texel",
@@ -135,7 +135,7 @@ class ImportBreedsTest(BreedMixin, MongoMockMixin, unittest.TestCase):
             result = self.runner.invoke(
                 self.main_function,
                 [
-                    "--species",
+                    "--species_class",
                     "sheep",
                     "--src_dataset",
                     "test.zip",
@@ -171,7 +171,7 @@ class ImportBreedsTest(BreedMixin, MongoMockMixin, unittest.TestCase):
             result = self.runner.invoke(
                 self.main_function,
                 [
-                    "--species",
+                    "--species_class",
                     "sheep",
                     "--src_dataset",
                     "test.zip",
@@ -210,7 +210,7 @@ class ImportBreedsTest(BreedMixin, MongoMockMixin, unittest.TestCase):
             result = self.runner.invoke(
                 self.main_function,
                 [
-                    "--species",
+                    "--species_class",
                     "sheep",
                     "--src_dataset",
                     "test.zip",

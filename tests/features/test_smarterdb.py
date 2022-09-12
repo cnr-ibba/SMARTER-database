@@ -82,7 +82,7 @@ class BreedTestCase(MongoMockMixin, unittest.TestCase):
         """Getting an existent breed doesn't modify database"""
 
         breed, modified = get_or_create_breed(
-            species='Sheep',
+            species_class='Sheep',
             name="Texel",
             code="TEX"
         )
@@ -101,7 +101,7 @@ class BreedTestCase(MongoMockMixin, unittest.TestCase):
         )
 
         breed, modified = get_or_create_breed(
-            species='Sheep',
+            species_class='Sheep',
             name="Texel",
             code="TEX",
             aliases=[alias]
@@ -122,7 +122,7 @@ class BreedTestCase(MongoMockMixin, unittest.TestCase):
         )
 
         breed, modified = get_or_create_breed(
-            species='Sheep',
+            species_class='Sheep',
             name="Creole",
             code="CRL",
             aliases=[alias]
@@ -520,8 +520,7 @@ class GetSmarterIdTestCase(SmarterIDMixin, MongoMockMixin, unittest.TestCase):
             getSmarterId(
                 None,
                 "Italy",
-                "Texel",
-                self.connection
+                "Texel"
             )
 
         with self.assertRaisesRegex(
@@ -531,8 +530,7 @@ class GetSmarterIdTestCase(SmarterIDMixin, MongoMockMixin, unittest.TestCase):
             getSmarterId(
                 "Sheep",
                 None,
-                "Texel",
-                self.connection
+                "Texel"
             )
 
         with self.assertRaisesRegex(
@@ -542,8 +540,7 @@ class GetSmarterIdTestCase(SmarterIDMixin, MongoMockMixin, unittest.TestCase):
             getSmarterId(
                 "Sheep",
                 "Italy",
-                None,
-                self.connection
+                None
             )
 
     def test_species_not_managed(self):
@@ -553,8 +550,7 @@ class GetSmarterIdTestCase(SmarterIDMixin, MongoMockMixin, unittest.TestCase):
             getSmarterId(
                 "Cow",
                 "Italy",
-                "Frisona",
-                self.connection
+                "Frisona"
             )
 
 

@@ -81,62 +81,62 @@ data: requirements
 	$(PYTHON_INTERPRETER) src/data/import_datasets.py --types phenotypes foreground data/raw/phenotypes-fg.csv data/processed/phenotypes-fg.json
 
 	## upload breeds into database and update aliases
-	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Texel --code TEX --alias TEXEL_UY --dataset TEXEL_INIA_UY.zip
-	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Frizarta --code FRZ --alias 0 --dataset Frizarta54samples_ped_map_files.zip
-	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Merino --code MER --alias MERINO_UY --dataset MERINO_INIA_UY.zip
-	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Corriedale --code CRR --alias CORRIEDALE_UY --dataset CORRIEDALE_INIA_UY.zip
-	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Creole --code CRL --alias CRL --dataset CREOLE_INIA_UY.zip
-	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name "Mérinos d'Arles" --code ARL --alias MER --dataset="High density genotypes of French Sheep populations.zip"
-	$(PYTHON_INTERPRETER) src/data/add_breed.py --species Goat --name Sahel --code SAH --alias SHL --dataset ADAPTmap_genotypeTOP_20161201.zip
-	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Bizet --code BIZ --alias BIZ --dataset SMARTER_OVIS_FRANCE.zip
-	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name "Manech Tête Noire" --code MTN --alias MTN --dataset SMARTER_OVIS_FRANCE.zip
-	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Solognote --code SOL --alias SOL --dataset SMARTER_OVIS_FRANCE.zip
-	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name "Rouge du Roussillon" --code RDR --alias RDR --dataset SMARTER_OVIS_FRANCE.zip
-	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Frizarta --code FRZ --alias FRI --dataset AUTH_OVN50KV2_CHIOS_FRIZARTA.zip
-	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Chios --code CHI --alias CHI --dataset AUTH_OVN50KV2_CHIOS_FRIZARTA.zip
-	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Frizarta --code FRZ --alias FRI --dataset AUTH_OVN50KV2_CHIOS_FRIZARTA_PELAGONIA.zip
-	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Chios --code CHI --alias CHI --dataset AUTH_OVN50KV2_CHIOS_FRIZARTA_PELAGONIA.zip
-	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Pelagonia --code PEL --alias PEL --dataset AUTH_OVN50KV2_CHIOS_FRIZARTA_PELAGONIA.zip
-	$(PYTHON_INTERPRETER) src/data/add_breed.py --species Goat --name Eghoria --code EGH --alias EGH --dataset AUTH_GOAT53KV1_EGHORIA_SKOPELOS.zip
-	$(PYTHON_INTERPRETER) src/data/add_breed.py --species Goat --name Skopelos --code SKO --alias SKO --dataset AUTH_GOAT53KV1_EGHORIA_SKOPELOS.zip
-	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Chios --code CHI --alias CHI --dataset AUTH_OVN50KV2_CHIOS_MYTILINI_BOUTSKO.zip
-	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Mytilini --code MYT --alias MYT --dataset AUTH_OVN50KV2_CHIOS_MYTILINI_BOUTSKO.zip
-	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Boutsko --code BOU --alias BOU --dataset AUTH_OVN50KV2_CHIOS_MYTILINI_BOUTSKO.zip
-	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Dalapäls --code DAL --alias DAL --dataset five_sweden_sheeps.zip
-	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Fjällnäs --code FJA --alias FJA --dataset five_sweden_sheeps.zip
-	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Gotland --code GOT --alias GOT --dataset five_sweden_sheeps.zip
-	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Gute --code GUT --alias GUT --dataset five_sweden_sheeps.zip
-	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Klövsjö --code KLO --alias KLO --dataset five_sweden_sheeps.zip
-	$(PYTHON_INTERPRETER) src/data/add_breed.py --species Goat --name Fosses --code FSS --alias FOS --dataset SMARTER_CHFR.zip
-	$(PYTHON_INTERPRETER) src/data/add_breed.py --species Goat --name Provencale --code PVC --alias PVC --dataset SMARTER_CHFR.zip
-	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Frizarta --code FRZ --alias 0 --dataset Frizarta_270.zip
-	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Boutsko --code BOU --alias BOU --dataset AUTH_OVN50KV2_CHI_BOU_MYT_FRI.zip
-	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Chios --code CHI --alias CHI --dataset AUTH_OVN50KV2_CHI_BOU_MYT_FRI.zip
-	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Frizarta --code FRZ --alias FRI --dataset AUTH_OVN50KV2_CHI_BOU_MYT_FRI.zip
-	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Mytilini --code MYT --alias MYT --dataset AUTH_OVN50KV2_CHI_BOU_MYT_FRI.zip
-	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Chios --code CHI --alias CHI --dataset AUTH_OVN50KV2_CHI_FRZ.zip
-	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Frizarta --code FRZ --alias FRZ --dataset AUTH_OVN50KV2_CHI_FRZ.zip
-	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Assaf --code ASF --alias Assaf --dataset SMARTER-500-ASSAF.zip
-	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Assaf --code ASF --alias Assaf --dataset Castellana.zip
-	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Castellana --code CAS --alias SMARTER --dataset Castellana.zip
-	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Churra --code CHU --alias CHURRA --dataset Churra.zip
-	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Assaf --code ASF --alias Assaf --dataset 20220326_resultados_SNP.zip
-	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Castellana --code CAS --alias SMARTER --dataset 20220326_resultados_SNP.zip
-	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Ojalada --code OJA --alias Smarter --dataset 20220428_Smarter_Ovine.zip
-	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Ojalada --code OJA --alias Assaf --dataset 20220503_Ovine.zip
-	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Creole --code CRL --alias CRL --dataset Placa_Junio_recommended.zip
-	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Creole --code CRL --alias CRL --dataset OP829-924_INIA_Abril.zip
-	$(PYTHON_INTERPRETER) src/data/add_breed.py --species sheep --name Creole --code CRL --alias CRL --dataset Placas1_4_genotyping.zip
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species_class sheep --name Texel --code TEX --alias TEXEL_UY --dataset TEXEL_INIA_UY.zip
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species_class sheep --name Frizarta --code FRZ --alias 0 --dataset Frizarta54samples_ped_map_files.zip
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species_class sheep --name Merino --code MER --alias MERINO_UY --dataset MERINO_INIA_UY.zip
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species_class sheep --name Corriedale --code CRR --alias CORRIEDALE_UY --dataset CORRIEDALE_INIA_UY.zip
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species_class sheep --name Creole --code CRL --alias CRL --dataset CREOLE_INIA_UY.zip
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species_class sheep --name "Mérinos d'Arles" --code ARL --alias MER --dataset="High density genotypes of French Sheep populations.zip"
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species_class Goat --name Sahel --code SAH --alias SHL --dataset ADAPTmap_genotypeTOP_20161201.zip
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species_class sheep --name Bizet --code BIZ --alias BIZ --dataset SMARTER_OVIS_FRANCE.zip
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species_class sheep --name "Manech Tête Noire" --code MTN --alias MTN --dataset SMARTER_OVIS_FRANCE.zip
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species_class sheep --name Solognote --code SOL --alias SOL --dataset SMARTER_OVIS_FRANCE.zip
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species_class sheep --name "Rouge du Roussillon" --code RDR --alias RDR --dataset SMARTER_OVIS_FRANCE.zip
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species_class sheep --name Frizarta --code FRZ --alias FRI --dataset AUTH_OVN50KV2_CHIOS_FRIZARTA.zip
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species_class sheep --name Chios --code CHI --alias CHI --dataset AUTH_OVN50KV2_CHIOS_FRIZARTA.zip
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species_class sheep --name Frizarta --code FRZ --alias FRI --dataset AUTH_OVN50KV2_CHIOS_FRIZARTA_PELAGONIA.zip
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species_class sheep --name Chios --code CHI --alias CHI --dataset AUTH_OVN50KV2_CHIOS_FRIZARTA_PELAGONIA.zip
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species_class sheep --name Pelagonia --code PEL --alias PEL --dataset AUTH_OVN50KV2_CHIOS_FRIZARTA_PELAGONIA.zip
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species_class Goat --name Eghoria --code EGH --alias EGH --dataset AUTH_GOAT53KV1_EGHORIA_SKOPELOS.zip
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species_class Goat --name Skopelos --code SKO --alias SKO --dataset AUTH_GOAT53KV1_EGHORIA_SKOPELOS.zip
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species_class sheep --name Chios --code CHI --alias CHI --dataset AUTH_OVN50KV2_CHIOS_MYTILINI_BOUTSKO.zip
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species_class sheep --name Mytilini --code MYT --alias MYT --dataset AUTH_OVN50KV2_CHIOS_MYTILINI_BOUTSKO.zip
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species_class sheep --name Boutsko --code BOU --alias BOU --dataset AUTH_OVN50KV2_CHIOS_MYTILINI_BOUTSKO.zip
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species_class sheep --name Dalapäls --code DAL --alias DAL --dataset five_sweden_sheeps.zip
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species_class sheep --name Fjällnäs --code FJA --alias FJA --dataset five_sweden_sheeps.zip
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species_class sheep --name Gotland --code GOT --alias GOT --dataset five_sweden_sheeps.zip
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species_class sheep --name Gute --code GUT --alias GUT --dataset five_sweden_sheeps.zip
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species_class sheep --name Klövsjö --code KLO --alias KLO --dataset five_sweden_sheeps.zip
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species_class Goat --name Fosses --code FSS --alias FOS --dataset SMARTER_CHFR.zip
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species_class Goat --name Provencale --code PVC --alias PVC --dataset SMARTER_CHFR.zip
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species_class sheep --name Frizarta --code FRZ --alias 0 --dataset Frizarta_270.zip
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species_class sheep --name Boutsko --code BOU --alias BOU --dataset AUTH_OVN50KV2_CHI_BOU_MYT_FRI.zip
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species_class sheep --name Chios --code CHI --alias CHI --dataset AUTH_OVN50KV2_CHI_BOU_MYT_FRI.zip
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species_class sheep --name Frizarta --code FRZ --alias FRI --dataset AUTH_OVN50KV2_CHI_BOU_MYT_FRI.zip
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species_class sheep --name Mytilini --code MYT --alias MYT --dataset AUTH_OVN50KV2_CHI_BOU_MYT_FRI.zip
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species_class sheep --name Chios --code CHI --alias CHI --dataset AUTH_OVN50KV2_CHI_FRZ.zip
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species_class sheep --name Frizarta --code FRZ --alias FRZ --dataset AUTH_OVN50KV2_CHI_FRZ.zip
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species_class sheep --name Assaf --code ASF --alias Assaf --dataset SMARTER-500-ASSAF.zip
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species_class sheep --name Assaf --code ASF --alias Assaf --dataset Castellana.zip
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species_class sheep --name Castellana --code CAS --alias SMARTER --dataset Castellana.zip
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species_class sheep --name Churra --code CHU --alias CHURRA --dataset Churra.zip
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species_class sheep --name Assaf --code ASF --alias Assaf --dataset 20220326_resultados_SNP.zip
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species_class sheep --name Castellana --code CAS --alias SMARTER --dataset 20220326_resultados_SNP.zip
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species_class sheep --name Ojalada --code OJA --alias Smarter --dataset 20220428_Smarter_Ovine.zip
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species_class sheep --name Ojalada --code OJA --alias Assaf --dataset 20220503_Ovine.zip
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species_class sheep --name Creole --code CRL --alias CRL --dataset Placa_Junio_recommended.zip
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species_class sheep --name Creole --code CRL --alias CRL --dataset OP829-924_INIA_Abril.zip
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species_class sheep --name Creole --code CRL --alias CRL --dataset Placas1_4_genotyping.zip
 
 	## load breeds into database relying on dataset
-	$(PYTHON_INTERPRETER) src/data/import_breeds.py --species Sheep --src_dataset="High density genotypes of French Sheep populations.zip" \
+	$(PYTHON_INTERPRETER) src/data/import_breeds.py --species_class Sheep --src_dataset="High density genotypes of French Sheep populations.zip" \
 		--datafile Populations_infos_fix.xlsx --code_column Code --breed_column "Population Name"
-	$(PYTHON_INTERPRETER) src/data/import_breeds.py --species Sheep --src_dataset=ovine_SNP50HapMap_data.zip \
+	$(PYTHON_INTERPRETER) src/data/import_breeds.py --species_class Sheep --src_dataset=ovine_SNP50HapMap_data.zip \
 		--datafile ovine_SNP50HapMap_data/kijas2012_dataset_fix.xlsx --code_column code --breed_column Breed \
 		--fid_column Breed --country_column country
-	$(PYTHON_INTERPRETER) src/data/import_breeds.py --species Goat --src_dataset ADAPTmap_genotypeTOP_20161201.zip \
+	$(PYTHON_INTERPRETER) src/data/import_breeds.py --species_class Goat --src_dataset ADAPTmap_genotypeTOP_20161201.zip \
 		--datafile ADAPTmap_genotypeTOP_20161201/ADAPTmap_Breeds_20161201_fix.csv --breed_column Breed_fullname --code_column Breed_code
-	$(PYTHON_INTERPRETER) src/data/import_breeds.py --species Sheep --src_dataset Nativesheep_Hu_metadata.zip --dst_dataset NativesheepBreeds_Hu.zip \
+	$(PYTHON_INTERPRETER) src/data/import_breeds.py --species_class Sheep --src_dataset Nativesheep_Hu_metadata.zip --dst_dataset NativesheepBreeds_Hu.zip \
 		--datafile nativesheeps_hu_fixed.xlsx --breed_column breed --code_column code --fid_column fid --country_column country
 
 	## create SHEEP samples from raw data files or from XLS (orders matter)

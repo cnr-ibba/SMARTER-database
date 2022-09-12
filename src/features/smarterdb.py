@@ -231,12 +231,40 @@ class Breed(mongoengine.Document):
 
 
 def get_or_create_breed(
-        species: str, name: str, code: str, aliases: list = []):
+        species_class: str, name: str, code: str, aliases: list = []) -> [
+            Breed, bool]:
+    """
+    Get a Breed instance or create a new one (or update a breed adding a new
+    :py:class:`BreedAlias`)
 
-    logger.debug(f"Checking: '{species}':'{name}':'{code}'")
+    Parameters
+    ----------
+    species_class : str
+        The class of the species (should be 'Goat' or 'Sheep')
+    name : str
+        The breed full name.
+    code : str
+        The breed code (unique in Sheep and Goats collections).
+    aliases : list, optional
+        A list of :py:class:`BreedAlias` objects. The default is [].
+
+    Raises
+    ------
+    SmarterDBException
+        Raised if the breed is not Unique.
+
+    Returns
+    -------
+    breed : Breed
+        A :py:class:`Breed` instance.
+    modified : bool
+        True is breed is created (or alias updated).
+    """
+
+    logger.debug(f"Checking: '{species_class}':'{name}':'{code}'")
 
     # get a breed object relying on parameters
-    qs = Breed.objects(species=species, name=name, code=code)
+    qs = Breed.objects(species=species_class, name=name, code=code)
 
     modified = False
 
@@ -256,7 +284,7 @@ def get_or_create_breed(
         modified = True
 
         breed = Breed(
-            species=species,
+            species=species_class,
             name=name,
             code=code,
             aliases=aliases,
@@ -266,7 +294,8 @@ def get_or_create_breed(
     else:
         # should never see this relying on collection unique keys
         raise SmarterDBException(
-            f"Got {qs.count()} results for '{species}':'{name}':'{code}'")
+            f"Got {qs.count()} results for '{species_class}':'{name}': "
+            f"'{code}'")
 
     if modified:
         logger.debug(f"Save '{breed}' to database")
@@ -358,23 +387,48 @@ def getNextSequenceValue(
 
 
 def getSmarterId(
-        species: str, country: str, breed: str, mongodb: database.Database):
+        species_class: str,
+        country: str,
+        breed: str) -> str:
+    """
+    Generate a new SMARTER ID object using the internal counter collections
+
+    Parameters
+    ----------
+    species_class : str
+        The class of the species (should be 'Goat' or 'Sheep').
+    country : str
+        The country name of the sample.
+    breed : str
+        The breed name of the sample.
+
+    Raises
+    ------
+    SmarterDBException
+        Raised when passing a wrong species or no one.
+
+    Returns
+    -------
+    str
+        A new smarter_id.
+    """
+
     # this should be the connection I made
     global CONNECTION
 
-    # species, country and breed shold be defined in order to call this func
-    if not species or not country or not breed:
+    # species_class, country and breed shold be defined
+    if not species_class or not country or not breed:
         raise SmarterDBException(
             "species, country and breed should be defined when calling "
             "getSmarterId"
         )
 
     # get species code
-    if species not in SPECIES2CODE:
+    if species_class not in SPECIES2CODE:
         raise SmarterDBException(
-            "Species %s not managed by smarter" % (species))
+            "Species %s not managed by smarter" % (species_class))
 
-    species_code = SPECIES2CODE[species]
+    species_code = SPECIES2CODE[species_class]
 
     # get country code (two letters)
     country = pycountry.countries.get(name=country)
@@ -382,10 +436,10 @@ def getSmarterId(
 
     # get breed code from database
     breed_code = CONNECTION.breeds.find_one(
-        {"species": species, "name": breed})["code"]
+        {"species": species_class, "name": breed})["code"]
 
-    # derive sequence_name from species
-    sequence_name = f"sample{species}"
+    # derive sequence_name from species_class
+    sequence_name = f"sample{species_class}"
 
     # get the sequence number and define smarter id
     sequence_id = getNextSequenceValue(sequence_name, CONNECTION)
@@ -519,7 +573,7 @@ class SampleSpecies(mongoengine.Document):
             # super().save() is called. I can't call it before determining
             # a smarter_id
             self.smarter_id = getSmarterId(
-                self.species,
+                self.species_class,
                 self.country,
                 self.breed)
 
