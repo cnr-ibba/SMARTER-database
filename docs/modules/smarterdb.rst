@@ -6,4 +6,4 @@ src.features.smarterdb
     :members:
     :undoc-members:
     :show-inheritance:
-    :noindex:
+    :autosummary:
