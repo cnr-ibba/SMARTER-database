@@ -27,7 +27,7 @@ class ManifestMixin():
         result = self.runner.invoke(
             self.main_function,
             [
-                "--species",
+                "--species_class",
                 "Sheep",
                 "--manifest",
                 str(manifest_file),

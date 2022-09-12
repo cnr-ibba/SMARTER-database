@@ -35,37 +35,37 @@ initialize: requirements
 	## import data for Sheep
 
 	### Oar_v3
-	$(PYTHON_INTERPRETER) src/data/import_manifest.py --species sheep --manifest data/external/SHE/ILLUMINA/ovinesnp50-genome-assembly-oar-v3-1.csv.gz \
+	$(PYTHON_INTERPRETER) src/data/import_manifest.py --species_class sheep --manifest data/external/SHE/ILLUMINA/ovinesnp50-genome-assembly-oar-v3-1.csv.gz \
 		--chip_name IlluminaOvineSNP50 --version Oar_v3.1 --sender AGR_BS
-	$(PYTHON_INTERPRETER) src/data/import_snpchimp.py --species sheep --snpchimp data/external/SHE/SNPCHIMP/SNPchimp_SHE_SNP50v1_oar3.1.csv.gz --version Oar_v3.1
-	$(PYTHON_INTERPRETER) src/data/import_manifest.py --species sheep --manifest data/external/SHE/ILLUMINA/ovinesnpHD-genome-assembly-oar-v3-1.csv.gz \
+	$(PYTHON_INTERPRETER) src/data/import_snpchimp.py --species_class sheep --snpchimp data/external/SHE/SNPCHIMP/SNPchimp_SHE_SNP50v1_oar3.1.csv.gz --version Oar_v3.1
+	$(PYTHON_INTERPRETER) src/data/import_manifest.py --species_class sheep --manifest data/external/SHE/ILLUMINA/ovinesnpHD-genome-assembly-oar-v3-1.csv.gz \
 		--chip_name IlluminaOvineHDSNP --version Oar_v3.1 --sender AGR_BS
-	$(PYTHON_INTERPRETER) src/data/import_snpchimp.py --species sheep --snpchimp data/external/SHE/SNPCHIMP/SNPchimp_SHE_SNPHDv1_oar3.1.csv.gz --version Oar_v3.1
-	$(PYTHON_INTERPRETER) src/data/import_affymetrix.py --species sheep --manifest data/external/SHE/AFFYMETRIX/Axiom_BGovisNP_ovine_Annotation.r1.csv.gz \
+	$(PYTHON_INTERPRETER) src/data/import_snpchimp.py --species_class sheep --snpchimp data/external/SHE/SNPCHIMP/SNPchimp_SHE_SNPHDv1_oar3.1.csv.gz --version Oar_v3.1
+	$(PYTHON_INTERPRETER) src/data/import_affymetrix.py --species_class sheep --manifest data/external/SHE/AFFYMETRIX/Axiom_BGovisNP_ovine_Annotation.r1.csv.gz \
 		--chip_name AffymetrixAxiomBGovisNP --version Oar_v3.1
-	$(PYTHON_INTERPRETER) src/data/import_affymetrix.py --species sheep --manifest data/external/SHE/AFFYMETRIX/Axiom_BGovis2_Annotation.r1.csv.gz \
+	$(PYTHON_INTERPRETER) src/data/import_affymetrix.py --species_class sheep --manifest data/external/SHE/AFFYMETRIX/Axiom_BGovis2_Annotation.r1.csv.gz \
 		--chip_name AffymetrixAxiomBGovis2 --version Oar_v3.1
-	$(PYTHON_INTERPRETER) src/data/import_consortium.py --species sheep --datafile data/external/SHE/CONSORTIUM/OvineSNP50_B.csv_v3.1_pos_20190513.csv.gz \
+	$(PYTHON_INTERPRETER) src/data/import_consortium.py --species_class sheep --datafile data/external/SHE/CONSORTIUM/OvineSNP50_B.csv_v3.1_pos_20190513.csv.gz \
 		--version Oar_v3.1
-	$(PYTHON_INTERPRETER) src/data/import_consortium.py --species sheep --datafile data/external/SHE/CONSORTIUM/SheepHD_AgResearch_Cons_15041608_A.csv_v3.1_pos_20190513.csv.gz \
+	$(PYTHON_INTERPRETER) src/data/import_consortium.py --species_class sheep --datafile data/external/SHE/CONSORTIUM/SheepHD_AgResearch_Cons_15041608_A.csv_v3.1_pos_20190513.csv.gz \
 		--version Oar_v3.1
 
 	### Oar_v4
-	$(PYTHON_INTERPRETER) src/data/import_manifest.py --species sheep --manifest data/external/SHE/ILLUMINA/ovinesnp50-genome-assembly-oar-v4-0.csv.gz \
+	$(PYTHON_INTERPRETER) src/data/import_manifest.py --species_class sheep --manifest data/external/SHE/ILLUMINA/ovinesnp50-genome-assembly-oar-v4-0.csv.gz \
 		--chip_name IlluminaOvineSNP50 --version Oar_v4.0 --sender AGR_BS
-	$(PYTHON_INTERPRETER) src/data/import_snpchimp.py --species sheep --snpchimp data/external/SHE/SNPCHIMP/SNPchimp_SHE_SNP50v1_oar4.0.csv.gz --version Oar_v4.0
-	$(PYTHON_INTERPRETER) src/data/import_snpchimp.py --species sheep --snpchimp data/external/SHE/SNPCHIMP/SNPchimp_SHE_SNPHDv1_oar4.0.csv.gz --version Oar_v4.0
-	$(PYTHON_INTERPRETER) src/data/import_affymetrix.py --species sheep --manifest data/external/SHE/AFFYMETRIX/Axiom_Ovi_Can.na35.r3.a3.annot.csv.gz \
+	$(PYTHON_INTERPRETER) src/data/import_snpchimp.py --species_class sheep --snpchimp data/external/SHE/SNPCHIMP/SNPchimp_SHE_SNP50v1_oar4.0.csv.gz --version Oar_v4.0
+	$(PYTHON_INTERPRETER) src/data/import_snpchimp.py --species_class sheep --snpchimp data/external/SHE/SNPCHIMP/SNPchimp_SHE_SNPHDv1_oar4.0.csv.gz --version Oar_v4.0
+	$(PYTHON_INTERPRETER) src/data/import_affymetrix.py --species_class sheep --manifest data/external/SHE/AFFYMETRIX/Axiom_Ovi_Can.na35.r3.a3.annot.csv.gz \
 		--chip_name AffymetrixAxiomOviCan --version Oar_v4.0
-	$(PYTHON_INTERPRETER) src/data/import_consortium.py --species sheep --datafile data/external/SHE/CONSORTIUM/OvineSNP50_B.csvv4.0_pos_20190513.csv.gz \
+	$(PYTHON_INTERPRETER) src/data/import_consortium.py --species_class sheep --datafile data/external/SHE/CONSORTIUM/OvineSNP50_B.csvv4.0_pos_20190513.csv.gz \
 		--version Oar_v4.0
-	$(PYTHON_INTERPRETER) src/data/import_consortium.py --species sheep --datafile data/external/SHE/CONSORTIUM/SheepHD_AgResearch_Cons_15041608_A.csvv4.0_pos_20190513.csv.gz \
+	$(PYTHON_INTERPRETER) src/data/import_consortium.py --species_class sheep --datafile data/external/SHE/CONSORTIUM/SheepHD_AgResearch_Cons_15041608_A.csvv4.0_pos_20190513.csv.gz \
 		--version Oar_v4.0
 
 	## import data for goat
-	$(PYTHON_INTERPRETER) src/data/import_manifest.py --species goat --manifest data/external/GOA/ILLUMINA/Goat_IGGC_65K_v2_15069617X365016_A2.csv.gz \
+	$(PYTHON_INTERPRETER) src/data/import_manifest.py --species_class goat --manifest data/external/GOA/ILLUMINA/Goat_IGGC_65K_v2_15069617X365016_A2.csv.gz \
 		--chip_name IlluminaGoatSNP50 --version ARS1 --sender IGGC
-	$(PYTHON_INTERPRETER) src/data/import_snpchimp.py --species goat --snpchimp data/external/GOA/SNPCHIMP/SNPchimp_GOAT_SNP50_chi1.0.csv.gz --version CHI1.0
+	$(PYTHON_INTERPRETER) src/data/import_snpchimp.py --species_class goat --snpchimp data/external/GOA/SNPCHIMP/SNPchimp_GOAT_SNP50_chi1.0.csv.gz --version CHI1.0
 
 	## TODO: donwload data from EVA and EnsEMBL
 
@@ -400,8 +400,8 @@ data: requirements
 		--purpose_column Purpose
 
 	## merge SNPs into 1 file
-	$(PYTHON_INTERPRETER) src/data/merge_datasets.py --species sheep --assembly OAR3
-	$(PYTHON_INTERPRETER) src/data/merge_datasets.py --species goat --assembly ARS1
+	$(PYTHON_INTERPRETER) src/data/merge_datasets.py --species_class sheep --assembly OAR3
+	$(PYTHON_INTERPRETER) src/data/merge_datasets.py --species_class goat --assembly ARS1
 
 	## track database status
 	$(PYTHON_INTERPRETER) src/data/update_db_status.py
