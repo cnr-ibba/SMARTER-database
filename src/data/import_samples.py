@@ -105,7 +105,6 @@ def find_country(country: str):
 @optgroup.option(
     '--species_all',
     type=str,
-    default="Ovis aries",
     help="Species applied to all items in datafile"
 )
 @click.option('--id_column', type=str, required=True,
