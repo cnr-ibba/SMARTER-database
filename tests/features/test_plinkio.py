@@ -500,6 +500,30 @@ class TextPlinkIOPed(
 
         self.assertEqual(reference, test)
 
+    def test_process_pedline_update_sex(self):
+        # get a sample line
+        line = self.lines[0]
+
+        # create a sample object
+        breed = Breed.objects(
+            aliases__match={'fid': line[0], 'dataset': self.dataset}).get()
+        sample = self.plinkio.get_or_create_sample(line, self.dataset, breed)
+
+        # assign a custom sex (male)
+        sample.sex = SEX(1)
+        sample.save()
+
+        test = self.plinkio._process_pedline(line, self.dataset, 'top', True)
+
+        # define reference
+        reference = line.copy()
+        reference[0:6] = ['TEX', 'ITOA-TEX-000000001', '0', '0', '1', '-9']
+
+        # trow away the last snps (not found in database)
+        del(reference[-2:])
+
+        self.assertEqual(reference, test)
+
     def get_relationships(self):
         """Helper function to define fake relationships"""
 

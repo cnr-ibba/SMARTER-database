@@ -633,10 +633,11 @@ class SmarterMixin():
         new_line = self._process_genotypes(new_line, coding)
 
         # update ped line with sex accordingly to db informations
-        if sample.sex and new_line[4] in ["0", 0]:
-            logger.debug(
-                f"Update sex for sample '{sample} (sample.sex)'")
-            new_line[5] = sample.sex.value
+        if sample.sex and int(new_line[4]) != sample.sex.value:
+            logger.warning(
+                f"Update sex for sample '{sample} {new_line[4]} -> "
+                f"{sample.sex.value}'")
+            new_line[4] = str(sample.sex.value)
 
         # need to remove filtered snps from ped line
         for index in sorted(self.filtered, reverse=True):
