@@ -28,13 +28,12 @@ logger = logging.getLogger(__name__)
 class MongoMockMixin():
     @classmethod
     def setUpClass(cls):
-        connect(
+        src.features.smarterdb.CLIENT = connect(
             'mongoenginetest',
             host='mongomock://localhost',
             alias=DB_ALIAS)
 
-        cls.connection = connection.get_db(alias=DB_ALIAS)
-        src.features.smarterdb.CONNECTION = cls.connection
+        _ = connection.get_db(alias=DB_ALIAS)
 
     @classmethod
     def tearDownClass(cls):

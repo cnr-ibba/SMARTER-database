@@ -27,7 +27,7 @@ SPECIES2CODE = {
 
 SMARTERDB = "smarter"
 DB_ALIAS = "smarterdb"
-CONNECTION = None
+CLIENT = None
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -49,19 +49,19 @@ def global_connection(database_name: str = SMARTERDB) -> MongoClient:
 
     Returns
     -------
-    CONNECTION : MongoClient
+    CLIENT : MongoClient
         a mongoclient instance.
     """
 
-    global CONNECTION
+    global CLIENT
 
-    if not CONNECTION:
+    if not CLIENT:
         # find .env automagically by walking up directories until it's found,
         # then load up the .env entries as environment variables
         load_dotenv(find_dotenv())
 
         # track connection somewhere
-        CONNECTION = mongoengine.connect(
+        CLIENT = mongoengine.connect(
             database_name,
             username=os.getenv("MONGODB_SMARTER_USER"),
             password=os.getenv("MONGODB_SMARTER_PASS"),
@@ -71,7 +71,7 @@ def global_connection(database_name: str = SMARTERDB) -> MongoClient:
             alias=DB_ALIAS,
             uuidRepresentation="standard")
 
-    return CONNECTION
+    return CLIENT
 
 
 def complement(genotype: str):
@@ -106,7 +106,7 @@ class SmarterInfo(mongoengine.Document):
     }
 
     def __str__(self):
-        return f"{self.id}: {self.version}"
+        return f"{self.id}: {self.version} (self.last_updated)"
 
 
 class Counter(mongoengine.Document):
@@ -414,7 +414,7 @@ def getSmarterId(
     """
 
     # this should be the connection I made
-    global CONNECTION
+    global SMARTERDB, SPECIES2CODE
 
     # species_class, country and breed shold be defined
     if not species_class or not country or not breed:
@@ -435,14 +435,16 @@ def getSmarterId(
     country_code = country.alpha_2
 
     # get breed code from database
-    breed_code = CONNECTION.breeds.find_one(
+    database = mongoengine.connection.get_db(alias=DB_ALIAS)
+    breed_code = database.breeds.find_one(
         {"species": species_class, "name": breed})["code"]
 
     # derive sequence_name from species_class
     sequence_name = f"sample{species_class}"
 
     # get the sequence number and define smarter id
-    sequence_id = getNextSequenceValue(sequence_name, CONNECTION)
+    sequence_id = getNextSequenceValue(
+        sequence_name, database)
 
     # padding numbers
     sequence_id = str(sequence_id).zfill(9)
