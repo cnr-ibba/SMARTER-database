@@ -902,8 +902,9 @@ class BinaryPlinkIO(SmarterMixin):
 
     @prefix.setter
     def prefix(self, prefix: str):
-        self._prefix = prefix
-        self.plink_file = plinkfile.open(self._prefix)
+        if prefix:
+            self._prefix = prefix
+            self.plink_file = plinkfile.open(self._prefix)
 
     def read_mapfile(self):
         """Read map data and track informations in memory. Useful to process
