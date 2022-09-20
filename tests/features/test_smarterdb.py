@@ -658,6 +658,52 @@ class SampleSheepTestCase(SmarterIDMixin, MongoMockMixin, unittest.TestCase):
         self.assertEqual(SampleSheep.objects.count(), 1)
         self.assertFalse(created)
 
+    def test_get_or_create_sample_alias_none(self):
+        """Creating a sample with no alias"""
+
+        # creating sample first
+        sample, created = get_or_create_sample(
+            SampleSpecies=SampleSheep,
+            original_id=self.original_id,
+            dataset=self.dataset,
+            type_=self.type_,
+            breed=self.breed,
+            country=self.country,
+            chip_name=self.chip_name,
+            sex=self.sex,
+            alias=None
+        )
+
+        self.assertIsInstance(sample, SampleSheep)
+        self.assertEqual(sample.smarter_id, self.smarter_id)
+        self.assertEqual(sample.species, "Ovis aries")
+        self.assertEqual(SampleSheep.objects.count(), 1)
+        self.assertTrue(created)
+        self.assertIsNone(sample.alias)
+
+    def test_get_or_create_sample_alias_int(self):
+        """Creating a sample with integer alias, store a string"""
+
+        # creating sample first
+        sample, created = get_or_create_sample(
+            SampleSpecies=SampleSheep,
+            original_id=self.original_id,
+            dataset=self.dataset,
+            type_=self.type_,
+            breed=self.breed,
+            country=self.country,
+            chip_name=self.chip_name,
+            sex=self.sex,
+            alias=1
+        )
+
+        self.assertIsInstance(sample, SampleSheep)
+        self.assertEqual(sample.smarter_id, self.smarter_id)
+        self.assertEqual(sample.species, "Ovis aries")
+        self.assertEqual(SampleSheep.objects.count(), 1)
+        self.assertTrue(created)
+        self.assertEqual(sample.alias, "1")
+
     def test_get_or_create_sample_breed(self):
         """Test that also breed is involved in getting or creating samples"""
 

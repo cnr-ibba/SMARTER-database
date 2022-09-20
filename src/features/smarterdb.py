@@ -703,6 +703,10 @@ def get_or_create_sample(
         sample = qs.get()
 
     elif qs.count() == 0:
+        # coerce alias as integer (if any)
+        if alias:
+            alias = str(alias)
+
         # insert sample into database
         logger.info(f"Registering sample '{original_id}' in database")
         sample = SampleSpecies(
@@ -715,7 +719,7 @@ def get_or_create_sample(
             type_=type_,
             chip_name=chip_name,
             sex=sex,
-            alias=str(alias)
+            alias=alias
         )
         sample.save()
 
