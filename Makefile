@@ -138,6 +138,8 @@ data: requirements
 		--datafile ADAPTmap_genotypeTOP_20161201/ADAPTmap_Breeds_20161201_fix.csv --breed_column Breed_fullname --code_column Breed_code
 	$(PYTHON_INTERPRETER) src/data/import_breeds.py --species_class Sheep --src_dataset Nativesheep_Hu_metadata.zip --dst_dataset NativesheepBreeds_Hu.zip \
 		--datafile nativesheeps_hu_fixed.xlsx --breed_column breed --code_column code --fid_column fid --country_column country
+	$(PYTHON_INTERPRETER) src/data/import_breeds.py --species_class Sheep --src_dataset isheep_50K_metadata.zip --dst_dataset isheep_50K.zip \
+		--datafile isheep_50K_refined.xlsx --breed_column breed --code_column code --country_column country
 
 	## create SHEEP samples from raw data files or from XLS (orders matter)
 	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --file TEXEL_UY --dataset TEXEL_INIA_UY.zip --chip_name IlluminaOvineSNP50 \
@@ -217,6 +219,10 @@ data: requirements
 		--dst_dataset Placas1_4_genotyping.zip --datafile placas1_4_metadata.xlsx \
 		--code_all CRL --id_column Lab_ID --chip_name AffymetrixAxiomOviCan --country_all Uruguay \
 		--sex_column Sex --alias_column id_column
+	$(PYTHON_INTERPRETER) src/data/import_samples.py --src_dataset isheep_50K_metadata.zip \
+		--dst_dataset isheep_50K.zip --datafile isheep_50K_refined.xlsx \
+		--code_column code --id_column sample_id --chip_name IlluminaOvineSNP50 --country_column country \
+		--species_column species --sex_column sex
 
 	## convert genotypes without creating samples in database (SHEEP)
 	$(PYTHON_INTERPRETER) src/data/import_from_affymetrix.py --prefix Affymetrix_data_Plate_652_660/Affymetrix_data_Plate_652/Affymetrix_data_Plate_652 \
@@ -250,6 +256,9 @@ data: requirements
 	$(PYTHON_INTERPRETER) src/data/import_from_affymetrix.py --report Placas1_4_genotyping.txt \
 		--dataset Placas1_4_genotyping.zip --coding ab --chip_name AffymetrixAxiomOviCan --assembly OAR3 --sample_field alias \
 		--src_version Oar_v4.0 --src_imported_from affymetrix
+	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --bfile 50K-all \
+		--dataset isheep_50K.zip --coding top --chip_name IlluminaOvineSNP50 --assembly OAR3 \
+		--search_field rs_id
 
 	## create samples from custom files or genotypes for GOAT
 	$(PYTHON_INTERPRETER) src/data/import_samples.py --src_dataset ADAPTmap_phenotype_20161201.zip --dst_dataset ADAPTmap_genotypeTOP_20161201.zip \
@@ -331,6 +340,13 @@ data: requirements
 	$(PYTHON_INTERPRETER) src/data/import_metadata.py --src_dataset 20220809_105_Creole_Samples_INIA_Uruguay.zip \
 		--dst_dataset Placas1_4_genotyping.zip --datafile placas1_4_metadata.xlsx --id_column Lab_ID \
 		--metadata_column Site
+	$(PYTHON_INTERPRETER) src/data/import_metadata.py --src_dataset isheep_50K_metadata.zip \
+		--dst_dataset isheep_50K.zip --datafile isheep_50K_refined.xlsx --id_column sample_id \
+		--latitude_column latitude --longitude_column longitude --metadata_column biosample_id \
+		--metadata_column biosample_url --metadata_column bioproject_id --metadata_column bioproject_url \
+		--metadata_column location --metadata_column material --metadata_column technology \
+		--metadata_column data_resource --metadata_column biosample_breed --metadata_column birth_location \
+		--metadata_column geographic_location
 
 	## add phenotypes to samples
 	$(PYTHON_INTERPRETER) src/data/import_phenotypes.py --src_dataset ADAPTmap_phenotype_20161201.zip \
