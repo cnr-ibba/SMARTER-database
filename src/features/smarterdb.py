@@ -527,7 +527,7 @@ class SampleSpecies(mongoengine.Document):
     species_class = None
 
     breed = mongoengine.StringField(required=True)
-    breed_code = mongoengine.StringField(min_length=3)
+    breed_code = mongoengine.StringField(min_length=2)
 
     # this will be a original_id alias (a different sample name in original
     # data file)

@@ -140,6 +140,8 @@ data: requirements
 		--datafile nativesheeps_hu_fixed.xlsx --breed_column breed --code_column code --fid_column fid --country_column country
 	$(PYTHON_INTERPRETER) src/data/import_breeds.py --species_class Sheep --src_dataset isheep_50K_metadata.zip --dst_dataset isheep_50K.zip \
 		--datafile isheep_50K_refined.xlsx --breed_column breed --code_column code --country_column country
+	$(PYTHON_INTERPRETER) src/data/import_breeds.py --species_class Sheep --src_dataset isheep_600K_metadata.zip --dst_dataset isheep_600K.zip \
+		--datafile isheep_600K_refined.xlsx --breed_column breed --code_column code --country_column country
 
 	## create SHEEP samples from raw data files or from XLS (orders matter)
 	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --file TEXEL_UY --dataset TEXEL_INIA_UY.zip --chip_name IlluminaOvineSNP50 \
@@ -223,6 +225,10 @@ data: requirements
 		--dst_dataset isheep_50K.zip --datafile isheep_50K_refined.xlsx \
 		--code_column code --id_column sample_id --chip_name IlluminaOvineSNP50 --country_column country \
 		--species_column species --sex_column sex
+	$(PYTHON_INTERPRETER) src/data/import_samples.py --src_dataset isheep_600K_metadata.zip \
+		--dst_dataset isheep_600K.zip --datafile isheep_600K_refined.xlsx \
+		--code_column code --id_column sample_id --chip_name IlluminaOvineHDSNP	--country_column country \
+		--species_column species --sex_column sex --alias_column alias
 
 	## convert genotypes without creating samples in database (SHEEP)
 	$(PYTHON_INTERPRETER) src/data/import_from_affymetrix.py --prefix Affymetrix_data_Plate_652_660/Affymetrix_data_Plate_652/Affymetrix_data_Plate_652 \
@@ -258,6 +264,9 @@ data: requirements
 		--src_version Oar_v4.0 --src_imported_from affymetrix
 	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --bfile 50K-all \
 		--dataset isheep_50K.zip --coding top --chip_name IlluminaOvineSNP50 --assembly OAR3 \
+		--search_field rs_id
+	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --bfile 600K-all \
+		--dataset isheep_600K.zip --coding top --chip_name IlluminaOvineHDSNP --assembly OAR3 --sample_field alias \
 		--search_field rs_id
 
 	## create samples from custom files or genotypes for GOAT
@@ -346,6 +355,13 @@ data: requirements
 		--metadata_column biosample_url --metadata_column bioproject_id --metadata_column bioproject_url \
 		--metadata_column location --metadata_column material --metadata_column technology \
 		--metadata_column data_resource --metadata_column biosample_breed --metadata_column birth_location \
+		--metadata_column geographic_location
+	$(PYTHON_INTERPRETER) src/data/import_metadata.py --src_dataset isheep_600K_metadata.zip \
+		--dst_dataset isheep_600K.zip --datafile isheep_600K_refined.xlsx --id_column sample_id \
+		--latitude_column latitude --longitude_column longitude --metadata_column biosample_id \
+		--metadata_column biosample_url --metadata_column bioproject_id --metadata_column bioproject_url \
+		--metadata_column location --metadata_column material --metadata_column technology \
+		--metadata_column data_resource --metadata_column biosample_breed --metadata_column breed_history \
 		--metadata_column geographic_location
 
 	## add phenotypes to samples
