@@ -139,6 +139,12 @@ def deal_with_binary_plink(bfile: str, dataset: Dataset, assembly: str):
 @click.option('--assembly', type=str, required=True)
 @click.option('--create_samples', is_flag=True)
 @click.option(
+    '--sample_field',
+    type=str,
+    default="original_id",
+    help="Search samples using this attribute"
+)
+@click.option(
     '--search_field',
     type=str,
     default="name",
@@ -153,7 +159,7 @@ def deal_with_binary_plink(bfile: str, dataset: Dataset, assembly: str):
     type=str,
     help="Source assembly imported_from")
 def main(file_, bfile, dataset, coding, chip_name, assembly, create_samples,
-         search_field, src_version, src_imported_from):
+         sample_field, search_field, src_version, src_imported_from):
     """Read sample names from map/ped files and updata smarter database (insert
     a record if necessary and define a smarter id for each sample)
     """
@@ -226,7 +232,13 @@ def main(file_, bfile, dataset, coding, chip_name, assembly, create_samples,
     plinkio.update_mapfile(str(output_map))
 
     logger.info("Writing a new ped file with fixed genotype")
-    plinkio.update_pedfile(output_ped, dataset, coding, create_samples)
+    plinkio.update_pedfile(
+        outputfile=output_ped,
+        dataset=dataset,
+        coding=coding,
+        create_samples=create_samples,
+        sample_field=sample_field
+    )
 
     # ok time to convert data in plink binary format
     cmd = ["plink"] + PLINK_SPECIES_OPT[dataset.species] + [

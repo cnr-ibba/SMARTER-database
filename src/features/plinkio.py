@@ -834,7 +834,6 @@ class AffyPlinkIO(FakePedMixin, TextPlinkIO):
             self,
             breed: str = None,
             dataset: Dataset = None,
-            sample_field: str = "original_id",
             *args, **kwargs):
         """
         Open pedfile for reading return iterator
@@ -844,8 +843,6 @@ class AffyPlinkIO(FakePedMixin, TextPlinkIO):
             stored in database if not provided. The default is None.
         dataset : Dataset, optional
             A dataset in which search for sample breed identifier
-        sample_field : str, optional
-            Search samples using this field. The default is "original_id".
 
         Yields
         ------
@@ -1002,7 +999,6 @@ class IlluminaReportIO(FakePedMixin, SmarterMixin):
             self,
             breed: str = None,
             dataset: Dataset = None,
-            sample_field: str = "original_id",
             *args, **kwargs):
         """
         Open and read an illumina report file. Returns iterator
@@ -1014,8 +1010,6 @@ class IlluminaReportIO(FakePedMixin, SmarterMixin):
             stored in database if not provided. The default is None.
         dataset : Dataset, optional
             A dataset in which search for sample breed identifier
-        sample_field : str, optional
-            Search samples using this field. The default is "original_id".
 
         Raises
         ------

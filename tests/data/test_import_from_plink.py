@@ -15,7 +15,7 @@ from unittest.mock import patch, PropertyMock
 from plinkio import plinkfile
 
 from src.data.import_from_plink import main as import_from_plink
-from src.features.smarterdb import SampleSheep
+from src.features.smarterdb import SampleSheep, get_or_create_sample
 
 from ..common import (
     MongoMockMixin, SmarterIDMixin, VariantsMixin, SupportedChipMixin)
@@ -90,6 +90,70 @@ class TestImportFromPlink(
                     "--assembly",
                     "OAR3",
                     "--create_samples"
+                ]
+            )
+
+            self.assertEqual(0, result.exit_code, msg=result.exception)
+            self.assertEqual(SampleSheep.objects.count(), 2)
+
+            # check imported chip_name attribute
+            for sample in SampleSheep.objects:
+                self.assertEqual(sample.chip_name, self.chip_name)
+
+            plink_path = results_dir / "OAR3" / "plinktest_updated"
+            plink_file = plinkfile.open(str(plink_path))
+
+            sample_list = plink_file.get_samples()
+            locus_list = plink_file.get_loci()
+
+            self.assertEqual(len(sample_list), 2)
+            self.assertEqual(len(locus_list), 3)
+
+    @patch('src.features.smarterdb.Dataset.result_dir',
+           new_callable=PropertyMock)
+    @patch('src.features.smarterdb.Dataset.working_dir',
+           new_callable=PropertyMock)
+    def test_import_from_plink_alias(self, my_working_dir, my_result_dir):
+        """Simulate an import using alias for sample names"""
+
+        # ok, create two fake samples with alias and a custom original_id
+        for i in range(1, 3):
+            get_or_create_sample(
+                SampleSheep,
+                original_id=f"custom_{i}",
+                dataset=self.dataset,
+                type_="foreground",
+                breed=self.breed,
+                country="Italy",
+                species="Ovis aries",
+                chip_name=self.chip_name,
+                alias=i)
+
+        # create a temporary directory using the context manager
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            working_dir = pathlib.Path(tmpdirname)
+            results_dir = working_dir / "results"
+
+            # assign return value to mocked property
+            my_working_dir.return_value = working_dir
+            my_result_dir.return_value = results_dir
+
+            # copy test data files
+            self.link_files(working_dir)
+
+            result = self.runner.invoke(
+                import_from_plink,
+                [
+                    "--dataset",
+                    "test.zip",
+                    "--file",
+                    "plinktest",
+                    "--chip_name",
+                    self.chip_name,
+                    "--assembly",
+                    "OAR3",
+                    "--sample_field",
+                    "alias"
                 ]
             )
 
