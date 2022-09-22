@@ -553,6 +553,11 @@ class GetSmarterIdTestCase(SmarterIDMixin, MongoMockMixin, unittest.TestCase):
                 "Frisona"
             )
 
+    def test_unknown_country(self):
+        test = getSmarterId("Sheep", "Unknown", "Texel")
+        reference = "UNOA-TEX-000000001"
+        self.assertEqual(reference, test)
+
 
 class SampleSheepTestCase(SmarterIDMixin, MongoMockMixin, unittest.TestCase):
     def setUp(self):

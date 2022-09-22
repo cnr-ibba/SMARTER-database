@@ -27,6 +27,7 @@ from src.data.common import (
     deal_with_datasets, pandas_open, get_sample_species)
 from src.features.smarterdb import (
     global_connection, Breed, get_or_create_sample, SEX, get_sample_type)
+from src.features.utils import UnknownCountry
 
 logger = logging.getLogger(__name__)
 
@@ -43,6 +44,9 @@ def find_country(country: str):
     """
     # mind underscore in country names: pycountry can't deal with them
     country = country.replace("_", " ")
+
+    if country.lower() == "unknown":
+        return UnknownCountry()
 
     # transform country string with pycountry
     fuzzy = pycountry.countries.search_fuzzy(country)[0]
@@ -177,7 +181,7 @@ def main(
             species = species_all
 
         # process a country by doing a fuzzy search
-        # HINT: this function cache results relying arguments using lru_cache
+        # HINT: this function caches results relying arguments using lru_cache
         # see find country implementation for more informations
         country = find_country(country)
 

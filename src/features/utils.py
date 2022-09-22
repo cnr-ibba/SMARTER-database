@@ -206,3 +206,12 @@ def skip_comments(handle: io.TextIOWrapper, comment_char="#") -> (int, list):
 
     # the position returned is the one before the one I want
     return position, skipped
+
+
+class UnknownCountry():
+    """Deal with unknown country"""
+
+    def __init__(self):
+        self.name = "Unknown"
+        self.alpha_2 = "UN"
+        self.alpha_3 = "UNK"

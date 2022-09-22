@@ -18,7 +18,7 @@ from typing import Union
 from pymongo import database, ReturnDocument, MongoClient
 from dotenv import find_dotenv, load_dotenv
 
-from .utils import get_project_dir
+from .utils import get_project_dir, UnknownCountry
 
 SPECIES2CODE = {
     "Sheep": "OA",
@@ -173,7 +173,7 @@ class SupportedChip(mongoengine.Document):
     name = mongoengine.StringField(required=True, unique=True)
     species = mongoengine.StringField(required=True)
     manifacturer = mongoengine.StringField()
-    n_of_snps = mongoengine.IntField(default=0)
+    n_of_snps = mongoengine.IntField()
 
     meta = {
         'db_alias': DB_ALIAS,
@@ -430,8 +430,13 @@ def getSmarterId(
 
     species_code = SPECIES2CODE[species_class]
 
-    # get country code (two letters)
-    country = pycountry.countries.get(name=country)
+    # get a country object
+    if country.lower() == "unknown":
+        country = UnknownCountry()
+    else:
+        country = pycountry.countries.get(name=country)
+
+    # get two letter code for country
     country_code = country.alpha_2
 
     # get breed code from database

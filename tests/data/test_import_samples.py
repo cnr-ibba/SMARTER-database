@@ -13,9 +13,11 @@ import tempfile
 from openpyxl import Workbook
 from click.testing import CliRunner
 from unittest.mock import patch, PropertyMock
+from pycountry.db import Data as KnownCountry
 
-from src.data.import_samples import main as import_samples
+from src.data.import_samples import main as import_samples, find_country
 from src.features.smarterdb import Dataset, SampleSheep, SEX
+from src.features.utils import UnknownCountry
 
 from ..common import (
     MongoMockMixin, SmarterIDMixin, SupportedChipMixin)
@@ -345,6 +347,22 @@ class TestImportSamples(
             sample = SampleSheep.objects.get(original_id="test-2")
             self.assertEqual(sample.smarter_id, "ESOA-TEX-000000002")
             self.assertEqual(sample.species, "Ovis orientalis")
+
+
+class TestFindCountry(unittest.TestCase):
+    def test_get_unknown_country(self):
+        test = find_country("Unknown")
+        self.assertIsInstance(test, UnknownCountry)
+        self.assertEqual(test.name, "Unknown")
+        self.assertEqual(test.alpha_2, "UN")
+        self.assertEqual(test.alpha_3, "UNK")
+
+    def test_get_known_country(self):
+        test = find_country("Italy")
+        self.assertIsInstance(test, KnownCountry)
+        self.assertEqual(test.name, "Italy")
+        self.assertEqual(test.alpha_2, "IT")
+        self.assertEqual(test.alpha_3, "ITA")
 
 
 if __name__ == '__main__':
