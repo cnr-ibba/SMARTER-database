@@ -699,19 +699,23 @@ def get_or_create_sample(
 
     created = False
 
+    # coerce alias as integer (if any)
+    if alias:
+        alias = str(alias)
+
     # search for sample in database
     qs = SampleSpecies.objects(
-        original_id=original_id, breed_code=breed.code, dataset=dataset)
+        original_id=original_id,
+        breed_code=breed.code,
+        dataset=dataset,
+        alias=alias)
 
     if qs.count() == 1:
-        logger.debug(f"Sample '{original_id}' found in database")
+        logger.debug(f"Sample '{original_id}', alias: {alias} "
+                     "found in database")
         sample = qs.get()
 
     elif qs.count() == 0:
-        # coerce alias as integer (if any)
-        if alias:
-            alias = str(alias)
-
         # insert sample into database
         logger.info(f"Registering sample '{original_id}' in database")
         sample = SampleSpecies(

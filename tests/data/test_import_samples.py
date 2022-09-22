@@ -243,6 +243,11 @@ class TestImportSamples(
     def test_import_alias(self, my_working_dir):
         """Test importing samples with aliases"""
 
+        # alias need to be defined in original samples, to get the same
+        # entity
+        self.sample.alias = "test-one"
+        self.sample.save()
+
         # create a temporary directory using the context manager
         with tempfile.TemporaryDirectory() as tmpdirname:
             working_dir = pathlib.Path(tmpdirname)
@@ -284,10 +289,7 @@ class TestImportSamples(
             # get the old sample
             sample = SampleSheep.objects.get(original_id="test-1")
             self.assertEqual(sample.smarter_id, "ITOA-TEX-000000001")
-
-            # import samples doesn't update attributes for existent samples
-            # HINT: should I update a sample?
-            self.assertIsNone(sample.alias)
+            self.assertEqual(sample.alias, "test-one")
 
             # get the new sample
             sample = SampleSheep.objects.get(original_id="test-2")
