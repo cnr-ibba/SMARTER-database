@@ -142,6 +142,8 @@ data: requirements
 		--datafile isheep_50K_refined.xlsx --breed_column breed --code_column code --country_column country
 	$(PYTHON_INTERPRETER) src/data/import_breeds.py --species_class Sheep --src_dataset isheep_600K_metadata.zip --dst_dataset isheep_600K.zip \
 		--datafile isheep_600K_refined.xlsx --breed_column breed --code_column code --country_column country
+	$(PYTHON_INTERPRETER) src/data/import_breeds.py --species_class Sheep --src_dataset isheep_WGS_metadata.zip --dst_dataset isheep_WGS.zip \
+		--datafile isheep_WGS_refined.xlsx --breed_column breed --code_column code --country_column country
 
 	## create SHEEP samples from raw data files or from XLS (orders matter)
 	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --file TEXEL_UY --dataset TEXEL_INIA_UY.zip --chip_name IlluminaOvineSNP50 \
@@ -229,6 +231,10 @@ data: requirements
 		--dst_dataset isheep_600K.zip --datafile isheep_600K_refined.xlsx \
 		--code_column code --id_column sample_id --chip_name IlluminaOvineHDSNP	--country_column country \
 		--species_column species --sex_column sex --alias_column alias
+	$(PYTHON_INTERPRETER) src/data/import_samples.py --src_dataset isheep_WGS_metadata.zip \
+		--dst_dataset isheep_WGS.zip --datafile isheep_WGS_refined.xlsx \
+		--code_column code --id_column sample_id --chip_name WholeGenomeSequencing --country_column country \
+		--species_column species --sex_column sex --alias_column alias
 
 	## convert genotypes without creating samples in database (SHEEP)
 	$(PYTHON_INTERPRETER) src/data/import_from_affymetrix.py --prefix Affymetrix_data_Plate_652_660/Affymetrix_data_Plate_652/Affymetrix_data_Plate_652 \
@@ -268,6 +274,9 @@ data: requirements
 	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --bfile 600K-all \
 		--dataset isheep_600K.zip --coding top --chip_name IlluminaOvineHDSNP --assembly OAR3 --sample_field alias \
 		--search_field rs_id
+	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --bfile WGS-all.smarter \
+		--dataset isheep_WGS.zip --coding forward --chip_name WholeGenomeSequencing --assembly OAR3 --sample_field alias \
+		--search_by_positions --src_version Oar_v4.0 --src_imported_from "SNPchiMp v.3" --ignore_coding_errors
 
 	## create samples from custom files or genotypes for GOAT
 	$(PYTHON_INTERPRETER) src/data/import_samples.py --src_dataset ADAPTmap_phenotype_20161201.zip --dst_dataset ADAPTmap_genotypeTOP_20161201.zip \
