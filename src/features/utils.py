@@ -215,3 +215,4 @@ class UnknownCountry():
         self.name = "Unknown"
         self.alpha_2 = "UN"
         self.alpha_3 = "UNK"
+        self.numeric = None

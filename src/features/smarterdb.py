@@ -135,7 +135,7 @@ class Country(mongoengine.Document):
     alpha_3 = mongoengine.StringField(
         required=True, unique=True, min_length=3, max_length=3)
     name = mongoengine.StringField(required=True, unique=True)
-    numeric = mongoengine.IntField(required=True, unique=True)
+    numeric = mongoengine.IntField(unique=True)
     official_name = mongoengine.StringField()
 
     species = mongoengine.ListField(mongoengine.StringField())
@@ -155,7 +155,11 @@ class Country(mongoengine.Document):
         super(Country, self).__init__(*args, **kwargs)
 
         if name:
-            country = pycountry.countries.get(name=name)
+            # get a country object
+            if name.lower() == "unknown":
+                country = UnknownCountry()
+            else:
+                country = pycountry.countries.get(name=name)
 
             self.alpha_2 = country.alpha_2
             self.alpha_3 = country.alpha_3

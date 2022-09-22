@@ -43,6 +43,17 @@ class CountryTestCase(MongoMockMixin, unittest.TestCase):
         self.assertEqual(str(country), "Barbados (BB)")
         self.assertIsNone(country.official_name)
 
+    def test_unknown_country(self):
+        country = Country(name="Unknown", species="Sheep")
+        country.save()
+
+        country.reload()
+        self.assertEqual(country.alpha_2, "UN")
+        self.assertEqual(country.name, "Unknown")
+        self.assertListEqual(country.species, ["Sheep"])
+        self.assertIsNone(country.official_name)
+        self.assertIsNone(country.numeric)
+
 
 class BreedTestCase(MongoMockMixin, unittest.TestCase):
     def setUp(self):
