@@ -421,6 +421,96 @@ class SmarterMixin():
             f"collected {len(self.dst_locations)} with '{query}' "
             f"using '{additional_arguments}'")
 
+    def fetch_coordinates_by_positions(
+            self,
+            src_assembly: AssemblyConf,
+            dst_assembly: AssemblyConf = None):
+        """
+        Search for variant in smarter database relying on positions
+
+        Parameters
+        ----------
+        src_assembly : AssemblyConf
+            the source data assembly version.
+        dst_assembly : AssemblyConf, optional
+            the destination data assembly version. The default is None.
+
+        Returns
+        -------
+        None.
+        """
+
+        # reset meta informations
+        self.src_locations = list()
+        self.dst_locations = list()
+        self.filtered = set()
+        self.variants_name = list()
+
+        tqdm_out = TqdmToLogger(logger, level=logging.INFO)
+
+        for idx, record in enumerate(tqdm(
+                self.mapdata, file=tqdm_out, mininterval=1)):
+
+            location = src_assembly._asdict()
+            location["chrom"] = record.chrom
+            location["position"] = record.position
+
+            # construct the final query
+            # construct the query arguments to search into database
+            if dst_assembly:
+                query = [Q(locations__match=location) &
+                         Q(locations__match=dst_assembly._asdict())]
+            else:
+                query = [Q(locations__match=location)]
+
+            try:
+                variant = self.VariantSpecies.objects(
+                    *query
+                ).get()
+
+            except DoesNotExist as e:
+                logger.warning(
+                    f"Couldn't find '{record.chrom}:{record.position}' in "
+                    f"'{src_assembly}' assembly: {e}")
+
+                self.skip_index(idx)
+
+                # don't check location for missing SNP
+                continue
+
+            except MultipleObjectsReturned as e:
+                # tecnically, I could return the first item I found in
+                # my database. Skip, for the moment
+                logger.debug(
+                    f"Got multiple records for position '{record.chrom}:"
+                    f"{record.position}' in '{src_assembly}'"
+                    f" assembly: {e}")
+
+                self.skip_index(idx)
+
+                # don't check location for missing SNP
+                continue
+
+            # get the proper locations and track it
+            src_location = variant.get_location(**src_assembly._asdict())
+            self.src_locations.append(src_location)
+
+            if dst_assembly:
+                dst_location = variant.get_location(**dst_assembly._asdict())
+                self.dst_locations.append(dst_location)
+
+            # track variant.name read from database (useful when searching
+            # using probeset_id)
+            self.variants_name.append(variant.name)
+
+        # for simplicity
+        if not dst_assembly:
+            self.dst_locations = self.src_locations
+
+        logger.debug(
+            f"collected {len(self.dst_locations)} using positions "
+            f"in '{src_assembly}' assembly")
+
     def _to_top(
             self, index: int, genotype: list, coding: str,
             location: Location) -> list:

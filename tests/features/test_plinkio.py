@@ -85,6 +85,67 @@ class TextPlinkIOMap(VariantsMixin, MongoMockMixin, unittest.TestCase):
             else:
                 self.assertIsInstance(record, Location)
 
+    def test_fetch_coordinates_by_positions(self):
+        self.plinkio.read_mapfile()
+        self.plinkio.fetch_coordinates_by_positions(
+            src_assembly=self.src_assembly)
+
+        self.assertIsInstance(self.plinkio.src_locations, list)
+        self.assertEqual(len(self.plinkio.src_locations), 4)
+        self.assertIsInstance(self.plinkio.dst_locations, list)
+        self.assertEqual(len(self.plinkio.dst_locations), 4)
+
+        self.assertIsInstance(self.plinkio.filtered, set)
+        self.assertEqual(len(self.plinkio.filtered), 1)
+
+        # assert filtered items
+        self.assertIn(3, self.plinkio.filtered)
+
+        for idx, record in enumerate(self.plinkio.dst_locations):
+            if idx in self.plinkio.filtered:
+                self.assertIsNone(record)
+            else:
+                self.assertIsInstance(record, Location)
+
+    def test_fetch_coordinates_by_positions_dst_assembly(self):
+        # define a custom destination assembly
+        dst_assembly = AssemblyConf(
+            version="Oar_v4.0", imported_from="SNPchiMp v.3")
+
+        self.plinkio.read_mapfile()
+        self.plinkio.fetch_coordinates_by_positions(
+            src_assembly=self.src_assembly,
+            dst_assembly=dst_assembly)
+
+        self.assertIsInstance(self.plinkio.src_locations, list)
+        self.assertEqual(len(self.plinkio.src_locations), 4)
+        self.assertIsInstance(self.plinkio.dst_locations, list)
+        self.assertEqual(len(self.plinkio.dst_locations), 4)
+
+        self.assertIsInstance(self.plinkio.filtered, set)
+        self.assertEqual(len(self.plinkio.filtered), 1)
+
+        # assert filtered items
+        self.assertIn(3, self.plinkio.filtered)
+
+        # test coordinate dst_assembly
+        reference = [
+            ["250506CS3900065000002_1238.1", "15", 5859890],
+            ["250506CS3900140500001_312.1", "23", 26243215],
+            ["250506CS3900176800001_906.1", "7", 81590897],
+            []
+        ]
+
+        for idx, record in enumerate(self.plinkio.dst_locations):
+            if idx in self.plinkio.filtered:
+                self.assertIsNone(record)
+            else:
+                self.assertIsInstance(record, Location)
+                self.assertEqual(
+                    reference[idx][0], self.plinkio.variants_name[idx])
+                self.assertEqual(reference[idx][1], record.chrom)
+                self.assertEqual(reference[idx][2], record.position)
+
     def test_update_mapfile(self):
         # create a temporary directory using the context manager
         with tempfile.TemporaryDirectory() as tmpdirname:
