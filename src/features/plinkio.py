@@ -599,7 +599,7 @@ class SmarterMixin():
 
         return top_genotype
 
-    def _process_genotypes(self, line: list, coding: str):
+    def _process_genotypes(self, line: list, coding: str, ignore_errors=False):
         new_line = line.copy()
 
         # ok now is time to update genotypes
@@ -633,10 +633,25 @@ class SmarterMixin():
             location = self.src_locations[i]
 
             # check and return illumina top genotype
-            top_genotype = self._to_top(i, genotype, coding, location)
+            try:
+                top_genotype = self._to_top(i, genotype, coding, location)
 
-            # replace alleles in ped lines only if necessary
-            new_line[6+i*2], new_line[6+i*2+1] = top_genotype
+                # replace alleles in ped line with top genotype
+                new_line[6+i*2], new_line[6+i*2+1] = top_genotype
+
+            except CodingException as e:
+                if ignore_errors:
+                    # ok, replace with a missing genotype
+                    logger.warning(
+                        f"Ignoring code check in {new_line[1]}: {i*2}: "
+                        f"[{a1}/{a2}]. Forcing SNP to be MISSING")
+
+                    new_line[6+i*2], new_line[6+i*2+1] = ["0", "0"]
+                    continue
+
+                else:
+                    # this is the normal case
+                    raise e
 
         return new_line
 
@@ -681,7 +696,8 @@ class SmarterMixin():
             dataset: Dataset,
             coding: str,
             create_samples: bool = False,
-            sample_field: str = "original_id"):
+            sample_field: str = "original_id",
+            ignore_coding_errors: bool = False):
 
         self._check_file_sizes(line)
 
@@ -720,7 +736,8 @@ class SmarterMixin():
         new_line = self._process_relationship(new_line, sample)
 
         # check and fix genotypes if necessary
-        new_line = self._process_genotypes(new_line, coding)
+        new_line = self._process_genotypes(
+            new_line, coding, ignore_coding_errors)
 
         # update ped line with sex accordingly to db informations
         if sample.sex and int(new_line[4]) != sample.sex.value:
@@ -744,6 +761,7 @@ class SmarterMixin():
             coding: str,
             create_samples: bool = False,
             sample_field: str = "original_id",
+            ignore_coding_errors: bool = False,
             *args,
             **kwargs):
         """
@@ -758,6 +776,8 @@ class SmarterMixin():
                 create samples directly from ped file)
             sample_field (str): search samples using this attribute (def.
                 'original_id')
+            ignore_coding_errors (bool): ignore coding related errors (no
+                more exceptions when genotypes don't match)
         """
 
         with open(outputfile, "w") as target:
@@ -773,7 +793,12 @@ class SmarterMixin():
 
                 # covert the ped line with the desidered format
                 new_line = self._process_pedline(
-                    line, dataset, coding, create_samples, sample_field)
+                    line,
+                    dataset,
+                    coding,
+                    create_samples,
+                    sample_field,
+                    ignore_coding_errors)
 
                 if new_line:
                     # write updated line into updated ped file

@@ -168,9 +168,15 @@ def deal_with_binary_plink(bfile: str, dataset: Dataset, assembly: str):
     '--src_imported_from',
     type=str,
     help="Source assembly imported_from")
+@click.option(
+    '--ignore_coding_errors',
+    is_flag=True,
+    help=(
+        'set SNP as missing when there are coding errors '
+        '(no more CodingException)'))
 def main(file_, bfile, dataset, coding, chip_name, assembly, create_samples,
          sample_field, search_field, search_by_positions, src_version,
-         src_imported_from):
+         src_imported_from, ignore_coding_errors):
     """Read sample names from map/ped files and updata smarter database (insert
     a record if necessary and define a smarter id for each sample)
     """
@@ -256,7 +262,8 @@ def main(file_, bfile, dataset, coding, chip_name, assembly, create_samples,
         dataset=dataset,
         coding=coding,
         create_samples=create_samples,
-        sample_field=sample_field
+        sample_field=sample_field,
+        ignore_coding_errors=ignore_coding_errors
     )
 
     # ok time to convert data in plink binary format

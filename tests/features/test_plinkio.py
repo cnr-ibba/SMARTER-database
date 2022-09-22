@@ -266,6 +266,22 @@ class TextPlinkIOPed(
             "ab"
         )
 
+    def test_process_genotypes_ignore_coding(self):
+        """Convert with a wrong coding but ignore errors"""
+
+        # first record is in top coordinates
+        line = self.lines[0]
+        test = self.plinkio._process_genotypes(
+            line, 'forward', ignore_errors=True)
+
+        # forward and top are not the same, so the final genotype will be
+        # all missing
+        reference = [
+            'TEX_IT', '1', '0', '0', '0', '-9',
+            '0', '0', '0', '0', '0', '0', '0', '0']
+
+        self.assertEqual(reference, test)
+
     def test_process_genotypes_half_missing(self):
         # read a file in forward coordinates
         self.plinkio.pedfile = str(DATA_DIR / "plinktest_half-missing.ped")
@@ -561,6 +577,21 @@ class TextPlinkIOPed(
 
         self.assertEqual(reference, test)
 
+    def test_process_pedline_ignore_coding(self):
+        # get a sample line
+        line = self.lines[0]
+
+        test = self.plinkio._process_pedline(
+            line, self.dataset, 'forward', True, ignore_coding_errors=True)
+
+        # define reference
+        reference = ['TEX', 'ITOA-TEX-000000001', '0', '0', '0', '-9']
+
+        # there will remain three missing snps
+        reference += ["0"] * 6
+
+        self.assertEqual(reference, test)
+
     def test_process_pedline_update_sex(self):
         # get a sample line
         line = self.lines[0]
@@ -707,6 +738,22 @@ class TextPlinkIOPed(
             outfile = pathlib.Path(tmpdirname) / "plinktest_updated.ped"
             self.plinkio.update_pedfile(
                 str(outfile), self.dataset, 'top', True)
+
+            # now open outputfile and test stuff
+            test = TextPlinkIO(
+                mapfile=str(DATA_DIR / "plinktest.map"),
+                pedfile=str(outfile))
+
+            # assert two records written
+            self.assertEqual(len(list(test.read_pedfile())), 2)
+
+    def test_update_pedfile_ignore_coding(self):
+        # create a temporary directory using the context manager
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            outfile = pathlib.Path(tmpdirname) / "plinktest_updated.ped"
+            self.plinkio.update_pedfile(
+                str(outfile), self.dataset, 'forward', True,
+                ignore_coding_errors=True)
 
             # now open outputfile and test stuff
             test = TextPlinkIO(
