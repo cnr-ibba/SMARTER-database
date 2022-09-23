@@ -996,6 +996,23 @@ class TextPlinkIO(SmarterMixin):
 
                 yield line
 
+    def get_samples(self) -> list:
+        """
+        Get samples from genotype files
+
+        Returns
+        -------
+        list
+            The sample list.
+        """
+
+        sample_list = []
+
+        for line in self.read_pedfile():
+            sample_list.append(line[1])
+
+        return sample_list
+
 
 class AffyPlinkIO(FakePedMixin, TextPlinkIO):
     """a new class for affymetrix plink files, which are slightly different
@@ -1045,6 +1062,31 @@ class AffyPlinkIO(FakePedMixin, TextPlinkIO):
                 line.insert(5, '-9')  # phenotype
 
                 yield line
+
+    def get_samples(self) -> list:
+        """
+        Get samples from genotype files
+
+        Returns
+        -------
+        list
+            The sample list.
+        """
+
+        sample_list = []
+
+        with open(self.pedfile) as handle:
+            # affy files has both " " and "\t" in their files
+            for record in handle:
+                # affy data may have comments in files
+                if record.startswith("#"):
+                    logger.info(f"Skipping {record}")
+                    continue
+
+                line = re.split('[ \t]+', record.strip())
+                sample_list.append(line[0])
+
+        return sample_list
 
 
 class BinaryPlinkIO(SmarterMixin):
@@ -1138,6 +1180,18 @@ class BinaryPlinkIO(SmarterMixin):
                 line[6+idx*2], line[6+idx*2+1] = convert(genotype, locus)
 
             yield line
+
+    def get_samples(self) -> list:
+        """
+        Get samples from genotype files
+
+        Returns
+        -------
+        list
+            The sample list.
+        """
+
+        return [sample.iid for sample in self.plink_file.get_samples()]
 
 
 class IlluminaReportIO(FakePedMixin, SmarterMixin):
@@ -1251,6 +1305,26 @@ class IlluminaReportIO(FakePedMixin, SmarterMixin):
 
         # after completing rows, I need to return last one
         yield line
+
+    def get_samples(self) -> list:
+        """
+        Get samples from genotype files
+
+        Returns
+        -------
+        list
+            The sample list.
+        """
+
+        sample_list = []
+        last_sample = None
+
+        for row in read_illuminaRow(self.report):
+            if row.sample_id != last_sample:
+                sample_list.append(row.sample_id)
+                last_sample = row.sample_id
+
+        return sample_list
 
 
 class AffyReportIO(FakePedMixin, SmarterMixin):
@@ -1444,6 +1518,23 @@ class AffyReportIO(FakePedMixin, SmarterMixin):
             line[0], line[5] = fid, "-9"
 
             yield line
+
+    def get_samples(self) -> list:
+        """
+        Get samples from genotype files
+
+        Returns
+        -------
+        list
+            The sample list.
+        """
+
+        sample_list = []
+
+        for line in self.peddata:
+            sample_list.append(line[1])
+
+        return sample_list
 
 
 def plink_binary_exists(prefix: Path):

@@ -784,6 +784,14 @@ class TextPlinkIOPed(
         # no sample created
         self.assertEqual(SampleSheep.objects.count(), 0)
 
+    def test_get_samples(self):
+        """Test getting samples from genotype file"""
+
+        test = self.plinkio.get_samples()
+        reference = ["1", "2"]
+
+        self.assertEqual(reference, test)
+
 
 class BinaryPlinkIOTest(
         VariantsMixin, SmarterIDMixin, MongoMockMixin, unittest.TestCase):
@@ -831,6 +839,14 @@ class BinaryPlinkIOTest(
         dataset = Dataset.objects(file="test.zip").get()
 
         test = self.plinkio._process_pedline(line, dataset, 'top', True)
+
+        self.assertEqual(reference, test)
+
+    def test_get_samples(self):
+        """Test getting samples from genotype file"""
+
+        test = self.plinkio.get_samples()
+        reference = ["1", "2"]
 
         self.assertEqual(reference, test)
 
@@ -983,6 +999,14 @@ class IlluminaReportIOPed(
 
             # assert two records written
             self.assertEqual(len(list(test.read_pedfile())), 2)
+
+    def test_get_samples(self):
+        """Test getting samples from genotype file"""
+
+        test = self.plinkio.get_samples()
+        reference = ["1", "2"]
+
+        self.assertEqual(reference, test)
 
 
 class AffyMixin():
@@ -1177,6 +1201,14 @@ class AffyPlinkIOPedTest(
 
             # assert two records written
             self.assertEqual(len(list(test.read_pedfile())), 2)
+
+    def test_get_samples(self):
+        """Test getting samples from genotype file"""
+
+        test = self.plinkio.get_samples()
+        reference = ["test-one", "test-two"]
+
+        self.assertEqual(reference, test)
 
 
 class AffyReportIOMapTest(
@@ -1392,6 +1424,14 @@ class AffyReportIOPedTest(
 
             # assert two records written
             self.assertEqual(len(list(test.read_pedfile())), 2)
+
+    def test_get_samples(self):
+        """Test getting samples from genotype file"""
+
+        test = self.plinkio.get_samples()
+        reference = ["test-one", "test-two"]
+
+        self.assertEqual(reference, test)
 
 
 if __name__ == '__main__':
