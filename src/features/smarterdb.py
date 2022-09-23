@@ -15,10 +15,10 @@ import mongoengine
 from enum import Enum
 from typing import Union
 
-from pymongo import database, ReturnDocument
+from pymongo import database, ReturnDocument, MongoClient
 from dotenv import find_dotenv, load_dotenv
 
-from .utils import get_project_dir
+from .utils import get_project_dir, UnknownCountry
 
 SPECIES2CODE = {
     "Sheep": "OA",
@@ -27,6 +27,7 @@ SPECIES2CODE = {
 
 SMARTERDB = "smarter"
 DB_ALIAS = "smarterdb"
+CLIENT = None
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -36,20 +37,41 @@ class SmarterDBException(Exception):
     pass
 
 
-def global_connection(database_name: str = SMARTERDB):
-    # find .env automagically by walking up directories until it's found, then
-    # load up the .env entries as environment variables
-    load_dotenv(find_dotenv())
+def global_connection(database_name: str = SMARTERDB) -> MongoClient:
+    """
+    Establish a connection to the SMARTER database. Reads environment
+    parameters using :py:func:`load_dotenv`, returns a MongoClient object.
 
-    # TODO: track connection somewhere
-    return mongoengine.connect(
-        database_name,
-        username=os.getenv("MONGODB_SMARTER_USER"),
-        password=os.getenv("MONGODB_SMARTER_PASS"),
-        host=os.getenv("MONGODB_SMARTER_HOST", default="localhost"),
-        port=os.getenv("MONGODB_SMARTER_PORT", default=27017),
-        authentication_source='admin',
-        alias=DB_ALIAS)
+    Parameters
+    ----------
+    database_name : str, optional
+        The smarter database. The default is 'smarter'.
+
+    Returns
+    -------
+    CLIENT : MongoClient
+        a mongoclient instance.
+    """
+
+    global CLIENT
+
+    if not CLIENT:
+        # find .env automagically by walking up directories until it's found,
+        # then load up the .env entries as environment variables
+        load_dotenv(find_dotenv())
+
+        # track connection somewhere
+        CLIENT = mongoengine.connect(
+            database_name,
+            username=os.getenv("MONGODB_SMARTER_USER"),
+            password=os.getenv("MONGODB_SMARTER_PASS"),
+            host=os.getenv("MONGODB_SMARTER_HOST", default="localhost"),
+            port=os.getenv("MONGODB_SMARTER_PORT", default=27017),
+            authentication_source='admin',
+            alias=DB_ALIAS,
+            uuidRepresentation="standard")
+
+    return CLIENT
 
 
 def complement(genotype: str):
@@ -84,7 +106,7 @@ class SmarterInfo(mongoengine.Document):
     }
 
     def __str__(self):
-        return f"{self.id}: {self.version}"
+        return f"{self.id}: {self.version} (self.last_updated)"
 
 
 class Counter(mongoengine.Document):
@@ -113,7 +135,7 @@ class Country(mongoengine.Document):
     alpha_3 = mongoengine.StringField(
         required=True, unique=True, min_length=3, max_length=3)
     name = mongoengine.StringField(required=True, unique=True)
-    numeric = mongoengine.IntField(required=True, unique=True)
+    numeric = mongoengine.IntField(unique=True)
     official_name = mongoengine.StringField()
 
     species = mongoengine.ListField(mongoengine.StringField())
@@ -133,7 +155,11 @@ class Country(mongoengine.Document):
         super(Country, self).__init__(*args, **kwargs)
 
         if name:
-            country = pycountry.countries.get(name=name)
+            # get a country object
+            if name.lower() == "unknown":
+                country = UnknownCountry()
+            else:
+                country = pycountry.countries.get(name=name)
 
             self.alpha_2 = country.alpha_2
             self.alpha_3 = country.alpha_3
@@ -151,7 +177,7 @@ class SupportedChip(mongoengine.Document):
     name = mongoengine.StringField(required=True, unique=True)
     species = mongoengine.StringField(required=True)
     manifacturer = mongoengine.StringField()
-    n_of_snps = mongoengine.IntField(default=0)
+    n_of_snps = mongoengine.IntField()
 
     meta = {
         'db_alias': DB_ALIAS,
@@ -209,12 +235,40 @@ class Breed(mongoengine.Document):
 
 
 def get_or_create_breed(
-        species: str, name: str, code: str, aliases: list = []):
+        species_class: str, name: str, code: str, aliases: list = []) -> [
+            Breed, bool]:
+    """
+    Get a Breed instance or create a new one (or update a breed adding a new
+    :py:class:`BreedAlias`)
 
-    logger.debug(f"Checking: '{species}':'{name}':'{code}'")
+    Parameters
+    ----------
+    species_class : str
+        The class of the species (should be 'Goat' or 'Sheep')
+    name : str
+        The breed full name.
+    code : str
+        The breed code (unique in Sheep and Goats collections).
+    aliases : list, optional
+        A list of :py:class:`BreedAlias` objects. The default is [].
+
+    Raises
+    ------
+    SmarterDBException
+        Raised if the breed is not Unique.
+
+    Returns
+    -------
+    breed : Breed
+        A :py:class:`Breed` instance.
+    modified : bool
+        True is breed is created (or alias updated).
+    """
+
+    logger.debug(f"Checking: '{species_class}':'{name}':'{code}'")
 
     # get a breed object relying on parameters
-    qs = Breed.objects(species=species, name=name, code=code)
+    qs = Breed.objects(species=species_class, name=name, code=code)
 
     modified = False
 
@@ -234,7 +288,7 @@ def get_or_create_breed(
         modified = True
 
         breed = Breed(
-            species=species,
+            species=species_class,
             name=name,
             code=code,
             aliases=aliases,
@@ -244,7 +298,8 @@ def get_or_create_breed(
     else:
         # should never see this relying on collection unique keys
         raise SmarterDBException(
-            f"Got {qs.count()} results for '{species}':'{name}':'{code}'")
+            f"Got {qs.count()} results for '{species_class}':'{name}': "
+            f"'{code}'")
 
     if modified:
         logger.debug(f"Save '{breed}' to database")
@@ -336,35 +391,69 @@ def getNextSequenceValue(
 
 
 def getSmarterId(
-        species: str, country: str, breed: str, mongodb: database.Database):
+        species_class: str,
+        country: str,
+        breed: str) -> str:
+    """
+    Generate a new SMARTER ID object using the internal counter collections
 
-    # species, country and breed shold be defined in order to call this func
-    if not species or not country or not breed:
+    Parameters
+    ----------
+    species_class : str
+        The class of the species (should be 'Goat' or 'Sheep').
+    country : str
+        The country name of the sample.
+    breed : str
+        The breed name of the sample.
+
+    Raises
+    ------
+    SmarterDBException
+        Raised when passing a wrong species or no one.
+
+    Returns
+    -------
+    str
+        A new smarter_id.
+    """
+
+    # this should be the connection I made
+    global SMARTERDB, SPECIES2CODE
+
+    # species_class, country and breed shold be defined
+    if not species_class or not country or not breed:
         raise SmarterDBException(
             "species, country and breed should be defined when calling "
             "getSmarterId"
         )
 
     # get species code
-    if species not in SPECIES2CODE:
+    if species_class not in SPECIES2CODE:
         raise SmarterDBException(
-            "Species %s not managed by smarter" % (species))
+            "Species %s not managed by smarter" % (species_class))
 
-    species_code = SPECIES2CODE[species]
+    species_code = SPECIES2CODE[species_class]
 
-    # get country code (two letters)
-    country = pycountry.countries.get(name=country)
+    # get a country object
+    if country.lower() == "unknown":
+        country = UnknownCountry()
+    else:
+        country = pycountry.countries.get(name=country)
+
+    # get two letter code for country
     country_code = country.alpha_2
 
     # get breed code from database
-    breed_code = mongodb.breeds.find_one(
-        {"species": species, "name": breed})["code"]
+    database = mongoengine.connection.get_db(alias=DB_ALIAS)
+    breed_code = database.breeds.find_one(
+        {"species": species_class, "name": breed})["code"]
 
-    # derive sequence_name from species
-    sequence_name = f"sample{species}"
+    # derive sequence_name from species_class
+    sequence_name = f"sample{species_class}"
 
     # get the sequence number and define smarter id
-    sequence_id = getNextSequenceValue(sequence_name, mongodb)
+    sequence_id = getNextSequenceValue(
+        sequence_name, database)
 
     # padding numbers
     sequence_id = str(sequence_id).zfill(9)
@@ -442,9 +531,12 @@ class SampleSpecies(mongoengine.Document):
     smarter_id = mongoengine.StringField(required=True, unique=True)
 
     country = mongoengine.StringField(required=True)
-    species = mongoengine.StringField(required=True)
+
+    # generic species type (required to derive other stuff)
+    species_class = None
+
     breed = mongoengine.StringField(required=True)
-    breed_code = mongoengine.StringField(min_length=3)
+    breed_code = mongoengine.StringField(min_length=2)
 
     # this will be a original_id alias (a different sample name in original
     # data file)
@@ -490,18 +582,14 @@ class SampleSpecies(mongoengine.Document):
         if not self.smarter_id:
             logger.debug(f"Determining smarter id for {self.original_id}")
 
-            # get the pymongo connection object
-            conn = mongoengine.connection.get_db(alias=DB_ALIAS)
-
             # even is species, country and breed are required fields for
             # SampleSpecies document, their value will not be evaluated until
             # super().save() is called. I can't call it before determining
             # a smarter_id
             self.smarter_id = getSmarterId(
-                self.species,
+                self.species_class,
                 self.country,
-                self.breed,
-                conn)
+                self.breed)
 
         # default save method
         super(SampleSpecies, self).save(*args, **kwargs)
@@ -511,6 +599,11 @@ class SampleSpecies(mongoengine.Document):
 
 
 class SampleSheep(SampleSpecies):
+    species = mongoengine.StringField(required=True, default="Ovis aries")
+
+    # generic species type (required to derive other stuff)
+    species_class = "Sheep"
+
     # try to model relationship between samples
     father_id = mongoengine.LazyReferenceField(
         'SampleSheep',
@@ -531,6 +624,11 @@ class SampleSheep(SampleSpecies):
 
 
 class SampleGoat(SampleSpecies):
+    species = mongoengine.StringField(required=True, default="Capra hircus")
+
+    # generic species type (required to derive other stuff)
+    species_class = "Goat"
+
     # try to model relationship between samples
     father_id = mongoengine.LazyReferenceField(
         'SampleGoat',
@@ -557,36 +655,68 @@ def get_or_create_sample(
         type_: str,
         breed: Breed,
         country: str,
+        species: str = None,
         chip_name: str = None,
         sex: SEX = None,
-        alias: str = None) -> Union[SampleGoat, SampleSheep]:
-    """Get or create a sample providing attributes (search for original_id in
+        alias: str = None) -> list[Union[SampleGoat, SampleSheep], bool]:
+    """
+    Get or create a sample providing attributes (search for original_id in
     provided dataset
 
-    Args:
-        SampleSpecies: (Union[SampleGoat, SampleSheep]): the class required
-            for insert/update
-        original_id (str): The original_id in the dataset
-        dataset (Dataset): the dataset instance used to register sample
-        type_ (str): "background" or "foreground"
-        breed (Breed): A breed instance
-        country (str): Country as a string
-        chip_name (str): the chip name
-        sex (SEX): A SEX instance
-        alias (str): an original_id alias
+    Parameters
+    ----------
+    SampleSpecies : Union[SampleGoat, SampleSheep]
+        the class required for insert/update.
+    original_id : str
+        the original_id in the dataset.
+    dataset : Dataset
+        the dataset instance used to register sample.
+    type_ : str
+        sample type. "background" or "foreground" are the only values accepted
+    breed : Breed
+        a :py:class:`Breed` instance.
+    country : str
+        the country where the sample comes from.
+    species : str, optional
+        The sample species. If None, the default `species_class` attribute
+        will be used
+    chip_name : str, optional
+        the chip name. The default is None.
+    sex : SEX, optional
+        A :py:class:`SEX` instance. The default is None.
+    alias : str, optional
+         an original_id alias. Could be the name used in the genotype file,
+         which could be different from the original_id. The default is None.
 
-    Returns:
-        Union[SampleGoat, SampleSheep]: a SampleSpecies instance
+    Raises
+    ------
+    SmarterDBException
+        Raised multiple samples are returned (should never happen).
+
+    Returns
+    -------
+    Union[SampleGoat, SampleSheep]
+        a SampleSpecies instance.
+    created : bool
+        True is sample is created.
     """
 
     created = False
 
+    # coerce alias as integer (if any)
+    if alias:
+        alias = str(alias)
+
     # search for sample in database
     qs = SampleSpecies.objects(
-        original_id=original_id, breed_code=breed.code, dataset=dataset)
+        original_id=original_id,
+        breed_code=breed.code,
+        dataset=dataset,
+        alias=alias)
 
     if qs.count() == 1:
-        logger.debug(f"Sample '{original_id}' found in database")
+        logger.debug(f"Sample '{original_id}', alias: {alias} "
+                     "found in database")
         sample = qs.get()
 
     elif qs.count() == 0:
@@ -595,14 +725,14 @@ def get_or_create_sample(
         sample = SampleSpecies(
             original_id=original_id,
             country=country,
-            species=dataset.species,
+            species=species,
             breed=breed.name,
             breed_code=breed.code,
             dataset=dataset,
             type_=type_,
             chip_name=chip_name,
             sex=sex,
-            alias=str(alias)
+            alias=alias
         )
         sample.save()
 

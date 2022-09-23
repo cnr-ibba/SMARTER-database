@@ -19,7 +19,9 @@ import logging
 import subprocess
 
 from pathlib import Path
-from click_option_group import optgroup, RequiredMutuallyExclusiveOptionGroup
+from click_option_group import (
+    optgroup, RequiredMutuallyExclusiveOptionGroup,
+    MutuallyExclusiveOptionGroup)
 
 from src.features.plinkio import (
     TextPlinkIO, BinaryPlinkIO, plink_binary_exists)
@@ -139,11 +141,25 @@ def deal_with_binary_plink(bfile: str, dataset: Dataset, assembly: str):
 @click.option('--assembly', type=str, required=True)
 @click.option('--create_samples', is_flag=True)
 @click.option(
+    '--sample_field',
+    type=str,
+    default="original_id",
+    help="Search samples using this attribute"
+)
+@optgroup.group(
+    'Variant Search Type',
+    cls=MutuallyExclusiveOptionGroup
+)
+@optgroup.option(
     '--search_field',
     type=str,
     default="name",
     show_default=True,
     help='search variants using this field')
+@optgroup.option(
+    '--search_by_positions',
+    is_flag=True,
+    help='search variants using their positions')
 @click.option(
     '--src_version',
     type=str,
@@ -152,8 +168,15 @@ def deal_with_binary_plink(bfile: str, dataset: Dataset, assembly: str):
     '--src_imported_from',
     type=str,
     help="Source assembly imported_from")
+@click.option(
+    '--ignore_coding_errors',
+    is_flag=True,
+    help=(
+        'set SNP as missing when there are coding errors '
+        '(no more CodingException)'))
 def main(file_, bfile, dataset, coding, chip_name, assembly, create_samples,
-         search_field, src_version, src_imported_from):
+         sample_field, search_field, search_by_positions, src_version,
+         src_imported_from, ignore_coding_errors):
     """Read sample names from map/ped files and updata smarter database (insert
     a record if necessary and define a smarter id for each sample)
     """
@@ -214,19 +237,34 @@ def main(file_, bfile, dataset, coding, chip_name, assembly, create_samples,
     # read mapdata and read updated coordinates from db
     plinkio.read_mapfile()
 
-    # fetch coordinates relying assembly configuration
-    plinkio.fetch_coordinates(
-        src_assembly=src_assembly,
-        dst_assembly=dst_assembly,
-        search_field=search_field,
-        chip_name=illumina_chip.name
-    )
+    if search_by_positions:
+        # fetch variants relying positions
+        plinkio.fetch_coordinates_by_positions(
+            src_assembly=src_assembly,
+            dst_assembly=dst_assembly
+        )
+
+    else:
+        # fetch coordinates relying assembly configuration
+        plinkio.fetch_coordinates(
+            src_assembly=src_assembly,
+            dst_assembly=dst_assembly,
+            search_field=search_field,
+            chip_name=illumina_chip.name
+        )
 
     logger.info("Writing a new map file with updated coordinates")
     plinkio.update_mapfile(str(output_map))
 
     logger.info("Writing a new ped file with fixed genotype")
-    plinkio.update_pedfile(output_ped, dataset, coding, create_samples)
+    plinkio.update_pedfile(
+        outputfile=output_ped,
+        dataset=dataset,
+        coding=coding,
+        create_samples=create_samples,
+        sample_field=sample_field,
+        ignore_coding_errors=ignore_coding_errors
+    )
 
     # ok time to convert data in plink binary format
     cmd = ["plink"] + PLINK_SPECIES_OPT[dataset.species] + [

@@ -18,14 +18,14 @@ logger = logging.getLogger(__name__)
 
 
 @click.command()
-@click.option('--species', type=str, required=True)
+@click.option('--species_class', type=str, required=True)
 @click.option('--manifest', type=str, required=True)
 @click.option('--chip_name', type=str, required=True)
 @click.option('--version', type=str, required=True)
 @click.option('--sender', type=str, required=True)
-def main(species, manifest, chip_name, version, sender):
+def main(species_class, manifest, chip_name, version, sender):
     # determining the proper VariantSpecies class
-    VariantSpecie = get_variant_species(species)
+    VariantSpecie = get_variant_species(species_class)
 
     # check chip_name
     illumina_chip = SupportedChip.objects(name=chip_name).get()

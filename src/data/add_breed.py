@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 
 @click.command()
-@click.option('--species', type=str, required=True)
+@click.option('--species_class', type=str, required=True)
 @click.option('--name', type=str, required=True)
 @click.option('--code', type=str, required=True)
 @click.option('--alias', type=str, multiple=True)
@@ -28,7 +28,7 @@ logger = logging.getLogger(__name__)
     '--dataset', type=str, required=True,
     help="The raw dataset file name (zip archive)"
 )
-def main(species, name, code, alias, dataset):
+def main(species_class, name, code, alias, dataset):
     """Add or update a breed into SMARTER database"""
 
     logger.info(f"{Path(__file__).name} started")
@@ -38,12 +38,12 @@ def main(species, name, code, alias, dataset):
 
     # fix input parameters
     aliases = [BreedAlias(fid=fid, dataset=dataset) for fid in alias]
-    species = species.capitalize()
+    species_class = species_class.capitalize()
     code = code.upper()
 
     # get a breed object relying on parameters
     breed, modified = get_or_create_breed(
-        species=species, name=name, code=code, aliases=aliases)
+        species_class=species_class, name=name, code=code, aliases=aliases)
 
     if modified:
         logger.info(f"{breed} added to database")

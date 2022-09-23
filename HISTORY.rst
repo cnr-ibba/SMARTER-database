@@ -26,6 +26,15 @@ TODO
 * Update sex in ped file if there are information in database
 * Enable continuous integration for documentation (ReadTheDocs)
 * Update documentation
+* Support remote database connection (`#66 <https://github.com/cnr-ibba/SMARTER-database/issues/66>`__)
+* Track full species information in Sample (support for multi-species sheep and goats)
+* Updated *isheep* exploration notebooks
+* Deal with *unknown* countries and species
+* Fix issues related on *alias* when creating samples or adding metadata
+* Fetch variants using positions
+* Import from plink using *genomic coordinates*
+* Import *50K*, *600K* and *WGS isheep* datasets (`#47 <https://github.com/cnr-ibba/SMARTER-database/issues/47>`__)
+* Fix issue in ``src.features.plinkio.plink_binary_exists``
 
 0.4.5 (2022-06-14)
 ------------------

@@ -85,6 +85,67 @@ class TextPlinkIOMap(VariantsMixin, MongoMockMixin, unittest.TestCase):
             else:
                 self.assertIsInstance(record, Location)
 
+    def test_fetch_coordinates_by_positions(self):
+        self.plinkio.read_mapfile()
+        self.plinkio.fetch_coordinates_by_positions(
+            src_assembly=self.src_assembly)
+
+        self.assertIsInstance(self.plinkio.src_locations, list)
+        self.assertEqual(len(self.plinkio.src_locations), 4)
+        self.assertIsInstance(self.plinkio.dst_locations, list)
+        self.assertEqual(len(self.plinkio.dst_locations), 4)
+
+        self.assertIsInstance(self.plinkio.filtered, set)
+        self.assertEqual(len(self.plinkio.filtered), 1)
+
+        # assert filtered items
+        self.assertIn(3, self.plinkio.filtered)
+
+        for idx, record in enumerate(self.plinkio.dst_locations):
+            if idx in self.plinkio.filtered:
+                self.assertIsNone(record)
+            else:
+                self.assertIsInstance(record, Location)
+
+    def test_fetch_coordinates_by_positions_dst_assembly(self):
+        # define a custom destination assembly
+        dst_assembly = AssemblyConf(
+            version="Oar_v4.0", imported_from="SNPchiMp v.3")
+
+        self.plinkio.read_mapfile()
+        self.plinkio.fetch_coordinates_by_positions(
+            src_assembly=self.src_assembly,
+            dst_assembly=dst_assembly)
+
+        self.assertIsInstance(self.plinkio.src_locations, list)
+        self.assertEqual(len(self.plinkio.src_locations), 4)
+        self.assertIsInstance(self.plinkio.dst_locations, list)
+        self.assertEqual(len(self.plinkio.dst_locations), 4)
+
+        self.assertIsInstance(self.plinkio.filtered, set)
+        self.assertEqual(len(self.plinkio.filtered), 1)
+
+        # assert filtered items
+        self.assertIn(3, self.plinkio.filtered)
+
+        # test coordinate dst_assembly
+        reference = [
+            ["250506CS3900065000002_1238.1", "15", 5859890],
+            ["250506CS3900140500001_312.1", "23", 26243215],
+            ["250506CS3900176800001_906.1", "7", 81590897],
+            []
+        ]
+
+        for idx, record in enumerate(self.plinkio.dst_locations):
+            if idx in self.plinkio.filtered:
+                self.assertIsNone(record)
+            else:
+                self.assertIsInstance(record, Location)
+                self.assertEqual(
+                    reference[idx][0], self.plinkio.variants_name[idx])
+                self.assertEqual(reference[idx][1], record.chrom)
+                self.assertEqual(reference[idx][2], record.position)
+
     def test_update_mapfile(self):
         # create a temporary directory using the context manager
         with tempfile.TemporaryDirectory() as tmpdirname:
@@ -190,7 +251,7 @@ class TextPlinkIOPed(
         # searching forward coordinates throws exception
         self.assertRaisesRegex(
             CodingException,
-            "Not illumina forward format",
+            "not in illumina forward format",
             self.plinkio._process_genotypes,
             line,
             "forward"
@@ -199,11 +260,27 @@ class TextPlinkIOPed(
         # searching ab coordinates throws exception
         self.assertRaisesRegex(
             CodingException,
-            "Not illumina ab format",
+            "not in illumina ab format",
             self.plinkio._process_genotypes,
             line,
             "ab"
         )
+
+    def test_process_genotypes_ignore_coding(self):
+        """Convert with a wrong coding but ignore errors"""
+
+        # first record is in top coordinates
+        line = self.lines[0]
+        test = self.plinkio._process_genotypes(
+            line, 'forward', ignore_errors=True)
+
+        # forward and top are not the same, so the final genotype will be
+        # all missing
+        reference = [
+            'TEX_IT', '1', '0', '0', '0', '-9',
+            '0', '0', '0', '0', '0', '0', '0', '0']
+
+        self.assertEqual(reference, test)
 
     def test_process_genotypes_half_missing(self):
         # read a file in forward coordinates
@@ -228,7 +305,7 @@ class TextPlinkIOPed(
         # searching top coordinates throws exception
         self.assertRaisesRegex(
             CodingException,
-            "Not illumina top format",
+            "not in illumina top format",
             self.plinkio._process_genotypes,
             forward,
             "top"
@@ -237,7 +314,7 @@ class TextPlinkIOPed(
         # searching ab coordinates throws exception
         self.assertRaisesRegex(
             CodingException,
-            "Not illumina ab format",
+            "not in illumina ab format",
             self.plinkio._process_genotypes,
             forward,
             "ab"
@@ -257,7 +334,7 @@ class TextPlinkIOPed(
         # searching top coordinates throws exception
         self.assertRaisesRegex(
             CodingException,
-            "Not illumina top format",
+            "not in illumina top format",
             self.plinkio._process_genotypes,
             ab,
             "top"
@@ -266,7 +343,7 @@ class TextPlinkIOPed(
         # searching forward coordinates throws exception
         self.assertRaisesRegex(
             CodingException,
-            "Not illumina forward format",
+            "not in illumina forward format",
             self.plinkio._process_genotypes,
             ab,
             "forward"
@@ -500,6 +577,45 @@ class TextPlinkIOPed(
 
         self.assertEqual(reference, test)
 
+    def test_process_pedline_ignore_coding(self):
+        # get a sample line
+        line = self.lines[0]
+
+        test = self.plinkio._process_pedline(
+            line, self.dataset, 'forward', True, ignore_coding_errors=True)
+
+        # define reference
+        reference = ['TEX', 'ITOA-TEX-000000001', '0', '0', '0', '-9']
+
+        # there will remain three missing snps
+        reference += ["0"] * 6
+
+        self.assertEqual(reference, test)
+
+    def test_process_pedline_update_sex(self):
+        # get a sample line
+        line = self.lines[0]
+
+        # create a sample object
+        breed = Breed.objects(
+            aliases__match={'fid': line[0], 'dataset': self.dataset}).get()
+        sample = self.plinkio.get_or_create_sample(line, self.dataset, breed)
+
+        # assign a custom sex (male)
+        sample.sex = SEX(1)
+        sample.save()
+
+        test = self.plinkio._process_pedline(line, self.dataset, 'top', True)
+
+        # define reference
+        reference = line.copy()
+        reference[0:6] = ['TEX', 'ITOA-TEX-000000001', '0', '0', '1', '-9']
+
+        # trow away the last snps (not found in database)
+        del(reference[-2:])
+
+        self.assertEqual(reference, test)
+
     def get_relationships(self):
         """Helper function to define fake relationships"""
 
@@ -622,6 +738,22 @@ class TextPlinkIOPed(
             outfile = pathlib.Path(tmpdirname) / "plinktest_updated.ped"
             self.plinkio.update_pedfile(
                 str(outfile), self.dataset, 'top', True)
+
+            # now open outputfile and test stuff
+            test = TextPlinkIO(
+                mapfile=str(DATA_DIR / "plinktest.map"),
+                pedfile=str(outfile))
+
+            # assert two records written
+            self.assertEqual(len(list(test.read_pedfile())), 2)
+
+    def test_update_pedfile_ignore_coding(self):
+        # create a temporary directory using the context manager
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            outfile = pathlib.Path(tmpdirname) / "plinktest_updated.ped"
+            self.plinkio.update_pedfile(
+                str(outfile), self.dataset, 'forward', True,
+                ignore_coding_errors=True)
 
             # now open outputfile and test stuff
             test = TextPlinkIO(

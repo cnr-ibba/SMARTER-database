@@ -43,6 +43,17 @@ class CountryTestCase(MongoMockMixin, unittest.TestCase):
         self.assertEqual(str(country), "Barbados (BB)")
         self.assertIsNone(country.official_name)
 
+    def test_unknown_country(self):
+        country = Country(name="Unknown", species="Sheep")
+        country.save()
+
+        country.reload()
+        self.assertEqual(country.alpha_2, "UN")
+        self.assertEqual(country.name, "Unknown")
+        self.assertListEqual(country.species, ["Sheep"])
+        self.assertIsNone(country.official_name)
+        self.assertIsNone(country.numeric)
+
 
 class BreedTestCase(MongoMockMixin, unittest.TestCase):
     def setUp(self):
@@ -82,7 +93,7 @@ class BreedTestCase(MongoMockMixin, unittest.TestCase):
         """Getting an existent breed doesn't modify database"""
 
         breed, modified = get_or_create_breed(
-            species='Sheep',
+            species_class='Sheep',
             name="Texel",
             code="TEX"
         )
@@ -101,7 +112,7 @@ class BreedTestCase(MongoMockMixin, unittest.TestCase):
         )
 
         breed, modified = get_or_create_breed(
-            species='Sheep',
+            species_class='Sheep',
             name="Texel",
             code="TEX",
             aliases=[alias]
@@ -122,7 +133,7 @@ class BreedTestCase(MongoMockMixin, unittest.TestCase):
         )
 
         breed, modified = get_or_create_breed(
-            species='Sheep',
+            species_class='Sheep',
             name="Creole",
             code="CRL",
             aliases=[alias]
@@ -520,8 +531,7 @@ class GetSmarterIdTestCase(SmarterIDMixin, MongoMockMixin, unittest.TestCase):
             getSmarterId(
                 None,
                 "Italy",
-                "Texel",
-                self.connection
+                "Texel"
             )
 
         with self.assertRaisesRegex(
@@ -531,8 +541,7 @@ class GetSmarterIdTestCase(SmarterIDMixin, MongoMockMixin, unittest.TestCase):
             getSmarterId(
                 "Sheep",
                 None,
-                "Texel",
-                self.connection
+                "Texel"
             )
 
         with self.assertRaisesRegex(
@@ -542,8 +551,7 @@ class GetSmarterIdTestCase(SmarterIDMixin, MongoMockMixin, unittest.TestCase):
             getSmarterId(
                 "Sheep",
                 "Italy",
-                None,
-                self.connection
+                None
             )
 
     def test_species_not_managed(self):
@@ -553,9 +561,13 @@ class GetSmarterIdTestCase(SmarterIDMixin, MongoMockMixin, unittest.TestCase):
             getSmarterId(
                 "Cow",
                 "Italy",
-                "Frisona",
-                self.connection
+                "Frisona"
             )
+
+    def test_unknown_country(self):
+        test = getSmarterId("Sheep", "Unknown", "Texel")
+        reference = "UNOA-TEX-000000001"
+        self.assertEqual(reference, test)
 
 
 class SampleSheepTestCase(SmarterIDMixin, MongoMockMixin, unittest.TestCase):
@@ -600,7 +612,7 @@ class SampleSheepTestCase(SmarterIDMixin, MongoMockMixin, unittest.TestCase):
         # need country, breed and species in order to get a smarter_id
         self.sample.country = self.country
         self.sample.breed = "Texel"
-        self.sample.species = "Sheep"
+        self.sample.species = "Ovis aries"
 
         # add locations
         self.sample.locations = self.locations
@@ -626,71 +638,120 @@ class SampleSheepTestCase(SmarterIDMixin, MongoMockMixin, unittest.TestCase):
     def test_get_or_create_sample(self):
         # creating sample first
         sample, created = get_or_create_sample(
-            SampleSheep,
-            self.original_id,
-            self.dataset,
-            self.type_,
-            self.breed,
-            self.country,
-            self.chip_name,
-            self.sex,
-            self.alias
+            SampleSpecies=SampleSheep,
+            original_id=self.original_id,
+            dataset=self.dataset,
+            type_=self.type_,
+            breed=self.breed,
+            country=self.country,
+            chip_name=self.chip_name,
+            sex=self.sex,
+            alias=self.alias
         )
 
         self.assertIsInstance(sample, SampleSheep)
         self.assertEqual(sample.smarter_id, self.smarter_id)
+        self.assertEqual(sample.species, "Ovis aries")
         self.assertEqual(SampleSheep.objects.count(), 1)
         self.assertTrue(created)
 
         # calling the same function again, retrieve the same object
         sample, created = get_or_create_sample(
-            SampleSheep,
-            self.original_id,
-            self.dataset,
-            self.type_,
-            self.breed,
-            self.country,
-            self.chip_name,
-            self.sex,
-            self.alias
+            SampleSpecies=SampleSheep,
+            original_id=self.original_id,
+            dataset=self.dataset,
+            type_=self.type_,
+            breed=self.breed,
+            country=self.country,
+            chip_name=self.chip_name,
+            sex=self.sex,
+            alias=self.alias
         )
 
         self.assertIsInstance(sample, SampleSheep)
         self.assertEqual(sample.smarter_id, self.smarter_id)
+        self.assertEqual(sample.species, "Ovis aries")
         self.assertEqual(SampleSheep.objects.count(), 1)
         self.assertFalse(created)
+
+    def test_get_or_create_sample_alias_none(self):
+        """Creating a sample with no alias"""
+
+        # creating sample first
+        sample, created = get_or_create_sample(
+            SampleSpecies=SampleSheep,
+            original_id=self.original_id,
+            dataset=self.dataset,
+            type_=self.type_,
+            breed=self.breed,
+            country=self.country,
+            chip_name=self.chip_name,
+            sex=self.sex,
+            alias=None
+        )
+
+        self.assertIsInstance(sample, SampleSheep)
+        self.assertEqual(sample.smarter_id, self.smarter_id)
+        self.assertEqual(sample.species, "Ovis aries")
+        self.assertEqual(SampleSheep.objects.count(), 1)
+        self.assertTrue(created)
+        self.assertIsNone(sample.alias)
+
+    def test_get_or_create_sample_alias_int(self):
+        """Creating a sample with integer alias, store a string"""
+
+        # creating sample first
+        sample, created = get_or_create_sample(
+            SampleSpecies=SampleSheep,
+            original_id=self.original_id,
+            dataset=self.dataset,
+            type_=self.type_,
+            breed=self.breed,
+            country=self.country,
+            chip_name=self.chip_name,
+            sex=self.sex,
+            alias=1
+        )
+
+        self.assertIsInstance(sample, SampleSheep)
+        self.assertEqual(sample.smarter_id, self.smarter_id)
+        self.assertEqual(sample.species, "Ovis aries")
+        self.assertEqual(SampleSheep.objects.count(), 1)
+        self.assertTrue(created)
+        self.assertEqual(sample.alias, "1")
 
     def test_get_or_create_sample_breed(self):
         """Test that also breed is involved in getting or creating samples"""
 
         # creating sample first
         sample, created = get_or_create_sample(
-            SampleSheep,
-            self.original_id,
-            self.dataset,
-            self.type_,
-            self.breed,
-            self.country,
-            self.chip_name,
-            self.sex,
-            self.alias
+            SampleSpecies=SampleSheep,
+            original_id=self.original_id,
+            dataset=self.dataset,
+            type_=self.type_,
+            breed=self.breed,
+            country=self.country,
+            chip_name=self.chip_name,
+            sex=self.sex,
+            alias=self.alias
         )
 
         # calling the same function again, but with a new breed
         sample, created = get_or_create_sample(
-            SampleSheep,
-            self.original_id,
-            self.dataset,
-            self.type_,
-            Breed.objects.get(species="Sheep", code="MER"),
-            self.country,
-            self.chip_name,
-            self.sex,
-            self.alias
+            SampleSpecies=SampleSheep,
+            original_id=self.original_id,
+            dataset=self.dataset,
+            type_=self.type_,
+            breed=Breed.objects.get(species="Sheep", code="MER"),
+            country=self.country,
+            chip_name=self.chip_name,
+            sex=self.sex,
+            alias=self.alias
         )
 
         self.assertIsInstance(sample, SampleSheep)
         self.assertEqual(sample.smarter_id, "ITOA-MER-000000002")
+        self.assertEqual(sample.species, "Ovis aries")
         self.assertEqual(SampleSheep.objects.count(), 2)
         self.assertTrue(created)
 

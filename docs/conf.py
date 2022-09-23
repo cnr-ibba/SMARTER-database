@@ -14,7 +14,10 @@
 import os
 import sys
 
+import mongoengine
+
 import src
+import src.features.smarterdb
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
@@ -36,7 +39,8 @@ extensions = [
     'sphinx.ext.imgconverter',
     'sphinx.ext.autosectionlabel',
     'sphinx_rtd_theme',
-    'sphinx_click'
+    'sphinx_click',
+    'autodocsumm'
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -110,6 +114,17 @@ def skip(app, what, name, obj, skip, options):
 
 def setup(app):
     app.connect("autodoc-skip-member", skip)
+
+    # connect to mongomock in order to create a global CONNECTION in
+    # smarterdb package
+    mongoengine.connect(
+        'mongoenginetest',
+        host='mongomock://localhost',
+        alias=src.features.smarterdb.DB_ALIAS)
+
+    connection = mongoengine.connection.get_db(
+        alias=src.features.smarterdb.DB_ALIAS)
+    src.features.smarterdb.CONNECTION = connection
 
 
 # Link to other projects’ documentation

@@ -92,13 +92,13 @@ def search_database(record, VariantSpecie):
 
 
 @click.command()
-@click.option('--species', type=str, required=True)
+@click.option('--species_class', type=str, required=True)
 @click.option('--manifest', type=str, required=True)
 @click.option('--chip_name', type=str, required=True)
 @click.option('--version', type=str, required=True)
-def main(species, manifest, chip_name, version):
+def main(species_class, manifest, chip_name, version):
     # determining the proper VariantSpecies class
-    VariantSpecie = get_variant_species(species)
+    VariantSpecie = get_variant_species(species_class)
 
     # check chip_name
     affymetrix_chip = SupportedChip.objects(name=chip_name).get()

@@ -20,8 +20,8 @@ from src.data.common import get_variant_species, update_location
 logger = logging.getLogger(__name__)
 
 
-def check_chromosomes(chrom, species):
-    if species.lower() == "sheep":
+def check_chromosomes(chrom, species_class):
+    if species_class.lower() == "sheep":
         if int(chrom) <= 26:
             return chrom
 
@@ -29,21 +29,22 @@ def check_chromosomes(chrom, species):
             return "X"
 
     else:
-        raise NotImplementedError(f"Specie {species} not yet implemenmented")
+        raise NotImplementedError(
+            f"Specie {species_class} not yet implemenmented")
 
 
 @click.command()
-@click.option('--species', type=str, required=True)
+@click.option('--species_class', type=str, required=True)
 @click.option('--datafile', type=str, required=True)
 @click.option('--version', type=str, required=True)
-def main(species, datafile, version):
+def main(species_class, datafile, version):
     """Read data from Goat or Sheep genome project and add a new location type
     for variants"""
 
     logger.info(f"{Path(__file__).name} started")
 
     # determining the proper VariantSpecies class
-    VariantSpecie = get_variant_species(species)
+    VariantSpecie = get_variant_species(species_class)
 
     with text_or_gzip_open(datafile) as handle:
         reader = csv.reader(handle, delimiter=",")
@@ -61,7 +62,7 @@ def main(species, datafile, version):
 
             # check chromosome number (27?)
             idx = header.index('chrom')
-            line[idx] = check_chromosomes(line[idx], species)
+            line[idx] = check_chromosomes(line[idx], species_class)
 
             # make a record from csv line
             record = Record._make(line)

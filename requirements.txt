@@ -8,6 +8,7 @@ appdirs==1.4.4
 argon2-cffi==20.1.0
 async-generator==1.10
 attrs==20.3.0
+autodocsumm==0.2.9
 awscli==1.19.88
 Babel==2.9.1
 backcall==0.2.0

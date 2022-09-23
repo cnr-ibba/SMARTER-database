@@ -37,7 +37,7 @@ class ImportSNPChimpTest(VariantsMixin, MongoMockMixin, unittest.TestCase):
         result = self.runner.invoke(
             self.main_function,
             [
-                "--species",
+                "--species_class",
                 "Sheep",
                 "--snpchimp",
                 str(snpchimp_file),

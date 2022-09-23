@@ -17,7 +17,9 @@ import logging
 import functools
 
 from pathlib import Path
-from click_option_group import optgroup, RequiredMutuallyExclusiveOptionGroup
+from click_option_group import (
+    optgroup, RequiredMutuallyExclusiveOptionGroup,
+    MutuallyExclusiveOptionGroup)
 
 import pycountry
 
@@ -25,6 +27,7 @@ from src.data.common import (
     deal_with_datasets, pandas_open, get_sample_species)
 from src.features.smarterdb import (
     global_connection, Breed, get_or_create_sample, SEX, get_sample_type)
+from src.features.utils import UnknownCountry
 
 logger = logging.getLogger(__name__)
 
@@ -41,6 +44,9 @@ def find_country(country: str):
     """
     # mind underscore in country names: pycountry can't deal with them
     country = country.replace("_", " ")
+
+    if country.lower() == "unknown":
+        return UnknownCountry()
 
     # transform country string with pycountry
     fuzzy = pycountry.countries.search_fuzzy(country)[0]
@@ -91,6 +97,20 @@ def find_country(country: str):
     type=str,
     help="Country applied to all items in datafile"
 )
+@optgroup.group(
+    'Species',
+    cls=MutuallyExclusiveOptionGroup
+)
+@optgroup.option(
+    '--species_column',
+    type=str,
+    help="Species column in src datafile"
+)
+@optgroup.option(
+    '--species_all',
+    type=str,
+    help="Species applied to all items in datafile"
+)
 @click.option('--id_column', type=str, required=True,
               help="The 'original_id' column to place in smarter database")
 @click.option('--sex_column', type=str)
@@ -101,8 +121,8 @@ def find_country(country: str):
     help="An alias for original_id")
 def main(
         src_dataset, dst_dataset, datafile, code_column, code_all,
-        country_column, country_all, id_column, sex_column, chip_name,
-        alias_column):
+        country_column, country_all, species_column, species_all,
+        id_column, sex_column, chip_name, alias_column):
     logger.info(f"{Path(__file__).name} started")
 
     src_dataset, dst_dataset, datapath = deal_with_datasets(
@@ -153,8 +173,15 @@ def main(
         else:
             country = row.get(country_column)
 
+        # assign species from parameter or from datasource column
+        if species_column:
+            species = row.get(species_column)
+
+        else:
+            species = species_all
+
         # process a country by doing a fuzzy search
-        # HINT: this function cache results relying arguments using lru_cache
+        # HINT: this function caches results relying arguments using lru_cache
         # see find country implementation for more informations
         country = find_country(country)
 
@@ -181,15 +208,16 @@ def main(
 
         # get or create a new Sample Obj
         sample, created = get_or_create_sample(
-            SampleSpecie,
-            original_id,
-            dst_dataset,
-            type_,
-            breed,
-            country.name,
-            chip_name,
-            sex,
-            alias)
+            SampleSpecies=SampleSpecie,
+            original_id=original_id,
+            dataset=dst_dataset,
+            type_=type_,
+            breed=breed,
+            country=country.name,
+            species=species,
+            chip_name=chip_name,
+            sex=sex,
+            alias=alias)
 
         if created:
             logger.info(f"Sample '{sample}' added to database")

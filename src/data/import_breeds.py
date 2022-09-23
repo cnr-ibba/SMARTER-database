@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 
 @click.command()
-@click.option('--species', type=str, required=True)
+@click.option('--species_class', type=str, required=True)
 @click.option(
     '--src_dataset', type=str, required=True,
     help="The raw dataset file name (zip archive) in which search datafile"
@@ -38,7 +38,7 @@ logger = logging.getLogger(__name__)
 @click.option('--breed_column', type=str, default="breed")
 @click.option('--fid_column', type=str)
 @click.option('--country_column', type=str)
-def main(species, src_dataset, dst_dataset, datafile, code_column,
+def main(species_class, src_dataset, dst_dataset, datafile, code_column,
          breed_column, fid_column, country_column):
     logger.info(f"{Path(__file__).name} started")
 
@@ -75,7 +75,10 @@ def main(species, src_dataset, dst_dataset, datafile, code_column,
 
         try:
             breed, modified = get_or_create_breed(
-                species=species, name=name, code=code, aliases=[alias])
+                species_class=species_class,
+                name=name,
+                code=code,
+                aliases=[alias])
 
             if modified:
                 logger.info(f"{breed} added to database")
