@@ -88,11 +88,14 @@ def add_metadata_by_breed(
         locations = get_locations(row, columns, breed)
         metadata = get_metadata(row, columns, breed)
 
+        logger.debug(
+            f"Got breed: '{breed}', locations: {locations}, "
+            f"metadata: {metadata}"
+        )
+
         # ok iterate over all samples of this dataset
         for sample in SampleSpecie.objects.filter(
                 dataset=dst_dataset, breed=breed):
-
-            logger.info(f"Updating '{sample}'")
 
             # set locations features
             sample.locations = locations
@@ -100,6 +103,10 @@ def add_metadata_by_breed(
             # set metadata if necessary
             if metadata:
                 sample.metadata = metadata
+
+            logger.info(
+                f"Updating '{sample}' with locations: '{locations}' "
+                f"and metadata: '{metadata}'")
 
             # update sample
             sample.save()

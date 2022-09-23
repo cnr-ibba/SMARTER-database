@@ -1412,7 +1412,8 @@ def plink_binary_exists(prefix: Path):
     "Test if plink binary files exists"
 
     for ext in [".bed", ".bim", ".fam"]:
-        test = prefix.with_suffix(ext)
+        # HINT Path.with_suffix will replace the extension
+        test = prefix.parent / (prefix.name + ext)
 
         if not test.exists():
             return False
