@@ -13,6 +13,7 @@ import csv
 import logging
 
 from pathlib import Path
+from typing import Union
 from collections import namedtuple
 from dataclasses import dataclass
 
@@ -203,17 +204,106 @@ class SmarterMixin():
 
         return sex, father_id, mother_id
 
-    def get_sample(
+    def _create_sample(
             self,
             line: list,
             dataset: Dataset,
-            sample_field: str = "original_id"):
-        """Get a registered sample from database"""
+            breed: Breed,
+            sex: SEX,
+            father_id: Union[SampleSheep, SampleGoat],
+            mother_id: Union[SampleSheep, SampleGoat]) -> Union[
+                SampleSheep, SampleGoat]:
+        """
+        Helper method to create a new sample from a PED line
 
-        # get a breed object from database reling on fid
-        breed = self.get_breed(fid=line[0], dataset=dataset)
+        Parameters
+        ----------
+        line : list
+            A PED line.
+        dataset : Dataset
+            The Dataset instance this sample belong to.
+        breed : Breed
+            The Breed instance of thi sample.
+        sex : SEX
+            The sex of this sample (if any).
+        father_id : Union[SampleSheep, SampleGoat]
+            The father of this sample (if any).
+        mother_id : Union[SampleSheep, SampleGoat]
+            The mother of this sample (if any).
 
-        # search for sample in database ensure breed are the same
+        Returns
+        -------
+        Union[SampleSheep, SampleGoat]
+            The created sample instance.
+        """
+
+        # do I have a multi country dataset? try to determine the country
+        country = self.get_country(dataset, breed)
+
+        # test if foreground or background dataset
+        type_ = get_sample_type(dataset)
+
+        # insert sample into database
+        logger.info(f"Registering sample '{line[1]}' in database")
+
+        sample = self.SampleSpecies(
+            original_id=line[1],
+            country=country,
+            breed=breed.name,
+            breed_code=breed.code,
+            dataset=dataset,
+            type_=type_,
+            chip_name=self.chip_name,
+            sex=sex,
+            father_id=father_id,
+            mother_id=mother_id
+        )
+        sample.save()
+
+        logger.debug(f"Increment '{breed}' n_individuals counter")
+
+        breed.n_individuals += 1
+        breed.save()
+
+        return sample
+
+    def get_or_create_sample(
+            self,
+            line: list,
+            dataset: Dataset,
+            breed: Breed,
+            sample_field: str = "original_id",
+            create_sample: bool = False) -> Union[SampleSheep, SampleGoat]:
+        """
+        Get a sample from database or create a new one (if create_sample
+        parameter flag is provided)
+
+        Parameters
+        ----------
+        line : list
+            A ped line as a list.
+        dataset : Dataset
+            The dataset object this sample belongs to.
+        breed : Breed
+            The Breed object of such sample.
+        sample_field : str, optional
+            Search sample name within this field. The default is "original_id".
+        create_sample : bool, optional
+            Create a sample if not found in database. The default is False.
+
+        Raises
+        ------
+        SmarterDBException
+            Raised if more than one sample is retrieved.
+
+        Returns
+        -------
+        sample : Union[SampleSheep, SampleGoat]
+            A SampleSheep or SampleGoat object for a Sample object found or
+            created. None if no sample is found and create_sample if False.
+        """
+
+        # search for sample in database
         qs = self.SampleSpecies.objects(
             dataset=dataset,
             breed_code=breed.code,
@@ -223,7 +313,7 @@ class SmarterMixin():
         sex, father_id, mother_id = self._deal_with_relationship(
             line, dataset)
 
-        # this will be the sample I will return
+        # the sample I want to return
         sample = None
 
         if qs.count() == 1:
@@ -238,61 +328,12 @@ class SmarterMixin():
                 sample.save()
 
         elif qs.count() == 0:
-            logger.warning(f"Sample '{line[1]}' not found in database")
+            if not create_sample:
+                logger.warning(f"Sample '{line[1]}' not found in database")
 
-        else:
-            raise SmarterDBException(
-                f"Got {qs.count()} results for '{line[1]}'")
-
-        return sample
-
-    def get_or_create_sample(self, line: list, dataset: Dataset, breed: Breed):
-        """Get a sample from database or create a new one"""
-
-        # search for sample in database
-        qs = self.SampleSpecies.objects(
-            original_id=line[1], breed_code=breed.code, dataset=dataset)
-
-        sex, father_id, mother_id = self._deal_with_relationship(
-            line, dataset)
-
-        if qs.count() == 1:
-            logger.debug(f"Sample '{line[1]}' found in database")
-            sample = qs.get()
-
-            # update records if necessary
-            if sample.father_id != father_id or sample.mother_id != mother_id:
-                logger.warning(f"Update relationships for sample '{line[1]}'")
-                sample.father_id = father_id
-                sample.mother_id = mother_id
-                sample.save()
-
-        elif qs.count() == 0:
-            # do I have a multi country dataset?
-            country = self.get_country(dataset, breed)
-
-            # test if foreground or background dataset
-            type_ = get_sample_type(dataset)
-
-            # insert sample into database
-            logger.info(f"Registering sample '{line[1]}' in database")
-            sample = self.SampleSpecies(
-                original_id=line[1],
-                country=country,
-                breed=breed.name,
-                breed_code=breed.code,
-                dataset=dataset,
-                type_=type_,
-                chip_name=self.chip_name,
-                sex=sex,
-                father_id=father_id,
-                mother_id=mother_id
-            )
-            sample.save()
-
-            # incrementing breed n_individuals counter
-            breed.n_individuals += 1
-            breed.save()
+            else:
+                sample = self._create_sample(
+                    line, dataset, breed, sex, father_id, mother_id)
 
         else:
             raise SmarterDBException(
@@ -708,7 +749,7 @@ class SmarterMixin():
             line: list,
             dataset: Dataset,
             coding: str,
-            create_samples: bool = False,
+            create_sample: bool = False,
             sample_field: str = "original_id",
             ignore_coding_errors: bool = False):
 
@@ -727,16 +768,13 @@ class SmarterMixin():
             )
 
         # check for sample in database
-        if create_samples:
-            sample = self.get_or_create_sample(line, dataset, breed)
+        sample = self.get_or_create_sample(
+            line, dataset, breed, sample_field, create_sample)
 
-        else:
-            sample = self.get_sample(line, dataset, sample_field)
-
-            # if I couldn't find a registered sample (in such case)
-            # i can skip such record
-            if not sample:
-                return None
+        # if I couldn't find a registered sample (in such case)
+        # i can skip such record
+        if not sample:
+            return None
 
         # a new line obj
         new_line = line.copy()
