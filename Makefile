@@ -372,6 +372,15 @@ data: requirements
 		--metadata_column location --metadata_column material --metadata_column technology \
 		--metadata_column data_resource --metadata_column biosample_breed --metadata_column breed_history \
 		--metadata_column geographic_location
+	$(PYTHON_INTERPRETER) src/data/import_metadata.py --src_dataset isheep_WGS_metadata.zip \
+		--dst_dataset isheep_WGS.zip --datafile isheep_WGS_refined.xlsx --alias_column alias \
+		--latitude_column latitude --longitude_column longitude --metadata_column biosample_id \
+		--metadata_column biosample_url --metadata_column bioproject_id --metadata_column bioproject_url \
+		--metadata_column location --metadata_column material --metadata_column technology \
+		--metadata_column data_resource --metadata_column geographic_location --metadata_column ecotype \
+		--metadata_column storage_conditions --metadata_column ena_url --metadata_column insdc_center_name \
+		--metadata_column sra_accession --metadata_column insdc_secondary_accession --metadata_column dev_stage \
+		--metadata_column description --metadata_column estimated_age --metadata_column sampling_date
 
 	## add phenotypes to samples
 	$(PYTHON_INTERPRETER) src/data/import_phenotypes.py --src_dataset ADAPTmap_phenotype_20161201.zip \
