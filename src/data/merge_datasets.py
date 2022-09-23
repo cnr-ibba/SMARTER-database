@@ -48,7 +48,7 @@ def main(species_class, assembly):
             results_dir = Path(dataset.result_dir) / assembly.upper()
 
             if results_dir.exists():
-                logger.info(f"Found {results_dir}")
+                logger.debug(f"Found {results_dir}")
 
                 # search for bed files
                 bed_files = results_dir.glob('*.bed')
@@ -59,7 +59,7 @@ def main(species_class, assembly):
                     # determine the bedfile full path
                     prefix = results_dir / bed_file.stem
 
-                    logger.info(f"Appeding {prefix} for merge")
+                    logger.info(f"Appending '{prefix}' for merge")
 
                     # track file to merge
                     handle.write(f"{prefix}\n")

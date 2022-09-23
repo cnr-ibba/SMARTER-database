@@ -26,7 +26,6 @@ TODO
 * Update sex in ped file if there are information in database
 * Enable continuous integration for documentation (ReadTheDocs)
 * Update documentation
-* Support remote database connection (`#66 <https://github.com/cnr-ibba/SMARTER-database/issues/66>`__)
 * Track full species information in Sample (support for multi-species sheep and goats)
 * Updated *isheep* exploration notebooks
 * Deal with *unknown* countries and species
