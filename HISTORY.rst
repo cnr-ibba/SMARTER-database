@@ -34,6 +34,8 @@ TODO
 * Import from plink using *genomic coordinates*
 * Import *50K*, *600K* and *WGS isheep* datasets (`#47 <https://github.com/cnr-ibba/SMARTER-database/issues/47>`__)
 * Fix issue in ``src.features.plinkio.plink_binary_exists``
+* Code refactoring in ``src.features.plinkio``
+* Import data from Sheep HapMap V2
 
 0.4.5 (2022-06-14)
 ------------------
