@@ -108,29 +108,35 @@ def add_metadata_by_breed(
 def add_metadata_by_sample(
         data: pd.DataFrame,
         dst_dataset: Dataset,
-        columns: dict):
-    """Add metadata relying on breed name (column)"""
+        columns: dict,
+        id_field="id_column"):
+    """Add metadata relying on original_id or alias"""
 
     # mind dataset species
     SampleSpecie = get_sample_species(dst_dataset.species)
 
     for index, row in data.iterrows():
-        original_id = str(row.get(columns["id_column"]))
+        sample_id = str(row.get(columns[id_field]))
 
         # get additional columns for original_id
-        locations = get_locations(row, columns, original_id)
-        metadata = get_metadata(row, columns, original_id)
+        locations = get_locations(row, columns, sample_id)
+        metadata = get_metadata(row, columns, sample_id)
 
         logger.debug(
-            f"Got original_id: '{original_id}', locations: {locations}, "
+            f"Got {id_field}: '{sample_id}', locations: {locations}, "
             f"metadata: {metadata}"
         )
 
+        # prepare query kwargs
+        if id_field == 'id_column':
+            query = {'original_id': sample_id}
+
+        elif id_field == 'alias_column':
+            query = {'alias': sample_id}
+
         # ok iterate over all samples of this dataset
         for sample in SampleSpecie.objects.filter(
-                dataset=dst_dataset, original_id=original_id):
-
-            logger.info(f"Updating '{sample}'")
+                dataset=dst_dataset, **query):
 
             # set locations features
             sample.locations = locations
@@ -138,6 +144,10 @@ def add_metadata_by_sample(
             # set metadata if necessary
             if metadata:
                 sample.metadata = metadata
+
+            logger.info(
+                f"Updating '{sample}' with locations: '{locations}' "
+                f"and metadata: '{metadata}'")
 
             # update sample
             sample.save()
@@ -164,6 +174,7 @@ def add_metadata_by_sample(
 )
 @optgroup.option('--breed_column', type=str, help="The breed column")
 @optgroup.option('--id_column', type=str, help="The original_id column")
+@optgroup.option('--alias_column', type=str, help="The alias column")
 @click.option('--latitude_column', type=str)
 @click.option('--longitude_column', type=str)
 @click.option('--metadata_column', multiple=True, help=(
@@ -171,12 +182,12 @@ def add_metadata_by_sample(
 @click.option('--na_values', type=str, help="pandas NA values")
 def main(
         src_dataset, dst_dataset, datafile, sheet_name, breed_column,
-        id_column, latitude_column, longitude_column, metadata_column,
-        na_values):
+        id_column, alias_column, latitude_column, longitude_column,
+        metadata_column, na_values):
     logger.info(f"{Path(__file__).name} started")
 
     if metadata_column:
-        logger.warning(f"Got {metadata_column} as additional metadata")
+        logger.info(f"Got {metadata_column} as additional metadata")
 
     src_dataset, dst_dataset, datapath = deal_with_datasets(
         src_dataset, dst_dataset, datafile)
@@ -194,13 +205,17 @@ def main(
         'latitude_column': latitude_column,
         'longitude_column': longitude_column,
         'metadata_column': metadata_column,
+        'alias_column': alias_column,
     }
 
     if breed_column:
         add_metadata_by_breed(data, dst_dataset, columns)
 
     elif id_column:
-        add_metadata_by_sample(data, dst_dataset, columns)
+        add_metadata_by_sample(data, dst_dataset, columns, "id_column")
+
+    elif alias_column:
+        add_metadata_by_sample(data, dst_dataset, columns, "alias_column")
 
     logger.info(f"{Path(__file__).name} ended")
 

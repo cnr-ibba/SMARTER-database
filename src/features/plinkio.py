@@ -150,6 +150,7 @@ class SmarterMixin():
 
         with open(outputfile, 'w') as handle:
             writer = csv.writer(handle, delimiter=' ', lineterminator="\n")
+            counter = 0
 
             for idx, record in enumerate(self.mapdata):
                 if idx in self.filtered:
@@ -169,6 +170,10 @@ class SmarterMixin():
                     get_cM(record),
                     location.position
                 ])
+
+                counter += 1
+
+        logger.info(f"Wrote {counter} SNPs in mapfile")
 
     def _deal_with_relationship(self, line: list, dataset: Dataset):
         # deal with special items
