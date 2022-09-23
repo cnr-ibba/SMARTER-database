@@ -113,7 +113,7 @@ class SmarterMixin():
 
         self._species = species
 
-    def get_breed(self, fid, dataset, *args, **kwargs):
+    def search_breed(self, fid, dataset, *args, **kwargs):
         """Get breed relying aliases and dataset"""
 
         # this is a $elemMatch query
@@ -124,7 +124,7 @@ class SmarterMixin():
 
         return breed
 
-    def get_country(self, dataset: Dataset, breed: Breed):
+    def search_country(self, dataset: Dataset, breed: Breed):
         # this will be the default value
         country = dataset.country
 
@@ -238,7 +238,7 @@ class SmarterMixin():
         """
 
         # do I have a multi country dataset? try to determine the country
-        country = self.get_country(dataset, breed)
+        country = self.search_country(dataset, breed)
 
         # test if foreground or background dataset
         type_ = get_sample_type(dataset)
@@ -759,7 +759,7 @@ class SmarterMixin():
 
         # check for breed in database reling on fid.
         try:
-            breed = self.get_breed(fid=line[0], dataset=dataset)
+            breed = self.search_breed(fid=line[0], dataset=dataset)
 
         except DoesNotExist as e:
             logger.error(e)
@@ -883,7 +883,7 @@ class FakePedMixin():
     non-plink file format. In this case the FID is already correct and I don't
     need to look for dataset aliases"""
 
-    def get_breed(self, fid, *args, **kwargs):
+    def search_breed(self, fid, *args, **kwargs):
         """Get breed relying on provided FID and species class attribute"""
 
         breed = Breed.objects(code=fid, species=self.species).get()
@@ -892,7 +892,7 @@ class FakePedMixin():
 
         return breed
 
-    def get_fid(
+    def search_fid(
             self,
             sample_name: str,
             dataset: Dataset,
@@ -1032,7 +1032,7 @@ class AffyPlinkIO(FakePedMixin, TextPlinkIO):
                 line = re.split('[ \t]+', record.strip())
 
                 if not breed:
-                    fid = self.get_fid(line[0], dataset)
+                    fid = self.search_fid(line[0], dataset)
 
                 else:
                     fid = breed
@@ -1221,7 +1221,7 @@ class IlluminaReportIO(FakePedMixin, SmarterMixin):
                 line = ["0"] * size
 
                 if not breed:
-                    fid = self.get_fid(row.sample_id, dataset)
+                    fid = self.search_fid(row.sample_id, dataset)
 
                 else:
                     fid = breed
@@ -1425,7 +1425,7 @@ class AffyReportIO(FakePedMixin, SmarterMixin):
 
             if not breed:
                 try:
-                    fid = self.get_fid(
+                    fid = self.search_fid(
                         sample_name=line[1],
                         dataset=dataset,
                         sample_field=sample_field)
