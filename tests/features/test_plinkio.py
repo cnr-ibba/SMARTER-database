@@ -251,7 +251,7 @@ class TextPlinkIOPed(
         # searching forward coordinates throws exception
         self.assertRaisesRegex(
             CodingException,
-            "Not illumina forward format",
+            "not in illumina forward format",
             self.plinkio._process_genotypes,
             line,
             "forward"
@@ -260,7 +260,7 @@ class TextPlinkIOPed(
         # searching ab coordinates throws exception
         self.assertRaisesRegex(
             CodingException,
-            "Not illumina ab format",
+            "not in illumina ab format",
             self.plinkio._process_genotypes,
             line,
             "ab"
@@ -305,7 +305,7 @@ class TextPlinkIOPed(
         # searching top coordinates throws exception
         self.assertRaisesRegex(
             CodingException,
-            "Not illumina top format",
+            "not in illumina top format",
             self.plinkio._process_genotypes,
             forward,
             "top"
@@ -314,7 +314,7 @@ class TextPlinkIOPed(
         # searching ab coordinates throws exception
         self.assertRaisesRegex(
             CodingException,
-            "Not illumina ab format",
+            "not in illumina ab format",
             self.plinkio._process_genotypes,
             forward,
             "ab"
@@ -334,7 +334,7 @@ class TextPlinkIOPed(
         # searching top coordinates throws exception
         self.assertRaisesRegex(
             CodingException,
-            "Not illumina top format",
+            "not in illumina top format",
             self.plinkio._process_genotypes,
             ab,
             "top"
@@ -343,7 +343,7 @@ class TextPlinkIOPed(
         # searching forward coordinates throws exception
         self.assertRaisesRegex(
             CodingException,
-            "Not illumina forward format",
+            "not in illumina forward format",
             self.plinkio._process_genotypes,
             ab,
             "forward"

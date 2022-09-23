@@ -382,7 +382,7 @@ class SmarterMixin():
                 ).get()
 
             except DoesNotExist as e:
-                logger.warning(
+                logger.debug(
                     f"Couldn't find '{record.name}' with '{query}'"
                     f"using '{additional_arguments}': {e}")
 
@@ -469,7 +469,7 @@ class SmarterMixin():
                 ).get()
 
             except DoesNotExist as e:
-                logger.warning(
+                logger.debug(
                     f"Couldn't find '{record.chrom}:{record.position}' in "
                     f"'{src_assembly}' assembly: {e}")
 
@@ -552,44 +552,52 @@ class SmarterMixin():
         # TODO: coding need to be a dataset attribute
         if coding == 'top':
             if not location.is_top(genotype):
-                logger.critical(
+                logger.debug(
                     f"Error for SNP {index}: '{self.mapdata[index].name}': "
                     f"{a1}/{a2} <> {location.illumina_top}"
                 )
-                raise CodingException("Not illumina top format")
+                raise CodingException(
+                    f"SNP '{self.mapdata[index].name}' is "
+                    "not in illumina top format")
 
             # allele coding is the same received as input
             top_genotype = genotype
 
         elif coding == 'forward':
             if not location.is_forward(genotype):
-                logger.critical(
+                logger.debug(
                     f"Error for SNP {index}: '{self.mapdata[index].name}': "
                     f"{a1}/{a2} <> {location.illumina_forward}"
                 )
-                raise CodingException("Not illumina forward format")
+                raise CodingException(
+                    f"SNP '{self.mapdata[index].name}' is "
+                    "not in illumina forward format")
 
             # change the allele coding
             top_genotype = location.forward2top(genotype)
 
         elif coding == 'ab':
             if not location.is_ab(genotype):
-                logger.critical(
+                logger.debug(
                     f"Error for SNP {index}: '{self.mapdata[index].name}': "
                     f"{a1}/{a2} <> A/B"
                 )
-                raise CodingException("Not illumina ab format")
+                raise CodingException(
+                    f"SNP '{self.mapdata[index].name}' is "
+                    "not in illumina ab format")
 
             # change the allele coding
             top_genotype = location.ab2top(genotype)
 
         elif coding == 'affymetrix':
             if not location.is_affymetrix(genotype):
-                logger.critical(
+                logger.debug(
                     f"Error for SNP {index}: '{self.mapdata[index].name}': "
                     f"{a1}/{a2} <> {location.affymetrix_ab}"
                 )
-                raise CodingException("Not affymetrix format")
+                raise CodingException(
+                    f"SNP '{self.mapdata[index].name}' is "
+                    "not in affymetrix format")
 
             # change the allele coding
             top_genotype = location.affy2top(genotype)
@@ -642,7 +650,7 @@ class SmarterMixin():
             except CodingException as e:
                 if ignore_errors:
                     # ok, replace with a missing genotype
-                    logger.warning(
+                    logger.debug(
                         f"Ignoring code check in {new_line[1]}: {i*2}: "
                         f"[{a1}/{a2}]. Forcing SNP to be MISSING")
 
@@ -780,6 +788,11 @@ class SmarterMixin():
                 more exceptions when genotypes don't match)
         """
 
+        if ignore_coding_errors:
+            logger.warning(
+                "Coding check is disabled! wrong genotypes will not "
+                "throw errors!")
+
         with open(outputfile, "w") as target:
             writer = csv.writer(
                 target, delimiter=' ', lineterminator="\n")
@@ -802,7 +815,7 @@ class SmarterMixin():
 
                 if new_line:
                     # write updated line into updated ped file
-                    logger.info(
+                    logger.debug(
                         f"Writing: {new_line[:10]+ ['...']} "
                         f"({int((len(new_line)-6)/2)} SNPs)")
                     writer.writerow(new_line)
