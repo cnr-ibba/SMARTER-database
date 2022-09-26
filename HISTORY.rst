@@ -16,8 +16,8 @@ TODO
 * define a collection for all available *purpose* phenotypes
 * Check if ``rs_id`` is still valid or not (with EVA)
 
-0.4.6.dev
----------
+0.4.6 (2022-09-26)
+------------------
 
 * Update requirements
 * Read from affymetrix A/B reportfile
