@@ -369,7 +369,7 @@ class TextPlinkIOPed(
 
         # calling my function and collect sample
         reference = self.plinkio.get_or_create_sample(
-            line, self.dataset, breed)
+            line, self.dataset, breed, create_sample=True)
         self.assertIsInstance(reference, SampleSheep)
 
         # assert an element in database
@@ -380,7 +380,8 @@ class TextPlinkIOPed(
         self.assertEqual(breed.n_individuals, 1)
 
         # calling this function twice, returns the same individual
-        test = self.plinkio.get_or_create_sample(line, self.dataset, breed)
+        test = self.plinkio.get_or_create_sample(
+            line, self.dataset, breed, create_sample=True)
         self.assertIsInstance(test, SampleSheep)
 
         # assert an element in database
@@ -406,11 +407,11 @@ class TextPlinkIOPed(
         self.assertEqual(breed.n_individuals, 0)
         self.assertEqual(SampleSheep.objects.count(), 0)
 
-        # calling my function and collect sample
-        reference = self.plinkio.get_sample(
-            line, self.dataset)
+        # calling my function and collect sample: no create
+        reference = self.plinkio.get_or_create_sample(
+            line, self.dataset, breed, create_sample=False)
 
-        # there are no sample in database, so get_sample returns none
+        # there are no sample in database, so I expect None
         self.assertIsNone(reference)
 
         # assert no element in database
@@ -421,7 +422,8 @@ class TextPlinkIOPed(
         self.assertEqual(breed.n_individuals, 0)
 
         # call get_or_create to insert this sample in database
-        test = self.plinkio.get_or_create_sample(line, self.dataset, breed)
+        test = self.plinkio.get_or_create_sample(
+            line, self.dataset, breed, create_sample=True)
         self.assertIsInstance(test, SampleSheep)
 
         # assert an element in database
@@ -432,10 +434,8 @@ class TextPlinkIOPed(
         self.assertEqual(breed.n_individuals, 1)
 
         # calling get_sample again to collect the sample
-        reference = self.plinkio.get_sample(
-            line,
-            self.dataset
-        )
+        reference = self.plinkio.get_or_create_sample(
+            line, self.dataset, breed, create_sample=False)
 
         # now reference is a sample.
         self.assertIsInstance(reference, SampleSheep)
@@ -458,7 +458,8 @@ class TextPlinkIOPed(
             aliases__match={'fid': line[0], 'dataset': self.dataset}).get()
 
         # create a sample
-        sample1 = self.plinkio.get_or_create_sample(line, self.dataset, breed1)
+        sample1 = self.plinkio.get_or_create_sample(
+            line, self.dataset, breed1, create_sample=True)
 
         # change the line and create a new sample
         line2 = line.copy()
@@ -469,25 +470,21 @@ class TextPlinkIOPed(
 
         # create another sample
         sample2 = self.plinkio.get_or_create_sample(
-            line2, self.dataset, breed2)
+            line2, self.dataset, breed2, create_sample=True)
 
         # ensure 2 samples created
         self.assertEqual(SampleSheep.objects.count(), 2)
 
-        # calling get_sample to collect first sample
-        test = self.plinkio.get_sample(
-            line,
-            self.dataset
-        )
+        # calling get_or_create_sample to collect first sample
+        test = self.plinkio.get_or_create_sample(
+            line, self.dataset, breed1)
 
         self.assertIsInstance(test, SampleSheep)
         self.assertEqual(test, sample1)
 
         # calling get_sample to collect second sample
-        test = self.plinkio.get_sample(
-            line2,
-            self.dataset
-        )
+        test = self.plinkio.get_or_create_sample(
+            line, self.dataset, breed2)
 
         self.assertIsInstance(test, SampleSheep)
         self.assertEqual(test, sample2)
@@ -503,7 +500,8 @@ class TextPlinkIOPed(
             aliases__match={'fid': line[0], 'dataset': self.dataset}).get()
 
         # call get_or_create to insert this sample in database
-        test = self.plinkio.get_or_create_sample(line, self.dataset, breed)
+        test = self.plinkio.get_or_create_sample(
+            line, self.dataset, breed, create_sample=True)
 
         # add an alias to this sample
         test.alias = "alias-1"
@@ -513,10 +511,12 @@ class TextPlinkIOPed(
         line[1] = "alias-1"
 
         # calling get_sample again to collect the sample
-        reference = self.plinkio.get_sample(
+        reference = self.plinkio.get_or_create_sample(
             line,
             self.dataset,
-            sample_field='alias'
+            breed,
+            sample_field='alias',
+            create_sample=False
         )
 
         # now reference is a sample.
@@ -548,8 +548,10 @@ class TextPlinkIOPed(
         new_dataset.save()
 
         # ok create a samplesheep object with the same original_id
-        first = self.plinkio.get_or_create_sample(line, self.dataset, breed)
-        second = self.plinkio.get_or_create_sample(line, new_dataset, breed)
+        first = self.plinkio.get_or_create_sample(
+            line, self.dataset, breed, create_sample=True)
+        second = self.plinkio.get_or_create_sample(
+            line, new_dataset, breed, create_sample=True)
 
         self.assertEqual(SampleSheep.objects.count(), 2)
         self.assertEqual(first.original_id, second.original_id)
@@ -599,7 +601,8 @@ class TextPlinkIOPed(
         # create a sample object
         breed = Breed.objects(
             aliases__match={'fid': line[0], 'dataset': self.dataset}).get()
-        sample = self.plinkio.get_or_create_sample(line, self.dataset, breed)
+        sample = self.plinkio.get_or_create_sample(
+            line, self.dataset, breed, create_sample=True)
 
         # assign a custom sex (male)
         sample.sex = SEX(1)
@@ -781,6 +784,14 @@ class TextPlinkIOPed(
         # no sample created
         self.assertEqual(SampleSheep.objects.count(), 0)
 
+    def test_get_samples(self):
+        """Test getting samples from genotype file"""
+
+        test = self.plinkio.get_samples()
+        reference = ["1", "2"]
+
+        self.assertEqual(reference, test)
+
 
 class BinaryPlinkIOTest(
         VariantsMixin, SmarterIDMixin, MongoMockMixin, unittest.TestCase):
@@ -828,6 +839,14 @@ class BinaryPlinkIOTest(
         dataset = Dataset.objects(file="test.zip").get()
 
         test = self.plinkio._process_pedline(line, dataset, 'top', True)
+
+        self.assertEqual(reference, test)
+
+    def test_get_samples(self):
+        """Test getting samples from genotype file"""
+
+        test = self.plinkio.get_samples()
+        reference = ["1", "2"]
 
         self.assertEqual(reference, test)
 
@@ -980,6 +999,14 @@ class IlluminaReportIOPed(
 
             # assert two records written
             self.assertEqual(len(list(test.read_pedfile())), 2)
+
+    def test_get_samples(self):
+        """Test getting samples from genotype file"""
+
+        test = self.plinkio.get_samples()
+        reference = ["1", "2"]
+
+        self.assertEqual(reference, test)
 
 
 class AffyMixin():
@@ -1174,6 +1201,14 @@ class AffyPlinkIOPedTest(
 
             # assert two records written
             self.assertEqual(len(list(test.read_pedfile())), 2)
+
+    def test_get_samples(self):
+        """Test getting samples from genotype file"""
+
+        test = self.plinkio.get_samples()
+        reference = ["test-one", "test-two"]
+
+        self.assertEqual(reference, test)
 
 
 class AffyReportIOMapTest(
@@ -1389,6 +1424,14 @@ class AffyReportIOPedTest(
 
             # assert two records written
             self.assertEqual(len(list(test.read_pedfile())), 2)
+
+    def test_get_samples(self):
+        """Test getting samples from genotype file"""
+
+        test = self.plinkio.get_samples()
+        reference = ["test-one", "test-two"]
+
+        self.assertEqual(reference, test)
 
 
 if __name__ == '__main__':
