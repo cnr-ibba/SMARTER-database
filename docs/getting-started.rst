@@ -266,7 +266,7 @@ the ``SMARTER-database`` conda environment):
 
   make initialize
 
-This will upload all the external information on *variants* in the database. Next
+to upload all the external information on *variants* in the database. Next
 in the second step, you will generate the SMARTER IDS, insert phenotypes and other
 sample related metadata into the database and generate the final dataset files.
 Like before, simply type:
