@@ -3,20 +3,7 @@ Submodules
 ==========
 
 .. toctree::
-   :maxdepth: 4
+    :maxdepth: 3
+    :glob:
 
-src.features.smarterdb
-----------------------
-
-.. automodule:: src.features.smarterdb
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-src.features.utils
-------------------
-
-.. automodule:: src.features.utils
-    :members:
-    :undoc-members:
-    :show-inheritance:
+    modules/*

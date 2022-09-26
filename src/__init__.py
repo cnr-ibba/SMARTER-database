@@ -4,10 +4,10 @@
 # more module metadata variables at:
 # http://epydoc.sourceforge.net/manual-fields.html#module-metadata-variables
 __author__ = "Paolo Cozzi, ..."
-__copyright__ = "Copyright 2021, IBBA-CNR"
+__copyright__ = "Copyright 2021-2022, IBBA-CNR"
 __credits__ = ["Paolo Cozzi, ..."]
 __license__ = "MIT"
-__version__ = "0.4.5"
+__version__ = "0.4.6.dev2"
 __maintainer__ = "Paolo Cozzi"
 __email__ = 'paolo.cozzi@ibba.cnr.it'
 __status__ = "Development"

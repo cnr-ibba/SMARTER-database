@@ -84,7 +84,6 @@ class PhenotypeMixin(SmarterIDMixin, SupportedChipMixin, MongoMockMixin):
             original_id="test-1",
             smarter_id="ITOA-TEX-000000001",
             country="Italy",
-            species="Sheep",
             breed="Texel",
             breed_code="TEX",
             dataset=self.dst_dataset,

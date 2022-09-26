@@ -49,7 +49,7 @@ def main(input_filepath, output_filepath, types):
         # sanitize column
         header = [sanitize(col) for col in header]
 
-        logger.info("Got %s as header" % header)
+        logger.debug("Got '%s' as header" % header)
 
         # define a datatype for my data
         Record = collections.namedtuple("Record", header)
@@ -66,7 +66,7 @@ def main(input_filepath, output_filepath, types):
 
             # search for the archive file
             archive = next(raw_dir.rglob(record.file))
-            logger.info(f"Found {archive} as archive")
+            logger.info(f"Found '{archive}' dataset")
 
             archive = zipfile.ZipFile(archive)
 
@@ -84,6 +84,8 @@ def main(input_filepath, output_filepath, types):
                     type_=types,
                     contents=contents)
 
+                logger.info(f"Create new dataset '{dataset}'")
+
             elif qs.count() == 1:
                 # update object
                 dataset = qs.get()
@@ -93,6 +95,8 @@ def main(input_filepath, output_filepath, types):
 
                 dataset.type_ = types
                 dataset.contents = contents
+
+                logger.debug(f"Dataset '{dataset}' updated")
 
             dataset.save()
 
@@ -109,20 +113,20 @@ def main(input_filepath, output_filepath, types):
                     archive.extract(member, working_dir)
 
                 else:
-                    logger.debug(f"Skipping {member}: already extracted")
+                    logger.debug(f"Skipping '{member}': already extracted")
 
     with open(output_filepath, "w") as handle:
         # after insert collect all data of the same type
         handle.write(Dataset.objects.to_json(indent=2))
 
-    logger.info(f"Data written into database and in {output_filepath}")
+    logger.info(f"Data written into database and in '{output_filepath}'")
 
     logger.info(f"{Path(__file__).name} ended")
 
 
 if __name__ == '__main__':
     log_fmt = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-    logging.basicConfig(level=logging.DEBUG, format=log_fmt)
+    logging.basicConfig(level=logging.INFO, format=log_fmt)
 
     # connect to database
     global_connection()

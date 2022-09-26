@@ -60,7 +60,7 @@ class TestMergeDataset(
             result = self.runner.invoke(
                 merge_datasets,
                 [
-                    "--species",
+                    "--species_class",
                     "sheep",
                     "--assembly",
                     "OAR3"

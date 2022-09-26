@@ -16,6 +16,7 @@ services:
       MONGO_INITDB_ROOT_USERNAME: ${MONGODB_ROOT_USER}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGODB_ROOT_PASS}
       MONGO_INITDB_DATABASE: 'smarter'
+      HOME: /home/mongodb
 
     # to export volume, as recommeded in https://registry.hub.docker.com/u/library/mysql/
     volumes:

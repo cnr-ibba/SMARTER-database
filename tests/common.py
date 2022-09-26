@@ -14,6 +14,7 @@ from dateutil.parser import parse as parse_date
 
 from mongoengine import connect, disconnect, connection
 
+import src.features.smarterdb
 from src.features.smarterdb import (
     DB_ALIAS, Breed, BreedAlias, Counter, Dataset, SampleSheep, VariantSheep,
     SupportedChip)
@@ -27,12 +28,12 @@ logger = logging.getLogger(__name__)
 class MongoMockMixin():
     @classmethod
     def setUpClass(cls):
-        connect(
+        src.features.smarterdb.CLIENT = connect(
             'mongoenginetest',
             host='mongomock://localhost',
             alias=DB_ALIAS)
 
-        cls.connection = connection.get_db(alias=DB_ALIAS)
+        _ = connection.get_db(alias=DB_ALIAS)
 
     @classmethod
     def tearDownClass(cls):
@@ -60,7 +61,8 @@ class SmarterIDMixin():
                 "snplist.txt",
                 "finalreport.txt",
                 "affytest.map",
-                "affytest.ped"
+                "affytest.ped",
+                "affyreport.txt"
             ],
             type_=["background", "genotypes"]
         )

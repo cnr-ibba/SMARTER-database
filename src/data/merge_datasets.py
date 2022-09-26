@@ -23,9 +23,9 @@ logger = logging.getLogger(__name__)
 
 
 @click.command()
-@click.option('--species', type=str, required=True)
+@click.option('--species_class', type=str, required=True)
 @click.option('--assembly', type=str, required=True)
-def main(species, assembly):
+def main(species_class, assembly):
     logger.info(f"{Path(__file__).name} started")
 
     # find assembly configuration
@@ -34,21 +34,21 @@ def main(species, assembly):
 
     # open a file to track files to merge
     smarter_tag = "SMARTER-{specie}-{assembly}-top-{version}".format(
-        specie=SPECIES2CODE[species.capitalize()],
+        specie=SPECIES2CODE[species_class.capitalize()],
         assembly=assembly.upper(),
         version=__version__
     )
     merge_file = get_interim_dir() / smarter_tag
 
     with merge_file.open(mode="w") as handle:
-        for dataset in Dataset.objects(species=species.capitalize()):
+        for dataset in Dataset.objects(species=species_class.capitalize()):
             logger.debug(f"Got {dataset}")
 
             # search for result dir
             results_dir = Path(dataset.result_dir) / assembly.upper()
 
             if results_dir.exists():
-                logger.info(f"Found {results_dir}")
+                logger.debug(f"Found {results_dir}")
 
                 # search for bed files
                 bed_files = results_dir.glob('*.bed')
@@ -59,7 +59,7 @@ def main(species, assembly):
                     # determine the bedfile full path
                     prefix = results_dir / bed_file.stem
 
-                    logger.info(f"Appeding {prefix} for merge")
+                    logger.info(f"Appending '{prefix}' for merge")
 
                     # track file to merge
                     handle.write(f"{prefix}\n")

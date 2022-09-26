@@ -19,9 +19,10 @@ import logging
 import subprocess
 
 from pathlib import Path
+from click_option_group import optgroup, RequiredMutuallyExclusiveOptionGroup
 
 from src.features.plinkio import (
-    AffyPlinkIO, plink_binary_exists)
+    AffyPlinkIO, AffyReportIO, plink_binary_exists)
 from src.features.smarterdb import Dataset, global_connection, SupportedChip
 from src.data.common import WORKING_ASSEMBLIES, PLINK_SPECIES_OPT, AssemblyConf
 
@@ -46,9 +47,9 @@ def get_output_files(prefix: str, working_dir: Path, assembly: str):
     return output_dir, output_map, output_ped
 
 
-def deal_with_affymetrix(file_: str, dataset: Dataset, assembly: str):
-    mapfile = file_ + ".map"
-    pedfile = file_ + ".ped"
+def deal_with_prefix(prefix: str, dataset: Dataset, assembly: str):
+    mapfile = prefix + ".map"
+    pedfile = prefix + ".ped"
 
     # check files are in dataset
     if mapfile not in dataset.contents or pedfile not in dataset.contents:
@@ -60,7 +61,7 @@ def deal_with_affymetrix(file_: str, dataset: Dataset, assembly: str):
     working_dir = dataset.working_dir
 
     if not working_dir.exists():
-        raise Exception(f"Could find dataset directory {working_dir}")
+        raise Exception(f"Couldn't find dataset directory '{working_dir}'")
 
     # determine full file paths
     mappath = working_dir / mapfile
@@ -75,21 +76,69 @@ def deal_with_affymetrix(file_: str, dataset: Dataset, assembly: str):
 
     # determine output files
     output_dir, output_map, output_ped = get_output_files(
-        file_, working_dir, assembly)
+        prefix, working_dir, assembly)
+
+    return plinkio, output_dir, output_map, output_ped
+
+
+def deal_with_report(report: str, dataset: Dataset, assembly: str):
+    # check file is in dataset
+    if report not in dataset.contents:
+        raise Exception(
+            "Couldn't find file in dataset: check for "
+            f"'{report}' in '{dataset}'")
+
+    # check for working directory
+    working_dir = dataset.working_dir
+
+    if not working_dir.exists():
+        raise Exception(f"Couldn't find dataset directory '{working_dir}'")
+
+    # determine full file paths
+    reportpath = working_dir / report
+
+    # instantiating a TextPlinkIO object
+    plinkio = AffyReportIO(
+        report=reportpath,
+        species=dataset.species
+    )
+
+    # determine output files
+    output_dir, output_map, output_ped = get_output_files(
+        Path(report).stem, working_dir, assembly)
 
     return plinkio, output_dir, output_map, output_ped
 
 
 @click.command()
-@click.option('--file', 'file_', type=str)
+@optgroup.group(
+    'Affymetrix input files',
+    cls=RequiredMutuallyExclusiveOptionGroup
+)
+@optgroup.option(
+    '--prefix',
+    type=str,
+    help="File prefix for map and ped files (like plink does)")
+@optgroup.option(
+    '--report',
+    type=str,
+    help="Affymetrix report path")
 @click.option(
     '--dataset', type=str, required=True,
     help="The raw dataset file name (zip archive)"
 )
 @click.option(
+    '--coding',
+    type=click.Choice(
+        ['ab', 'affymetrix'],
+        case_sensitive=False),
+    default="affymetrix", show_default=True,
+    help="Affymetrix coding format"
+)
+@click.option(
     '--breed_code',
     type=str,
-    required=True)
+    help="A breed code to be assigned on all samples while creating samples")
 @click.option('--chip_name', type=str, required=True)
 @click.option('--assembly', type=str, required=True)
 @click.option('--create_samples', is_flag=True)
@@ -116,10 +165,11 @@ def deal_with_affymetrix(file_: str, dataset: Dataset, assembly: str):
     help="Source assembly imported_from",
     required=True)
 def main(
-        file_, dataset, breed_code, chip_name, assembly, create_samples,
-        sample_field, search_field, src_version, src_imported_from):
+        prefix, report, dataset, coding, breed_code, chip_name, assembly,
+        create_samples, sample_field, search_field, src_version,
+        src_imported_from):
     """
-    Read sample names from map/ped files and updata smarter database (insert
+    Read sample names from affymetrix files and updata smarter database (insert
     a record if necessary and define a smarter id for each sample)
     """
 
@@ -139,8 +189,13 @@ def main(
 
     logger.debug(f"Found {dataset}")
 
-    plinkio, output_dir, output_map, output_ped = deal_with_affymetrix(
-        file_, dataset, assembly)
+    if prefix:
+        plinkio, output_dir, output_map, output_ped = deal_with_prefix(
+            prefix, dataset, assembly)
+
+    elif report:
+        plinkio, output_dir, output_map, output_ped = deal_with_report(
+            report, dataset, assembly)
 
     # check chip_name
     illumina_chip = SupportedChip.objects(name=chip_name).get()
@@ -167,7 +222,13 @@ def main(
     # if I arrive here, I can create output files
 
     # read mapdata and read updated coordinates from db
-    plinkio.read_mapfile()
+    if prefix:
+        # I have a .map file to read
+        plinkio.read_mapfile()
+
+    elif report:
+        # this is an affymetrix reportfile
+        plinkio.read_reportfile()
 
     # fetch coordinates relying assembly configuration. Mind affy probeset_id
     plinkio.fetch_coordinates(
@@ -184,8 +245,8 @@ def main(
     plinkio.update_pedfile(
         outputfile=output_ped,
         dataset=dataset,
-        coding="affymetrix",
-        fid=breed_code,
+        coding=coding,
+        breed=breed_code,
         create_samples=create_samples,
         sample_field=sample_field
     )

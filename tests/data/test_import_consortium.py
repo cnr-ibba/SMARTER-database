@@ -38,7 +38,7 @@ class ImportConsortiumTest(VariantsMixin, MongoMockMixin, unittest.TestCase):
         result = self.runner.invoke(
             self.main_function,
             [
-                "--species",
+                "--species_class",
                 "Sheep",
                 "--datafile",
                 str(data_file),

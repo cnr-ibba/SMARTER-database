@@ -12,9 +12,11 @@ import unittest
 import datetime
 
 from src.features.affymetrix import (
-    search_manifactured_date, read_Manifest, skip_comments)
+    search_manifactured_date, read_Manifest, skip_comments, search_n_samples,
+    search_n_snps, read_affymetrixRow)
 
 SCRIPTS_DATA_DIR = pathlib.Path(__file__).parents[1] / "data/data"
+FEATURES_DATA_DIR = pathlib.Path(__file__).parent / "data"
 
 
 class ReadManifest(unittest.TestCase):
@@ -45,3 +47,36 @@ class ReadManifest(unittest.TestCase):
 
         test = next(iterator)
         self.assertEqual(test.cust_id, '250506CS3900176800001_906_01')
+
+
+class ReadReport(unittest.TestCase):
+    data_path = FEATURES_DATA_DIR / "affyreport.txt"
+
+    def test_skip_comments(self):
+        with open(self.data_path) as handle:
+            position, skipped = skip_comments(handle)
+            self.assertEqual(len(skipped), 5)
+
+    def test_search_n_samples(self):
+        data = ['##samples-per-snp=2']
+        test = search_n_samples(data)
+
+        self.assertEqual(2, test)
+
+    def test_search_n_snps(self):
+        data = ['##snp-count=3']
+        test = search_n_snps(data)
+
+        self.assertEqual(3, test)
+
+    def test_read_affymetrixRow(self):
+        iterator = read_affymetrixRow(self.data_path)
+
+        self.assertIsInstance(iterator, types.GeneratorType)
+
+        test = next(iterator)
+        self.assertEqual(test.probeset_id, "AX-124372958")
+
+        # test for custom attributes
+        self.assertEqual(test.n_snps, 3)
+        self.assertEqual(test.n_samples, 2)
