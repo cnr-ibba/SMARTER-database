@@ -8,12 +8,20 @@ The Makefile contains the central entry points for common tasks related to this 
     $ conda activate SMARTER-database
     $ make requirements
 
+.. _add_breed:
+
 .. click:: src.data.add_breed:main
     :prog: src/data/add_breed.py
     :nested: full
 
 .. click:: src.data.import_affymetrix:main
     :prog: src/data/import_affymetrix.py
+    :nested: full
+
+.. _import_breeds:
+
+.. click:: src.data.import_breeds:main
+    :prog: src/data/import_breeds.py
     :nested: full
 
 .. _import_datasets:

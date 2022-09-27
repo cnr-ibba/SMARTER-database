@@ -20,10 +20,26 @@ logger = logging.getLogger(__name__)
 
 
 @click.command()
-@click.option('--species_class', type=str, required=True)
-@click.option('--name', type=str, required=True)
-@click.option('--code', type=str, required=True)
-@click.option('--alias', type=str, multiple=True)
+@click.option(
+    '--species_class',
+    type=str,
+    required=True,
+    help="The generic species of this breed (Sheep or Goat)")
+@click.option(
+    '--name',
+    type=str,
+    required=True,
+    help="The breed name")
+@click.option(
+    '--code',
+    type=str,
+    required=True,
+    help="The breed code")
+@click.option(
+    '--alias',
+    type=str,
+    multiple=True,
+    help="The FID used as a breed code in genotype file")
 @click.option(
     '--dataset', type=str, required=True,
     help="The raw dataset file name (zip archive)"
