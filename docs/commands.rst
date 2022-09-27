@@ -15,3 +15,9 @@ The Makefile contains the central entry points for common tasks related to this 
 .. click:: src.data.import_affymetrix:main
     :prog: src/data/import_affymetrix.py
     :nested: full
+
+.. _import_datasets:
+
+.. click:: src.data.import_datasets:main
+    :prog: src/data/import_datasets.py
+    :nested: full

@@ -29,8 +29,13 @@ logger = logging.getLogger(__name__)
         '2 argument types (ex. genotypes background, phenotypes foreground,'
         ' etc)'))
 def main(input_filepath, output_filepath, types):
-    """ Runs data processing scripts to turn raw data from (../raw) into
-        cleaned data ready to be analyzed (saved in ../processed).
+    """
+    Import a dataset stored in ``data/raw`` folder into the *smarter*
+    database and unpack file contents into ``data/interim`` subfolder
+
+    INPUT_FILEPATH:  The CSV dataset description file
+
+    OUTPUT_FILEPATH: Dump a JSON of all dataset of the same type
     """
 
     logger.info(f"{Path(__file__).name} started")
