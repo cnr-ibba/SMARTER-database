@@ -74,7 +74,21 @@ def global_connection(database_name: str = SMARTERDB) -> MongoClient:
     return CLIENT
 
 
-def complement(genotype: str):
+def complement(genotype: str) -> str:
+    """
+    Return reverse complement for a base call
+
+    Parameters
+    ----------
+    genotype : str
+        A base call (one from `A`, `T`, `G`, `C`).
+
+    Returns
+    -------
+    result : str
+        The reverse complement of the base call.
+
+    """
     bases = {
         "A": "T",
         "T": "A",
@@ -96,9 +110,16 @@ class SmarterInfo(mongoengine.Document):
 
     id = mongoengine.StringField(primary_key=True)
     version = mongoengine.StringField(required=True)
+    """The SMARTER-database version"""
+
     working_assemblies = mongoengine.DictField()
+    """A dictionary in which managed assemblies are tracked"""
+
     plink_specie_opt = mongoengine.DictField()
+    """The plink parameters used to generate the final genotype dataset"""
+
     last_updated = mongoengine.DateTimeField()
+    """When the SMARTER-database was updated for the last time"""
 
     meta = {
         'db_alias': DB_ALIAS,
@@ -106,12 +127,12 @@ class SmarterInfo(mongoengine.Document):
     }
 
     def __str__(self):
-        return f"{self.id}: {self.version} (self.last_updated)"
+        return f"{self.id}: {self.version} ({self.last_updated})"
 
 
 class Counter(mongoengine.Document):
     """A class to deal with counter collection (created when initializing
-    smarter database)
+    smarter database) and used to define SMARTER IDs
     """
 
     id = mongoengine.StringField(primary_key=True)
@@ -132,13 +153,23 @@ class Country(mongoengine.Document):
 
     alpha_2 = mongoengine.StringField(
         required=True, unique=True, min_length=2, max_length=2)
+    """Country 2 letter code (used to derive SMARTER IDs)"""
+
     alpha_3 = mongoengine.StringField(
         required=True, unique=True, min_length=3, max_length=3)
+    """Country 3 letter code"""
+
     name = mongoengine.StringField(required=True, unique=True)
+    """The Country name"""
+
     numeric = mongoengine.IntField(unique=True)
+    """The country numeric code"""
+
     official_name = mongoengine.StringField()
+    """Country ufficial name"""
 
     species = mongoengine.ListField(mongoengine.StringField())
+    """The sample species find within this country"""
 
     meta = {
         'db_alias': DB_ALIAS,
@@ -174,10 +205,19 @@ class Country(mongoengine.Document):
 
 
 class SupportedChip(mongoengine.Document):
+    """A class to deal with SMARTER-database managed chips"""
+
     name = mongoengine.StringField(required=True, unique=True)
+    """The chip identifier"""
+
     species = mongoengine.StringField(required=True)
+    """The species for which a chip is defined"""
+
     manifacturer = mongoengine.StringField()
+    """Who created the chip"""
+
     n_of_snps = mongoengine.IntField()
+    """How many SNPs are described within this chip"""
 
     meta = {
         'db_alias': DB_ALIAS,
@@ -189,11 +229,20 @@ class SupportedChip(mongoengine.Document):
 
 
 class BreedAlias(mongoengine.EmbeddedDocument):
+    """Required to describe the breed and code used in a certain dataset in
+    order to resolve the final breed to be used in SMARTER-database"""
+
     fid = mongoengine.StringField(required=True)
+    """The breed Family ID used in genotype file"""
+
     dataset = mongoengine.ReferenceField(
         'Dataset',
         db_field="dataset_id")
+    """The dataset ``ObjectID`` in which this BreedAlias is used"""
+
     country = mongoengine.StringField()
+    """The country of the breed in the dataset. Used in multi country
+    datasets"""
 
     def __str__(self):
         return f"{self.fid}: {self.dataset}"
@@ -201,11 +250,22 @@ class BreedAlias(mongoengine.EmbeddedDocument):
 
 class Breed(mongoengine.Document):
     species = mongoengine.StringField(required=True)
+    """The breed species. Should be one of ``Goat`` or ``Sheep``"""
+
     name = mongoengine.StringField(required=True)
+    """The breed name"""
+
     code = mongoengine.StringField(required=True)
+    """The breed code"""
+
     aliases = mongoengine.ListField(
         mongoengine.EmbeddedDocumentField(BreedAlias))
+    """A list of :py:class:`BreedAlias` objects. Required to determine the
+    SMARTER-database breed from the genotype file (which can use a different
+    breed name or code)"""
+
     n_individuals = mongoengine.IntField()
+    """How many samples are the same breed"""
 
     meta = {
         'db_alias': DB_ALIAS,
@@ -312,28 +372,52 @@ class Dataset(mongoengine.Document):
     """Describe a dataset instace with fields owned by data types"""
 
     file = mongoengine.StringField(required=True, unique=True)
+    """The source dataset file"""
+
     uploader = mongoengine.StringField()
+    """The partner which upload this dataset"""
+
     size_ = mongoengine.StringField(db_field="size")
+    """The file size"""
+
     partner = mongoengine.StringField()
+    """The partner which owns the dataset"""
 
     # HINT: should country, species and breeds be a list of items?
     country = mongoengine.StringField()
+    """The country where the data come from. Could have many values"""
+
     species = mongoengine.StringField()
+    """The species of the data. Could be 'Sheep' or 'Goat'"""
+
     breed = mongoengine.StringField()
+    """The breed of the dataset. Could have many values"""
 
     n_of_individuals = mongoengine.IntField()
+    """Number of individual in the dataset"""
+
     n_of_records = mongoengine.IntField()
+    """Number of the record in the phenotype file"""
+
     trait = mongoengine.StringField()
+    """Trait described in phenotype file"""
+
     gene_array = mongoengine.StringField()
+    """The technology used to generate data specified by the partner"""
 
     # add type tag
     type_ = mongoengine.ListField(mongoengine.StringField(), db_field="type")
+    """Dataset type. Need to be one from ``['genotypes', 'phenotypes]``
+    and one from ``['background', 'foreground']``"""
 
     # file contents
     contents = mongoengine.ListField(mongoengine.StringField())
+    """Dataset contents as a list"""
 
     # track the original chip_name with dataset
     chip_name = mongoengine.StringField()
+    """The :py:class:`SupportedChip.name` attribute of the
+    technology used"""
 
     meta = {
         'db_alias': DB_ALIAS,
@@ -378,6 +462,9 @@ class Dataset(mongoengine.Document):
 
 def getNextSequenceValue(
         sequence_name: str, mongodb: database.Database):
+    """Read from :py:class:`Counter` collection and determine the next sequence
+    number to be used for the SMARTER ID"""
+
     # this method is something similar to findAndModify,
     # update a document and after get the UPDATED document
     # https://docs.mongodb.com/manual/reference/method/db.collection.findAndModify/index.html#db.collection.findAndModify
@@ -464,6 +551,8 @@ def getSmarterId(
 
 
 class SEX(bytes, Enum):
+    """An enum object to manage Sample sex in the same way as plink does"""
+
     UNKNOWN = (0, "Unknown")
     MALE = (1, "Male")
     FEMALE = (2, "Female")
@@ -506,8 +595,8 @@ class SEX(bytes, Enum):
 
 
 class Phenotype(mongoengine.DynamicEmbeddedDocument):
-    """A class to deal with Phenotype. A dynamic document and not a generic
-    DictField since that there can be attributes which could be enforced to
+    """A class to deal with phenotypes. This is a dynamic document and not a
+    generic DictField since there can be attributes which could be enforced to
     have certain values. All other attributes could be set without any
     assumptions
     """
@@ -522,25 +611,41 @@ class Phenotype(mongoengine.DynamicEmbeddedDocument):
 
 
 class SAMPLETYPE(Enum):
+    """A simple Enum object to define sample type (``background`` or
+    ``foreground``)"""
+
     FOREGROUND = 'foreground'
     BACKGROUND = 'background'
 
 
 class SampleSpecies(mongoengine.Document):
+    """A generic class used to manage Goat or Sheep samples"""
+
     original_id = mongoengine.StringField(required=True)
+    """The sample original ID in the source dataset"""
+
     smarter_id = mongoengine.StringField(required=True, unique=True)
+    """A SMARTER unique and stable identifier"""
 
     country = mongoengine.StringField(required=True)
+    """Where this samples comes from"""
 
     # generic species type (required to derive other stuff)
     species_class = None
+    """A generic species (Sheep or Goat). Used to determine specific methods
+    and to identify the proper data from the database"""
 
     breed = mongoengine.StringField(required=True)
+    """The breed full name"""
+
     breed_code = mongoengine.StringField(min_length=2)
+    """The breed code"""
 
     # this will be a original_id alias (a different sample name in original
     # data file)
     alias = mongoengine.StringField()
+    """This is a sample alias, mainly the name used in the genotype file, which
+    can be different from the name specified in the metadata file"""
 
     # required to search a sample relying only on original ID
     dataset = mongoengine.ReferenceField(
@@ -548,26 +653,36 @@ class SampleSpecies(mongoengine.Document):
         db_field="dataset_id",
         reverse_delete_rule=mongoengine.DENY
     )
+    """The dataset where this sample come from"""
 
     # add type tag
     type_ = mongoengine.EnumField(SAMPLETYPE, db_field="type", required=True)
+    """A :py:class:`SAMPLETYPE` instance (ie, ``background`` or ``foreground``
+    """
 
     # track the original chip_name with sample
     chip_name = mongoengine.StringField()
+    """The chip name used to define this sample"""
 
     # define enum types for sex
     sex = mongoengine.EnumField(SEX)
+    """A :py:class:`SEX` instance. Store sex like plink does"""
 
     # GPS location
     # NOTE: X, Y where X is longitude, Y latitude
     locations = mongoengine.fields.MultiPointField(
         auto_index=True, default=None)
+    """The sample GPS location as a Point (X, Y -> longitude, latitude). Mind
+    that a location is specified in latitude and longitude coordinates.
+    Specifying coordinates header in general is useful to avoid errors"""
 
     # additional (not modelled) metadata
     metadata = mongoengine.DictField(default=None)
+    """Additional metadata (not managed via ORM)"""
 
     # for phenotypes
     phenotype = mongoengine.EmbeddedDocumentField(Phenotype, default=None)
+    """A :py:class:`Phenotype` instance"""
 
     meta = {
         'abstract': True,
@@ -599,10 +714,14 @@ class SampleSpecies(mongoengine.Document):
 
 
 class SampleSheep(SampleSpecies):
+    """A class specific for Sheep samples"""
+
     species = mongoengine.StringField(required=True, default="Ovis aries")
+    """The species name. Could be something different from ``Ovis aries``"""
 
     # generic species type (required to derive other stuff)
     species_class = "Sheep"
+    """The generic specie class"""
 
     # try to model relationship between samples
     father_id = mongoengine.LazyReferenceField(
@@ -610,12 +729,16 @@ class SampleSheep(SampleSpecies):
         passthrough=True,
         reverse_delete_rule=mongoengine.NULLIFY
     )
+    """The father (SIRE) of this animal. Is a reference to another SampleSheep
+    instance"""
 
     mother_id = mongoengine.LazyReferenceField(
         'SampleSheep',
         passthrough=True,
         reverse_delete_rule=mongoengine.NULLIFY
     )
+    """The mother (DAM) of this animal. Is a reference to another SampleSheep
+    instance"""
 
     meta = {
         'db_alias': DB_ALIAS,
@@ -624,10 +747,14 @@ class SampleSheep(SampleSpecies):
 
 
 class SampleGoat(SampleSpecies):
+    """A class specific for Goat samples"""
+
     species = mongoengine.StringField(required=True, default="Capra hircus")
+    """The species name. Could be something different from ``Capra hircus``"""
 
     # generic species type (required to derive other stuff)
     species_class = "Goat"
+    """The generic specie class"""
 
     # try to model relationship between samples
     father_id = mongoengine.LazyReferenceField(
@@ -635,12 +762,16 @@ class SampleGoat(SampleSpecies):
         passthrough=True,
         reverse_delete_rule=mongoengine.NULLIFY
     )
+    """The father (SIRE) of this animal. Is a reference to another SampleGoat
+    instance"""
 
     mother_id = mongoengine.LazyReferenceField(
         'SampleGoat',
         passthrough=True,
         reverse_delete_rule=mongoengine.NULLIFY
     )
+    """The mother (DAM) of this animal. Is a reference to another SampleGoat
+    instance"""
 
     meta = {
         'db_alias': DB_ALIAS,
@@ -773,27 +904,54 @@ def get_sample_type(dataset: Dataset):
 
 
 class Consequence(mongoengine.EmbeddedDocument):
+    """A class to manage SNP consequences. Not yet implemented"""
     pass
 
 
 class Location(mongoengine.EmbeddedDocument):
+    """A class to deal with a SNP location (ie position in an assembly for
+    a certain chip or data source)"""
+
     ss_id = mongoengine.StringField()
+    """The SNP subission ID"""
+
     version = mongoengine.StringField(required=True)
+    """The assembly version where this SNP is placed"""
+
     chrom = mongoengine.StringField(required=True)
+    """The chromosome where this SNP is located"""
+
     position = mongoengine.IntField(required=True)
+    """The SNP position"""
+
     alleles = mongoengine.StringField()
+    """The dbSNP alleles of such SNP"""
+
     illumina = mongoengine.StringField(required=True)
+    """The SNP code read as it is from illumina data"""
+
     illumina_forward = mongoengine.StringField()
+    """The SNP code in illumina forward coding"""
+
     illumina_strand = mongoengine.StringField()
+    """The probe orientation in alignment"""
+
     affymetrix_ab = mongoengine.StringField()
+    """The SNP code read as it is from affymetrix data"""
+
     strand = mongoengine.StringField()
+    """The strand orientation in aligment"""
+
     imported_from = mongoengine.StringField(required=True)
+    """The source of the SNP data"""
 
     # this could be the manifactured date or the last updated
     date = mongoengine.DateTimeField()
+    """Track manifactured date or when this data was last updated"""
 
     consequences = mongoengine.ListField(
         mongoengine.EmbeddedDocumentField(Consequence), default=None)
+    """A list of SNP consequences (not yet implemented)"""
 
     def __init__(self, *args, **kwargs):
         illumina_top = None
@@ -884,10 +1042,10 @@ class Location(mongoengine.EmbeddedDocument):
 
         Args:
             genotype (list): a list of two alleles (ex ['A','C'])
-            missing (str): missing allele string (def "0")
+            missing (list): a list of missing allele strings (def ["0", "-"])
 
         Returns:
-            bool: True if in top coordinates
+            bool: True if in top coding
         """
 
         return self.__check_coding(genotype, "illumina_top", missing)
@@ -897,10 +1055,10 @@ class Location(mongoengine.EmbeddedDocument):
 
         Args:
             genotype (list): a list of two alleles (ex ['A','C'])
-            missing (str): missing allele string (def "0")
+            missing (list): a list of missing allele strings (def ["0", "-"])
 
         Returns:
-            bool: True if in top coordinates
+            bool: True if in forward coding
         """
 
         return self.__check_coding(genotype, "illumina_forward", missing)
@@ -910,10 +1068,10 @@ class Location(mongoengine.EmbeddedDocument):
 
         Args:
             genotype (list): a list of two alleles (ex ['A','B'])
-            missing (str): missing allele string (def "-")
+            missing (list): a list of missing allele strings (def ["0", "-"])
 
         Returns:
-            bool: True if in top coordinates
+            bool: True if in AB coding
         """
 
         for allele in genotype:
@@ -929,10 +1087,10 @@ class Location(mongoengine.EmbeddedDocument):
 
         Args:
             genotype (list): a list of two alleles (ex ['A','C'])
-            missing (str): missing allele string (def "0")
+            missing (list): a list of missing allele strings (def ["0", "-"])
 
         Returns:
-            bool: True if in top coordinates
+            bool: True if in affymetrix AB coding
         """
 
         return self.__check_coding(genotype, "affymetrix_ab", missing)
@@ -942,7 +1100,7 @@ class Location(mongoengine.EmbeddedDocument):
 
         Args:
             genotype (list): a list of two alleles (ex ['A','C'])
-            missing (str): missing allele string (def "0")
+            missing (list): a list of missing allele strings (def ["0", "-"])
 
         Returns:
             list: The genotype in top format
@@ -973,7 +1131,7 @@ class Location(mongoengine.EmbeddedDocument):
 
         Args:
             genotype (list): a list of two alleles (ex ['A','B'])
-            missing (str): missing allele string (def "-")
+            missing (list): a list of missing allele strings (def ["0", "-"])
 
         Returns:
             list: The genotype in top format
@@ -1004,7 +1162,7 @@ class Location(mongoengine.EmbeddedDocument):
 
         Args:
             genotype (list): a list of two alleles (ex ['A','C'])
-            missing (str): missing allele string (def "0")
+            missing (list): a list of missing allele strings (def ["0", "-"])
 
         Returns:
             list: The genotype in top format
@@ -1032,10 +1190,14 @@ class Location(mongoengine.EmbeddedDocument):
 
 
 class Probeset(mongoengine.EmbeddedDocument):
+    """A class to deal with different affymetrix probesets"""
+
     chip_name = mongoengine.StringField(required=True)
+    """the chip name where this affymetrix probeset comes from"""
 
     # more probe could be assigned to the same SNP
     probeset_id = mongoengine.ListField(mongoengine.StringField())
+    """A list probeset assigned to the same SNP"""
 
     def __str__(self):
         return (
@@ -1044,28 +1206,44 @@ class Probeset(mongoengine.EmbeddedDocument):
 
 
 class VariantSpecies(mongoengine.Document):
+    """Generic class to deal with Variant (SNP) objects"""
+
     rs_id = mongoengine.ListField(mongoengine.StringField(), default=None)
+    """The SNP rsID"""
+
     chip_name = mongoengine.ListField(mongoengine.StringField())
+    """The chip names where this SNP could be found"""
 
     name = mongoengine.StringField(unique=True)
+    """The name of the SNPs. Could be illumina name or affyemtrix name"""
 
     # sequence should model both illumina or affymetrix sequences
     sequence = mongoengine.DictField()
+    """A dictionary where keys are chip_name, and values are their probe
+    sequences"""
 
     # illumina top variant at variant level
     illumina_top = mongoengine.StringField(required=True)
+    """Illumina TOP variant (which is the same indipendently by locations)"""
 
     locations = mongoengine.ListField(
         mongoengine.EmbeddedDocumentField(Location))
+    """A list of :py:class:`Location` objects"""
 
     # HINT: should sender be a Location attribute?
     sender = mongoengine.StringField()
+    """Who provide this SNP probe"""
 
     # Affymetryx specific fields
     probesets = mongoengine.ListField(
         mongoengine.EmbeddedDocumentField(Probeset), default=None)
+    """A list of :py:class:`Probeset` objects"""
+
     affy_snp_id = mongoengine.StringField()
+    """The affymetrix SNP id"""
+
     cust_id = mongoengine.StringField()
+    """The affymetrix customer id (which is the illumina name)"""
 
     # abstract class with custom indexes
     # TODO: need a index for position (chrom, position, version)
@@ -1160,6 +1338,8 @@ class VariantSpecies(mongoengine.Document):
 
 
 class VariantSheep(VariantSpecies):
+    """A class to deal with Sheep variations (SNP)"""
+
     meta = {
         'db_alias': DB_ALIAS,
         'collection': 'variantSheep'
@@ -1167,6 +1347,8 @@ class VariantSheep(VariantSpecies):
 
 
 class VariantGoat(VariantSpecies):
+    """A class to deal with Goat variations (SNP)"""
+
     meta = {
         'db_alias': DB_ALIAS,
         'collection': 'variantGoat'
