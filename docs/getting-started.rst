@@ -120,9 +120,10 @@ So edit the ``database/.env`` file by setting these two variables::
   MONGOEXPRESS_PASS=<smarter mongoexpress password>
 
 The second ``.env`` file need to be located in the **project HOME directory** and
-need to define the credentials required to access the MongoDB instance. Start
-by this template and set your credentials properly in ``$PROJECT_DIR/.env``
-file::
+need to define the credentials required to access the MongoDB instance using a
+new *smarter* user (a user granted to fill up the database and to retrieve information
+to process the genotype files). Start from this template and set your credentials
+properly in ``$PROJECT_DIR/.env`` file::
 
   # Environment variables go here, can be read by `python-dotenv` package:
   #
@@ -174,7 +175,7 @@ Next download, build and initialize the *SMARTER-database* containers with:
   docker-compose build
   docker-compose up -d
 
-Now is time to define create a *smarter* user with the same credentials used in
+Now is time to define create the *smarter* user with the same credentials used in
 your ``$PROJECT_DIR/.env`` environment file. You could do this using *docker-compose*
 commands:
 
@@ -184,15 +185,15 @@ commands:
     --username="${MONGO_INITDB_ROOT_USERNAME}" \
     --password="${MONGO_INITDB_ROOT_PASSWORD}"'
 
-Then from the mongodb terminal create the *smarter* user using the value of ``$MONGODB_SMARTER_PASS``
-variable as the ``pwd`` argument. You require both the *read/write* privileges to
-update and retrieve smarter data:
+Then from the mongodb terminal create the *smarter* user using the values
+of ``$MONGODB_SMARTER_USER`` and ``$MONGODB_SMARTER_PASS`` variables.
+You require both the *read/write* privileges to update and retrieve smarter data:
 
 .. code-block:: javascript
 
   use admin
   db.createUser({
-    user: "smarter",
+    user: "<user>",
     pwd: "<password>",
     roles: [{
       role: "readWrite",
@@ -207,7 +208,7 @@ documentation in the ``$PROJECT_DIR/database`` folder.
 Setting up python environment
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-In order to install all the conda requirements and libraries, move into the project_dir
+In order to install all the conda requirements and libraries, move into the ``$PROJECT_DIR``
 (which is the *SMARTER-database* folder cloned using git) and then install dependencies
 using make:
 
@@ -259,7 +260,7 @@ Process raw data and create the final dataset
 In order to process raw data, insert data into SMARTER database, generate the SMARTER ids
 an create the final genotype dataset files there are manly two steps that are
 managed using ``make`` command. In the first step, you
-will upload all the external information into the database. Simply type (inside
+will upload all the external information into the database: simply type (inside
 the ``SMARTER-database`` conda environment):
 
 .. code-block:: bash
@@ -267,18 +268,19 @@ the ``SMARTER-database`` conda environment):
   make initialize
 
 to upload all the external information on *variants* in the database. Next
-in the second step, you will generate the SMARTER IDS, insert phenotypes and other
-sample related metadata into the database and generate the final dataset files.
-Like before, simply type:
+in the second step, you will process each sample by generating a *SMARTER ID*,
+and you will insert phenotypes and other sample related metadata into the SMARTER
+database. The final output of this step will be the generation of the final genotype
+files. Like before, simply type:
 
 .. code-block:: bash
 
   make data
 
-to generate two plink files, one for *sheep* and one for *goat* respectively,
-with all the genotypes in the same format and assembly version. Those files will be
-placed in the ``data/processed`` folder. Last step in data generation is made
-available with:
+Output data will be placed in a folders relying on the assembly version used,
+with all the genotypes in the same format and using the same reference system.
+Those folders will be placed in the ``data/processed`` folder.
+Last step in data generation is made available with:
 
 .. code-block:: bash
 
@@ -296,19 +298,6 @@ inserted / retrieved from database. This means that you can place here a file
 to be imported into database or you can export a collection outside *SMARTER-database*.
 Here are described how to dump and restore a full *SMARTER-database* instance:
 
-Dump SMARTER-database
-^^^^^^^^^^^^^^^^^^^^^
-
-In order to dump SMARTER database in a file:
-
-.. code-block:: bash
-
-  docker-compose run --rm --user mongodb mongo sh -c 'mongodump --host mongo \
-    --username="${MONGO_INITDB_ROOT_USERNAME}" \
-    --password="${MONGO_INITDB_ROOT_PASSWORD}" --authenticationDatabase admin \
-    --db=smarter --gzip --archive=/home/mongodb/smarter.archive.gz'
-
-
 Restore SMARTER database from a *mongodump* file
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -322,7 +311,27 @@ In order to restore the SMARTER database from a dump file:
     --db=smarter --drop --preserveUUID --gzip \
     --archive=/home/mongodb/smarter.archive.gz'
 
-.. TODO: describe the scripts for importing SNPchimp and Manifest data into database.
+After that, you can login through the *smarter* database by calling the mongodb
+client like this:
+
+.. code-block:: bash
+
+  docker-compose run --rm --user mongodb mongo sh -c 'mongo --host mongo \
+    --username="${MONGO_INITDB_ROOT_USERNAME}" --password="${MONGO_INITDB_ROOT_PASSWORD}" \
+    --authenticationDatabase=admin smarter'
+
+Dump SMARTER-database
+^^^^^^^^^^^^^^^^^^^^^
+
+In order to dump SMARTER database in a file:
+
+.. code-block:: bash
+
+  docker-compose run --rm --user mongodb mongo sh -c 'mongodump --host mongo \
+    --username="${MONGO_INITDB_ROOT_USERNAME}" \
+    --password="${MONGO_INITDB_ROOT_PASSWORD}" --authenticationDatabase admin \
+    --db=smarter --gzip --archive=/home/mongodb/smarter.archive.gz'
+
 
 .. _`Cookiecutter Data Science`: https://drivendata.github.io/cookiecutter-data-science/
 .. _`MongoDB`: https://www.mongodb.com/
