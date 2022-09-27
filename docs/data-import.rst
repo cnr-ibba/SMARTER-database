@@ -29,16 +29,14 @@ with the proper dataset type and input file, like the following example:
 
     python src/data/import_datasets.py \
         --types genotypes background \
-        data/raw/genotypes-bg.csv \
-        data/processed/genotypes-bg.json
+        data/raw/genotypes-bg.csv
 
-the last command argument will be the output file where to store a dump of the
-:py:class:`Dataset <src.features.smarterdb.Dataset>` objects of the same type.
-This command will add this dataset into the SMARTER-database and will unpack
-its content in a folder with the sample *MongoDB* ``ObjectID`` inside the
+This command will add this dataset as a new
+:py:class:`Dataset <src.features.smarterdb.Dataset>` object into the SMARTER-database
+and will unpack its content in a folder with the *MongoDB* ``ObjectID`` inside the
 ``data/interim`` folder. This let you to analyze and process the dataset content
 using the SMARTER-database ``src.features`` code. For more information, see the
 :ref:`import_datasets.py <import_datasets>` help.
 
-Exploring data with Jupyter-lab
+Exploring data with Jupyter Lab
 -------------------------------

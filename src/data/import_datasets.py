@@ -22,20 +22,17 @@ logger = logging.getLogger(__name__)
 
 @click.command()
 @click.argument('input_filepath', type=click.Path(exists=True))
-@click.argument('output_filepath', type=click.Path())
 @click.option(
     '--types', nargs=2, type=str, required=True,
     help=(
         '2 argument types (ex. genotypes background, phenotypes foreground,'
         ' etc)'))
-def main(input_filepath, output_filepath, types):
+def main(input_filepath, types):
     """
     Import a dataset stored in ``data/raw`` folder into the *smarter*
     database and unpack file contents into ``data/interim`` subfolder
 
     INPUT_FILEPATH:  The CSV dataset description file
-
-    OUTPUT_FILEPATH: Dump a JSON of all dataset of the same type
     """
 
     logger.info(f"{Path(__file__).name} started")
@@ -120,11 +117,7 @@ def main(input_filepath, output_filepath, types):
                 else:
                     logger.debug(f"Skipping '{member}': already extracted")
 
-    with open(output_filepath, "w") as handle:
-        # after insert collect all data of the same type
-        handle.write(Dataset.objects.to_json(indent=2))
-
-    logger.info(f"Data written into database and in '{output_filepath}'")
+    logger.info("Data written into database")
 
     logger.info(f"{Path(__file__).name} ended")
 

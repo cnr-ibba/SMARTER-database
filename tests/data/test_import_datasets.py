@@ -42,10 +42,6 @@ class ImportDatasetsTest(MongoMockMixin, unittest.TestCase):
     def test_import_datasets(self, my_raw_dir, my_working_dir):
         # create a temporary directory using the context manager
         with tempfile.TemporaryDirectory() as tmpdirname:
-            # define outputfile
-            output_path = pathlib.Path(tmpdirname)
-            output_file = output_path / "test-genotypes-bg.json"
-
             working_dir = pathlib.Path(tmpdirname)
             raw_dir = DATA_DIR / "raw"
 
@@ -60,7 +56,6 @@ class ImportDatasetsTest(MongoMockMixin, unittest.TestCase):
                     "genotype",
                     "background",
                     str(self.input_file),
-                    str(output_file),
                 ]
             )
 
@@ -102,10 +97,6 @@ class ImportDatasetsTest(MongoMockMixin, unittest.TestCase):
 
         # create a temporary directory using the context manager
         with tempfile.TemporaryDirectory() as tmpdirname:
-            # define outputfile
-            output_path = pathlib.Path(tmpdirname)
-            output_file = output_path / "test-genotypes-bg.json"
-
             working_dir = pathlib.Path(tmpdirname)
             raw_dir = DATA_DIR / "raw"
 
@@ -120,7 +111,6 @@ class ImportDatasetsTest(MongoMockMixin, unittest.TestCase):
                     "genotype",
                     "background",
                     str(self.input_file),
-                    str(output_file),
                 ]
             )
 

@@ -73,12 +73,12 @@ initialize: requirements
 data: requirements
 	## upload datasets into database and unpack archives in interim folder
 	## background data
-	$(PYTHON_INTERPRETER) src/data/import_datasets.py --types genotypes background data/raw/genotypes-bg.csv data/processed/genotypes-bg.json
-	$(PYTHON_INTERPRETER) src/data/import_datasets.py --types phenotypes background data/raw/phenotypes-bg.csv data/processed/phenotypes-bg.json
+	$(PYTHON_INTERPRETER) src/data/import_datasets.py --types genotypes background data/raw/genotypes-bg.csv
+	$(PYTHON_INTERPRETER) src/data/import_datasets.py --types phenotypes background data/raw/phenotypes-bg.csv
 
 	## foreground data
-	$(PYTHON_INTERPRETER) src/data/import_datasets.py --types genotypes foreground data/raw/genotypes-fg.csv data/processed/genotypes-fg.json
-	$(PYTHON_INTERPRETER) src/data/import_datasets.py --types phenotypes foreground data/raw/phenotypes-fg.csv data/processed/phenotypes-fg.json
+	$(PYTHON_INTERPRETER) src/data/import_datasets.py --types genotypes foreground data/raw/genotypes-fg.csv
+	$(PYTHON_INTERPRETER) src/data/import_datasets.py --types phenotypes foreground data/raw/phenotypes-fg.csv
 
 	## upload breeds into database and update aliases
 	$(PYTHON_INTERPRETER) src/data/add_breed.py --species_class sheep --name Texel --code TEX --alias TEXEL_UY --dataset TEXEL_INIA_UY.zip
