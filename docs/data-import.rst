@@ -69,7 +69,7 @@ Then create a new notebook according your needs. Please, see the
 in the `Cookiecutter Data Science <https://drivendata.github.io/cookiecutter-data-science/>`__
 project for more information.
 
-Adding Breeds to the database
+Adding breeds to the database
 -----------------------------
 
 First step of data import is to add breeds in to the database: If the dataset have
@@ -113,3 +113,75 @@ documentation for more information.
     :py:class:`Breed <src.features.smarterdb.Breed>` object with the alias used
     in the first dataset. Every other call on the same breed, will update the same
     object to support also the new alias in the other dataset.
+
+Adding samples to the database
+------------------------------
+
+Samples can be added in two ways: the first is when converting data from genotype
+files, the second is by processing metadata information. The first approach should
+be used when you have a single breed in the whole genotype file, and the breed
+``code`` in the genotype file have already a
+:py:class:`Breed <src.features.smarterdb.Breed>` instance in the SMARTER-database:
+this is the simplest data file, when data belongs to the same country and breed.
+With this situation, you could create samples while processing the genotype
+file simply by adding the ``--create-samples`` flag to the appropriate importing
+script (for more information, see :ref:`Process PLINK-like files`,
+:ref:`Process ILLUMINA ROW files` and :ref:`Process AFFIMETRIX files` sections)
+
+The second approach need to be used when you have different breeds in you genotype
+file, or there are additional information that can't be derived from the genotype
+file, like the country of origin, the sample name or the breed codes which
+could have different values respect to the values stored in the genotype file.
+Other scenario could be *illumina row* or *affymetrix report* files which don't
+track the FID or other types of information outside sample names and genotypes.
+Another case is when your genotype files contains more samples than in the metadata
+file, for example, when you want to track in SMARTER-database only a few samples:
+in all these cases, samples need to be created **before** processing genotypes,
+using the :ref:`import_samples.py <import_samples>` script:
+
+.. code-block:: bash
+
+    python src/data/import_samples.py --src_dataset Affymetrix_data_Plate_652_660.zip \
+        --datafile Affymetrix_data_Plate_652_660/Uruguay_Corriedale_ID_GenotypedAnimals_fix.xlsx \
+        --code_all CRR --id_column "Sample Name" \
+        --chip_name AffymetrixAxiomOviCan --country_all Uruguay \
+        --alias_column "Sample Filename"
+
+like :ref:`import_breeds.py <import_breeds>`, we have ``--src_dataset``
+and ``--datafile`` to indicate where our metadata file is located; if our
+genotype file is located in the same dataset of metadata, we can omit the
+``--dst_dataset`` parameter. Breed codes and country can be set to the same values
+with the ``--code_all`` or ``--country_all`` parameters, or can be read from metadata
+file like the following example:
+
+.. code-block:: bash
+
+    python src/data/import_samples.py --src_dataset greece_foreground_sheep.zip \
+        --dst_dataset AUTH_OVN50KV2_CHIOS_FRIZARTA.zip \
+        --datafile greece_foreground_sheep/AUTH_OVN50KV2_CHIOS_FRIZARTA.xlsx \
+        --code_column breed_code --id_column sample_name \
+        --chip_name IlluminaOvineSNP50 --country_column Country
+
+Please, look at :ref:`import_samples.py <import_samples>` help page to have more
+info about the sample creation process.
+
+Processing genotype files
+-------------------------
+
+Converting genotypes to ILLUMINA TOP
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Process PLINK-like files
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+Process ILLUMINA ROW files
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Process AFFIMETRIX files
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+Adding metadata information
+---------------------------
+
+Merging datasets together
+-------------------------

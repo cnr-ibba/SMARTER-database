@@ -223,7 +223,7 @@ class SmarterMixin():
         dataset : Dataset
             The Dataset instance this sample belong to.
         breed : Breed
-            The Breed instance of thi sample.
+            The Breed instance of this sample.
         sex : SEX
             The sex of this sample (if any).
         father_id : Union[SampleSheep, SampleGoat]
