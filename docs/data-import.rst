@@ -6,8 +6,10 @@ The Data Import Process
 
 When calling the ``make data`` step of SMARTER-database data generation, a series
 of steps are performed in order to process raw data and to generate the final dataset.
-This document tries to describe how the data import process work and how to add
-new data to the SMARTER-database dataset. To add a new dataset into SMARTER-database,
+This document tries to describe how the data import process works and how to add
+new data to the SMARTER-database.
+
+To add a new dataset into SMARTER-database,
 you need to call some script with specific option in some section of the ``Makefile``
 file. The order in which those import scripts are called matters, since importing
 a sample into SMARTER-database means generating a unique ``smarter_id``, which need
@@ -18,7 +20,7 @@ same script twice with the same parameters will produce the same final result.
 Defining a new dataset
 ----------------------
 
-The data import process start by defining a dataset as a zip archive, which could
+The data import process start by defining a dataset as a ``.zip`` archive, which could
 contain *genotype* or *phenotype* information (or other metadata). Dataset can also
 be classified as *foreground* or *background* respectively if they are generated
 in the context of the *SMARTER* project or before it. Accordingly to data source
@@ -41,30 +43,34 @@ This command will add this dataset as a new
 :py:class:`Dataset <src.features.smarterdb.Dataset>` object into the SMARTER-database
 and will unpack its content in a folder with the *MongoDB* ``ObjectID`` inside the
 ``data/interim`` folder. This let you to analyze and process the dataset content
-using the SMARTER-database ``src.features`` code. For more information, see the
+using the SMARTER-database ``src`` code. For more information, see the
 :ref:`import_datasets.py <import_datasets>` help.
 
 Exploring data with Jupyter Lab
 -------------------------------
 
-First step of data-import is *data exploration* using Jupyter Lab: this step require
-manual intervention to understand if data could be imported or if some fixing steps
-are required. Common issues in datasets could
+Before importing genotypes and samples into the SMARTER-database, there is an
+additional *data exploration* step using Jupyter Lab: this step requires
+manual intervention to understand if data could be imported as it is or if some
+fixing steps are required. Common issues in datasets could
 be having different breeds with the same code, or using different codes to specify
-the same breeds. Other issues that can arise when sample names within the genotype
-file are different from the ones used in metadata: In those case, you have to define
-a new metadata file where there will be the proper correct value in correspondence
-of the wrong value. In this step you could check the coding format of genotypes,
+the same breeds. There could be the case where sample names within the genotype
+file are different from the ones used in metadata: in all those cases, you have to define
+a new metadata file where there will be a correspondence between the used value
+and the value to be inserted into the SMARTER-database.
+
+In this data exploration step, you could check also the coding format of genotypes,
 by calling the proper :py:class:`SmarterMixin <src.features.plinkio.SmarterMixin>`
-derived class. In this step you can also integrate metadata relying on external
-data sources or you can fix some stuff related to metadata. Start Jupyter Lab
+derived class. Metadata can also be integrated with external data sources,
+which can be used to fix some stuff related to other metadata. Start Jupyter Lab
 (in an activated conda environment) with:
 
 .. code-block:: bash
 
     jupyter lab
 
-Then create a new notebook according your needs. Please, see the
+Then create a new notebook according your needs. Those notebook can also be used
+after the data ingestion to produce reports about the SMARTER-database status. Please, see the
 `notebook section <https://drivendata.github.io/cookiecutter-data-science/#notebooks-are-for-exploration-and-communication>`__
 in the `Cookiecutter Data Science <https://drivendata.github.io/cookiecutter-data-science/>`__
 project for more information.
@@ -86,8 +92,8 @@ where the ``--species_class`` parameter specifies the source species ``Goat`` or
 ``Sheep``, ``--name`` and ``--code`` specify the breed name and code used in the
 SMARTER-database respectively, the ``--alias`` specifies the FID (the *code*) used
 in the genotype file and the ``--dataset`` parameter specifies the dataset
-sources of the sample we want to add. If you have to manage very different breeds
-in the same submissions, it's better to create breeds from a metadata file. In
+sources of the sample we want to add. If you have to manage many different breeds
+in the same dataset, it's better to create breeds from a metadata file. In
 such case, you can create your new breeds with a different script:
 
 .. code-block:: bash
@@ -125,11 +131,11 @@ be used when you have a single breed in the whole genotype file, and the breed
 this is the simplest data file, when data belongs to the same country and breed.
 With this situation, you could create samples while processing the genotype
 file simply by adding the ``--create-samples`` flag to the appropriate importing
-script (for more information, see :ref:`Process PLINK-like files`,
-:ref:`Process ILLUMINA ROW files` and :ref:`Process AFFIMETRIX files` sections)
+script (for more information, see :ref:`Processing PLINK-like files`,
+:ref:`Processing ILLUMINA ROW files` and :ref:`Processing AFFIMETRIX files` sections)
 
 The second approach need to be used when you have different breeds in you genotype
-file, or there are additional information that can't be derived from the genotype
+file, or when there are additional information that can't be derived from the genotype
 file, like the country of origin, the sample name or the breed codes which
 could have different values respect to the values stored in the genotype file.
 Other scenario could be *illumina row* or *affymetrix report* files which don't
@@ -168,17 +174,102 @@ info about the sample creation process.
 Processing genotype files
 -------------------------
 
+Genotype data is not added into the SMARTER-database, however this data is validated
+*with* SMARTER-database, which track information on SNPs: in fact, genotype data could be
+produced long time ago and with different technologies, so assemblies don't match
+and genotype calls need to be standardized in order to be compared. This is particularly
+true when genotypes are referred according genomic sequence: since the chip probes
+could be aligned to the *forward/reverse* strands, the same SNPs could have different
+genotypes in different assembly versions. In such way, variants need to be standardized
+in order to compare datasets produced in different times with different approaches.
+To accomplish this, variant need to be loaded into database from manifest, and supplementary
+information need to be added into the smarter database: all those steps are managed
+through ``Makefile`` by calling:
+
+.. code-block:: bash
+
+    make initialize
+
+before importing datasets into the SMARTER-database.
+
 Converting genotypes to ILLUMINA TOP
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Process PLINK-like files
-^^^^^^^^^^^^^^^^^^^^^^^^
+All the received genotypes are converted in **illumina TOP** format: this coding
+convention was introduced by Illumina and its main features is that SNP
+orientation is determined from the sequence around the SNP itself. This seems
+complex but has the advantage that the *SNPs remains the same even if the SNP
+database or the genome assembly changes*. In detail, illumina defines as unambiguous
+a SNP with only one of A or T calls: SNPs like A/G or A/C will be TOP snps;
+SNP with T/C and T/G are BOTTOM SNPs. All the other ambiguous cases are determined
+using the sequence walking method: starting from the SNPs itself, take a letter
+after and before and check if the resulting pair is ambiguous or not. If the pair
+is unambiguous, you can classify in TOP/BOTTOM. If the pair is ambiguous take
+the second letter after and before the SNP and check the resulting pair.
+This will be done until we can assign a TOP/BOTTOM coding to the SNP.
 
-Process ILLUMINA ROW files
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. figure:: _static/sequence_walking.png
+    :width: 500
+    :align: center
+    :alt: Illumina sequence walking methods
 
-Process AFFIMETRIX files
-^^^^^^^^^^^^^^^^^^^^^^^^
+    Credits: `Illumina technical notes`_
+
+In this example A/T is ambiguous even if is composed by A and T. The first
+couple taken is unambiguous so we can say that this example SNP is in BOTTOM orientation.
+SMARTER genotypes are converted into illumina TOP: this means that if a SNP is
+already in TOP coding will be used as it is, but all the other cases need to be converted
+into illumina TOP. The following is an example of coding conversion for
+``DU186191_327.1`` SNP:
+
+.. csv-table:: DU186191_327.1 A/G (unambiguous SNP)
+    :file: _static/DU186191_327_to_top.csv
+    :header-rows: 1
+
+In the previous example is easy to convert a SNP into illumina TOP: assumed that the
+TOP genotype is ``A/G``, every time a letter ``T`` or ``C`` is found it need to
+be reversed. But how the snp ``OAR1_103790218.1`` can be converted?
+
+.. csv-table:: OAR1_103790218.1 C/G (ambiguous SNP)
+    :file: _static/OAR1_103790218_to_top.csv
+    :header-rows: 1
+
+This case is more complex since ``C`` call is the complement of ``G``, so you can't
+determine the coding of this genotype. The only way to determine the genotype coding
+of this SNP is to check the coding of the other SNPs in the same dataset. The other
+source of information required is the orientation of the probe to the reference genome.
+Consider samples ``UYOA-CRR-000003890`` and ``GROA-CHI-000004137``: they have the
+same TOP genotype since the probe is aligned to different strands in ``OAR3`` and ``OAR4``
+assemblies, so only one genotype need to be reversed to get a TOP genotype. All the
+information about SNP position and strand orientation are stored in
+:py:class:`Variants <src.features.smarterdb.VariantSpecies>` and
+:py:class:`Locations <src.features.smarterdb.Location>` objects, and can be
+accessed using the proper methods. The genotype conversion is managed by the
+proper :py:class:`SmarterMixin <src.features.plinkio.SmarterMixin>` derived class
+method, called by the proper importing script.
+
+So why convert genotypes into illumina TOP? Because illumina TOP SNPs are identical
+in different genome assemblies, and this means that if you have a new genome
+version you don't need to convert the genotype accordingly to the strand and
+the SNP position, you will need only to update the genomic positions of the SNPs.
+
+To read more about illumina TOP/BOTTOM coding convention, please see
+`illumina technical notes`_ documentation and also
+`Simple guidelines for identifying top/bottom (TOP/BOT) strand and A/B allele <simple_guidelines>`_ and
+`How to interpret DNA strand and allele information for Infinium genotyping array data <illumina_dna_strand>`_.
+
+.. _`illumina technical notes`: https://www.illumina.com/documents/products/technotes/technote_topbot.pdf
+.. _`illumina_simple_guidelines`: https://emea.support.illumina.com/bulletins/2016/06/simple-guidelines-for-identifying-topbottom-topbot-strand-and-ab-allele.html
+.. _`illumina_dna_strand`: https://emea.support.illumina.com/bulletins/2017/06/how-to-interpret-dna-strand-and-allele-information-for-infinium-.html
+
+Processing PLINK-like files
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Processing ILLUMINA ROW files
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Processing AFFIMETRIX files
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Adding metadata information
 ---------------------------
