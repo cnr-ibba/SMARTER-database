@@ -30,6 +30,24 @@ The Makefile contains the central entry points for common tasks related to this 
     :prog: src/data/import_datasets.py
     :nested: full
 
+.. _import_from_affymetrix:
+
+.. click:: src.data.import_from_affymetrix:main
+    :prog: src/data/import_from_affymetrix.py
+    :nested: full
+
+.. _import_from_illumina:
+
+.. click:: src.data.import_from_illumina:main
+    :prog: src/data/import_from_illumina.py
+    :nested: full
+
+.. _import_from_plink:
+
+.. click:: src.data.import_from_plink:main
+    :prog: src/data/import_from_plink.py
+    :nested: full
+
 .. _import_samples:
 
 .. click:: src.data.import_samples:main

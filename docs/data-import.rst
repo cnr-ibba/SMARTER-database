@@ -132,13 +132,13 @@ this is the simplest data file, when data belongs to the same country and breed.
 With this situation, you could create samples while processing the genotype
 file simply by adding the ``--create-samples`` flag to the appropriate importing
 script (for more information, see :ref:`Processing PLINK-like files`,
-:ref:`Processing ILLUMINA ROW files` and :ref:`Processing AFFIMETRIX files` sections)
+:ref:`Processing Illumina report files` and :ref:`Processing Affymetrix files` sections)
 
 The second approach need to be used when you have different breeds in you genotype
 file, or when there are additional information that can't be derived from the genotype
 file, like the country of origin, the sample name or the breed codes which
 could have different values respect to the values stored in the genotype file.
-Other scenario could be *illumina row* or *affymetrix report* files which don't
+Other scenario could be *Illumina report* or *affymetrix report* files which don't
 track the FID or other types of information outside sample names and genotypes.
 Another case is when your genotype files contains more samples than in the metadata
 file, for example, when you want to track in SMARTER-database only a few samples:
@@ -192,7 +192,7 @@ through ``Makefile`` by calling:
 
 before importing datasets into the SMARTER-database.
 
-Converting genotypes to ILLUMINA TOP
+Converting genotypes to Illumina TOP
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 All the received genotypes are converted in **illumina TOP** format: this coding
@@ -252,6 +252,10 @@ So why convert genotypes into illumina TOP? Because illumina TOP SNPs are identi
 in different genome assemblies, and this means that if you have a new genome
 version you don't need to convert the genotype accordingly to the strand and
 the SNP position, you will need only to update the genomic positions of the SNPs.
+For such reason, each genotype importing script has a ``--coding`` option with
+let you to specify the genotype coding of the source file. Source coding will be
+checked against SMARTER-database variant information in order to be converted in
+Illumina TOP coding.
 
 To read more about illumina TOP/BOTTOM coding convention, please see
 `illumina technical notes`_ documentation and also
@@ -265,11 +269,72 @@ To read more about illumina TOP/BOTTOM coding convention, please see
 Processing PLINK-like files
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Processing ILLUMINA ROW files
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Genotypes provided as `PLINK <https://www.cog-genomics.org/plink/1.9/>`__ files
+(both *text* or *binary*) can be imported using the :ref:`import_from_plink.py <import_from_plink>`
+script, like in the following example:
 
-Processing AFFIMETRIX files
+.. code-block:: bash
+
+    python src/data/import_from_plink.py --bfile AUTH_OVN50KV2_CHIOS_FRIZARTA/AUTH_OVN50KV2_CHI_FRI \
+        --dataset AUTH_OVN50KV2_CHIOS_FRIZARTA.zip --coding forward \
+        --chip_name IlluminaOvineSNP50 --assembly OAR3
+
+The ``--bfile/--file`` options (mutually exclusive) let you to specify a file prefix
+(like PLINK does) for a binary/text file respectively. The ``--dataset`` option
+lets to specify which dataset contains the genotype file; ``--coding`` option lets
+to specify source coding (if the provided coding does not match with database data
+the import process will fail). The ``--assembly`` parameter will be the destination
+assembly version of the converted genotypes. There are also other parameter, for
+example when you have source genotypes with *rs_id* or when the source assembly
+is different from the destination assembly. For a full list os such options,
+take a look to :ref:`import_from_plink.py <import_from_plink>` help page.
+
+Processing Illumina report files
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Genotypes provided as Illumina reports need to be processed using another script:
+
+.. code-block:: bash
+
+    python src/data/import_from_illumina.py --report JCM2357_UGY_FinalReport1.txt \
+        --snpfile OvineHDSNPList.txt --dataset CREOLE_INIA_UY.zip --breed_code CRL \
+        --chip_name IlluminaOvineHDSNP --assembly OAR3 --create_samples
+
+In this case the Illumina report file need to be specified with the ``--report``
+option, while the SNPs information file need to be specified with the ``--snpfile``
+option. This command, like :ref:`import_from_plink.py <import_from_plink>` and
+:ref:`import_from_affymetrix.py <import_from_affymetrix>` let to create samples
+while reading from genotypes using the ``--create_samples`` flag. Since illumina
+report files doesn't track information about FID, breed codes need to be specified
+using ``--breed_code`` parameter only for one breed samples file: files with multiple
+breeds can't be imported like this, samples need to be created before with
+:ref:`import_samples.py <import_samples>` in order to retrieve the correct
+information from SMARTER-database. Please see
+:ref:`import_from_illumina.py <import_from_illumina>` manual pages to get other
+information regarding this program.
+
+Processing Affymetrix files
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Affymetrix genotypes can be provided using reports format or PLINK like format
+(which lacks of some columns unlike standard PLINK files). Even in this case,
+there will be a proper script to call and custom parameters to specify:
+
+.. code-block:: bash
+
+    python src/data/import_from_affymetrix.py \
+        --prefix Affymetrix_data_Plate_652_660/Affymetrix_data_Plate_652/Affymetrix_data_Plate_652 \
+        --dataset Affymetrix_data_Plate_652_660.zip --breed_code CRR --chip_name AffymetrixAxiomOviCan \
+        --assembly OAR3 --sample_field alias --src_version Oar_v4.0 --src_imported_from affymetrix
+
+In this example, the ``--prefix`` parameter means load data from a PLINK-like
+file. The other input source type could be specified with the ``--report`` option.
+Other parameters are already been described with other import script, with the
+exception of ``--sample_field``, which let to search samples using a different
+attribute, and the source of the assembly (both ``--src_version`` and
+``--src_imported_from``) which is required to convert genotypes into Illumina
+TOP. For other information, please see the :ref:`import_from_affymetrix.py <import_from_affymetrix>`
+help page.
 
 Adding metadata information
 ---------------------------
