@@ -78,8 +78,8 @@ project for more information.
 Adding breeds to the database
 -----------------------------
 
-First step of data import is to add breeds in to the database: If the dataset have
-one or few breeds, you could define a new breed object by calling
+Before upload samples into SMARTER-database, you have to register the breed first:
+If the dataset have one or few breeds, you could define a new breed object by calling
 :ref:`add_breed.py <add_breed>` like this:
 
 .. code-block:: bash
@@ -89,7 +89,7 @@ one or few breeds, you could define a new breed object by calling
         --dataset TEXEL_INIA_UY.zip
 
 where the ``--species_class`` parameter specifies the source species ``Goat`` or
-``Sheep``, ``--name`` and ``--code`` specify the breed name and code used in the
+``Sheep``, ``--name`` and ``--code`` specify the breed *name* and *code* used in the
 SMARTER-database respectively, the ``--alias`` specifies the FID (the *code*) used
 in the genotype file and the ``--dataset`` parameter specifies the dataset
 sources of the sample we want to add. If you have to manage many different breeds
@@ -106,7 +106,9 @@ such case, you can create your new breeds with a different script:
 
 in such case, we will have a ``--src_dataset`` and ``--dst_dataset`` which let
 to specify the dataset where the metadata information are retrieved (using the
-``--datafile`` option) and the dataset where these information will be applied.
+``--datafile`` option) and the dataset where these information will be applied:
+parameters like these can be provided to other import scripts which rely on
+a metadata file and one or two distinct datasets.
 The other parameters let to specify which columns of the metadata file will be
 used when defining a new breed. See :ref:`import_breeds.py <import_breeds>`
 documentation for more information.
@@ -171,6 +173,16 @@ file like the following example:
 Please, look at :ref:`import_samples.py <import_samples>` help page to have more
 info about the sample creation process.
 
+.. note::
+
+    Samples are always related to their source dataset, so you could have more
+    samples with the same ``original_id`` in SMARTER-database. However, samples
+    need to be unique in the same dataset, otherwise the genotype conversion
+    step will not work. If your dataset contains two or more samples with the
+    same ``original_id``, you could specify an additional column (like the ``alias``)
+    to identify your samples within genotype files
+
+
 Processing genotype files
 -------------------------
 
@@ -180,9 +192,9 @@ produced long time ago and with different technologies, so assemblies don't matc
 and genotype calls need to be standardized in order to be compared. This is particularly
 true when genotypes are referred according genomic sequence: since the chip probes
 could be aligned to the *forward/reverse* strands, the same SNPs could have different
-genotypes in different assembly versions. In such way, variants need to be standardized
+genotypes in different assembly versions. In such way, variants need to be converted
 in order to compare datasets produced in different times with different approaches.
-To accomplish this, variant need to be loaded into database from manifest, and supplementary
+To accomplish this, variants need to be loaded into database from manifest, and supplementary
 information need to be added into the smarter database: all those steps are managed
 through ``Makefile`` by calling:
 
@@ -216,8 +228,8 @@ This will be done until we can assign a TOP/BOTTOM coding to the SNP.
     Credits: `Illumina technical notes`_
 
 In this example A/T is ambiguous even if is composed by A and T. The first
-couple taken is unambiguous so we can say that this example SNP is in BOTTOM orientation.
-SMARTER genotypes are converted into illumina TOP: this means that if a SNP is
+couple taken (T/C) is unambiguous so we can say that this example SNP is in BOTTOM orientation.
+SMARTER genotypes are converted into Illumina TOP: this means that if a SNP is
 already in TOP coding will be used as it is, but all the other cases need to be converted
 into illumina TOP. The following is an example of coding conversion for
 ``DU186191_327.1`` SNP:
@@ -339,5 +351,63 @@ help page.
 Adding metadata information
 ---------------------------
 
+Next step in the data import pipeline is importing metadata into SMARTER-database:
+those data can't be provided in the final genotype file, and so will be made available
+through the `SMARTER-backend <https://webserver.ibba.cnr.it/smarter-api/docs/>`__
+with the help of the `r-smarter-api <https://cnr-ibba.github.io/r-smarter-api/>`__
+R package. There are two main scripts to import metadata:
+:ref:`import_metadata.py <import_metadata>` and :ref:`import_phenotypes.py <import_phenotypes>`.
+:ref:`import_metadata.py <import_metadata>` should be used to import GPS coordinates
+and other generic metadata fields, while :ref:`import_phenotypes.py <import_phenotypes>`
+should be used to import phenotypes. Both two scripts can be used to apply information
+to all the samples belonging to the same breed or to each
+sample belonging to the same datasets, relying on metadata defined for each
+breed group or each distinct sample. For example, to load data with GPS coordinates
+and additional columns you can call :ref:`import_metadata.py <import_metadata>`
+like this:
+
+.. code-block:: bash
+
+    python src/data/import_metadata.py --src_dataset "High density genotypes of French Sheep populations.zip" \
+        --datafile Populations_infos_fix.xlsx --breed_column "Population Name" \
+        --latitude_column Latitude --longitude_column Longitude --metadata_column Link \
+        --metadata_column POP_GROUP_CODE --metadata_column POP_GROUP_NAME
+
+In this example, metadata are applied by breed using the ``--breed_column``.
+Parameters like ``--src_dataset/--dst_dataset`` and ``--dataset`` have the same
+behavior described in :ref:`import_samples.py <import_samples>`. All the additional
+metadata column can be loaded by calling multiple times the ``--metadata_column``
+parameter by providing the desired column in metadata file. Similarly, this
+applies also for :ref:`import_phenotypes.py <import_phenotypes>` as described
+in the following example:
+
+.. code-block:: bash
+
+    python src/data/import_phenotypes.py --src_dataset ADAPTmap_phenotype_20161201.zip \
+    --dst_dataset ADAPTmap_genotypeTOP_20161201.zip \
+    --datafile ADAPTmap_phenotype_20161201/ADAPTmap_InfoSample_20161201_fix.xlsx --id_column ADAPTmap_code \
+    --chest_girth_column ChestGirth --height_column Height --length_column Length \
+    --additional_column FAMACHA --additional_column WidthOfPinBones
+
+This time, phenotype metadata are loaded for each sample, as described by the
+``--id_column`` parameter. Then there are parameters which describe a single
+phenotype trait, like ``--height_column`` or ``--length_column``, while additional
+phenotype traits not described by the :py:class:`Phenotype <src.features.smarterdb.Phenotype>`
+class, can be loaded with the ``--additional_column`` parameter, which can be
+specified multiple times.
+
 Merging datasets together
 -------------------------
+
+Last step of data import is merging all the processed genotype files into one
+dataset for species/assemblies. You can do it by calling :ref:`merge_datasets.py <merge_datasets>`
+like this:
+
+.. code-block:: bash
+
+    python src/data/merge_datasets.py --species_class sheep --assembly OAR3
+
+This script will search all processed genotype files for the same species/assembly
+and will merge all the genotypes in one file. The final genotype will be placed
+in a new directory with the same name of the desired assembly under the ``data/processed``
+directory.

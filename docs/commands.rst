@@ -48,8 +48,26 @@ The Makefile contains the central entry points for common tasks related to this 
     :prog: src/data/import_from_plink.py
     :nested: full
 
+.. _import_metadata:
+
+.. click:: src.data.import_metadata:main
+    :prog: src/data/import_metadata.py
+    :nested: full
+
+.. _import_phenotypes:
+
+.. click:: src.data.import_phenotypes:main
+    :prog: src/data/import_phenotypes.py
+    :nested: full
+
 .. _import_samples:
 
 .. click:: src.data.import_samples:main
     :prog: src/data/import_samples.py
+    :nested: full
+
+.. _merge_datasets:
+
+.. click:: src.data.merge_datasets:main
+    :prog: src/data/merge_datasets.py
     :nested: full

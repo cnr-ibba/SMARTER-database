@@ -279,7 +279,9 @@ files. Like before, simply type:
 
 Output data will be placed in a folders relying on the assembly version used,
 with all the genotypes in the same format and using the same reference system.
-Those folders will be placed in the ``data/processed`` folder.
+Those folders will be placed in the ``data/processed`` folder. For more detailed information
+about all the process called within this step, please see
+:ref:`The Data Import Process` documentation.
 Last step in data generation is made available with:
 
 .. code-block:: bash
