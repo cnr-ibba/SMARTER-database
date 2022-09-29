@@ -13,8 +13,10 @@ TODO
 * Release a *smarter* coordinate version with information on every variant defined
   in database (which will be used as reference)
 * Map affymetrix snps in *OARV3* coordinates
-* define a collection for all available *purpose* phenotypes
+* Define a collection for all available *purpose* phenotypes
 * Check if ``rs_id`` is still valid or not (with EVA)
+* Manage python packages with `poetry <https://python-poetry.org/>`__
+* Remove ``--chip_name`` from import genotypes script (derive it from dataset)
 
 0.4.6 (2022-09-26)
 ------------------
