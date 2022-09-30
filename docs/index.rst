@@ -36,8 +36,8 @@ products of animal origin
 (see `Biscarini et al. 2015 <https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4340267/>`__).
 
 The `SMARTER-database <https://github.com/cnr-ibba/SMARTER-database>`__ GitHub
-project is a collection of tools and script to collect, standardize and provide
-to the partners of the SMARTER Work Package 4 (WP4), and later to the whole community,
+project is a collection of tools and scripts to collect, standardize and provide
+to the partners of the SMARTER Work Package 4 (and later to the whole community)
 a collection of genotype data and metadata information in hardy goat and sheep
 populations by combining new with already existing datasets.
 Those data can be exploited to characterize the genetic diversity and demography

@@ -20,11 +20,16 @@ related to specific breed adaptation to geo-climatic environments.
 New and available data on R&E phenotypic and genotypic information on different
 breeds from partners, from previous projects and from other WPs will be
 used to develop strategies to combine such heterogeneous data. To accomplish this
-task, data need to be standardized and merged and referred to their metadata.
+task, data need to be standardized, merged and then referred to their metadata.
+
 The `SMARTER-database <https://github.com/cnr-ibba/SMARTER-database>`__ project
 is a collection of scripts and code to standardize and integrate information
 in an unique place available to WP4 partners and later to the all
-community.
+community. Processed genotype data will be available through FTP, while
+metadata will be available through the
+`SMARTER-backend <https://webserver.ibba.cnr.it/smarter-api/docs/>`__
+with the help of the `r-smarter-api <https://cnr-ibba.github.io/r-smarter-api/>`__
+R package and `SMARTER-frontend <https://webserver.ibba.cnr.it/smarter/>`__.
 
 This project is structured as described by `Cookiecutter Data Science`_
 documentation: the key idea is to structure a data science project in a standardized
@@ -74,7 +79,7 @@ In order to install *SMARTER-database* project, you need to clone it
 
   git clone https://github.com/cnr-ibba/SMARTER-database.git
 
-Now enter into the smarter cloned directory with ``cd SMARTER-database``: from now
+Now enter into the smarter cloned directory: from now
 and in the rest of this documentation this ``SMARTER-database`` directory will be
 referred as **the project home directory**:
 
@@ -126,7 +131,7 @@ The first ``.env`` file is located inside the ``database`` folder and is require
 in order to start the `MongoDB <https://hub.docker.com/_/mongo>`__
 and `mongoexpress <https://hub.docker.com/_/mongo-express>`__ images
 and to set up the required collections and validation constraints.
-So edit the ``database/.env`` file by setting these two variables::
+So edit the ``$PROJECT_DIR/database/.env`` file by setting these two variables::
 
   MONGODB_ROOT_USER=<smarter root database username>
   MONGODB_ROOT_PASS=<smarter root database password>
@@ -169,13 +174,14 @@ The *MongoDB* instance is managed using ``docker-compose``: database will
 be created and configured when you start the docker container for the first time.
 Local files are written in the ``$PROJECT_DIR/database/mongodb-data`` that will
 persist even when turning down and destroying docker containers . First check
-that the ``database/.env`` file is configured correctly as described by the section
+that the ``$PROJECT_DIR/database/.env`` file is configured correctly as described by the section
 :ref:`before <Configure environment variables>`. Next, in order to avoid annoying
 messages when saving your mongo-client history, set ``mongodb-home`` *sticky dir*
 permission:
 
 .. code-block:: bash
 
+  cd $PROJECT_DIR/database
   chmod o+wt mongodb-home/
 
 This let you to save and see mongodb history using a different user than the
@@ -255,8 +261,8 @@ Initialize and populate SMARTER database
 In order to populate the *SMARTER-database* with data, you need to collect data
 provided by the partners from the `SMARTER repository <https://smarter-wp4.bio.auth.gr/>`__.
 Moreover you have to retrieve and collect information from databases like
-`SNPchimp`_, `Ensembl`_ or `EVA`_. You will need also information from
-*illumina* or *affymetrix* Manifest files in order to deal with different types
+`SNPchiMp`_, `Ensembl`_ or `EVA`_. You will need also information from
+*Illumina* or *Affymetrix* Manifest files in order to deal with different types
 of genotype files. *Raw unprocessed files* and external *sources files* need to be placed
 in their proper folder: all data received by the SMARTER partners need to be placed
 in the ``data/raw`` folder in the SMARTER ``$PROJECT_DIR`` directory, in a ``foreground``
@@ -305,7 +311,7 @@ Last step in data generation is made available with:
   make publish
 
 which will pack your genotype files in order to be shared with other partners using
-the SMARTER ftp repository.
+the SMARTER FTP repository.
 
 Database management through docker-compose
 ------------------------------------------
@@ -354,6 +360,6 @@ In order to dump SMARTER database in a file:
 .. _`Cookiecutter Data Science`: https://drivendata.github.io/cookiecutter-data-science/
 .. _`MongoDB`: https://www.mongodb.com/
 .. _`docker-compose`: https://docs.docker.com/compose/
-.. _`SNPchimp`: http://webserver.ibba.cnr.it/SNPchimp/
+.. _`SNPchiMp`: http://webserver.ibba.cnr.it/SNPchimp/
 .. _`Ensembl`: https://www.ensembl.org/index.html
 .. _`EVA`: https://www.ebi.ac.uk/eva/

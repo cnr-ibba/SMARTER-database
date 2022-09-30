@@ -9,8 +9,8 @@ of steps are performed in order to process raw data and to generate the final da
 This document tries to describe how the data import process works and how to add
 new data to the SMARTER-database.
 
-To add a new dataset into SMARTER-database,
-you need to call some script with specific option in some section of the ``Makefile``
+To add a new dataset into SMARTER-database, you need to call the following scripts
+with specific option in ``data`` section of the ``Makefile``
 file. The order in which those import scripts are called matters, since importing
 a sample into SMARTER-database means generating a unique ``smarter_id``, which need
 to be stable, in order to track the same object when updating the database or
@@ -62,14 +62,14 @@ and the value to be inserted into the SMARTER-database.
 In this data exploration step, you could check also the coding format of genotypes,
 by calling the proper :py:class:`SmarterMixin <src.features.plinkio.SmarterMixin>`
 derived class. Metadata can also be integrated with external data sources,
-which can be used to fix some stuff related to other metadata. Start Jupyter Lab
+which can be used to fix some stuff related to metadata. Start Jupyter Lab
 (in an activated conda environment) with:
 
 .. code-block:: bash
 
     jupyter lab
 
-Then create a new notebook according your needs. Those notebook can also be used
+then create a new notebook according your needs. Those notebook can also be used
 after the data ingestion to produce reports about the SMARTER-database status. Please, see the
 `notebook section <https://drivendata.github.io/cookiecutter-data-science/#notebooks-are-for-exploration-and-communication>`__
 in the `Cookiecutter Data Science <https://drivendata.github.io/cookiecutter-data-science/>`__
@@ -78,7 +78,8 @@ project for more information.
 Adding breeds to the database
 -----------------------------
 
-Before upload samples into SMARTER-database, you have to register the breed first:
+Before upload samples into SMARTER-database, you have to register a
+:py:class:`Breed <src.features.smarterdb.Breed>` first:
 If the dataset have one or few breeds, you could define a new breed object by calling
 :ref:`add_breed.py <add_breed>` like this:
 
@@ -88,8 +89,10 @@ If the dataset have one or few breeds, you could define a new breed object by ca
         --name Texel --code TEX --alias TEXEL_UY \
         --dataset TEXEL_INIA_UY.zip
 
-where the ``--species_class`` parameter specifies the source species ``Goat`` or
-``Sheep``, ``--name`` and ``--code`` specify the breed *name* and *code* used in the
+where the ``--species_class`` parameter specifies the source species (*goat* or
+*sheep*), ``--name`` and ``--code`` specify the breed
+:py:class:`name <src.features.smarterdb.Breed.name>` and
+:py:class:`code <src.features.smarterdb.Breed.code>` used in the
 SMARTER-database respectively, the ``--alias`` specifies the FID (the *code*) used
 in the genotype file and the ``--dataset`` parameter specifies the dataset
 sources of the sample we want to add. If you have to manage many different breeds
@@ -140,9 +143,9 @@ The second approach need to be used when you have different breeds in you genoty
 file, or when there are additional information that can't be derived from the genotype
 file, like the country of origin, the sample name or the breed codes which
 could have different values respect to the values stored in the genotype file.
-Other scenario could be *Illumina report* or *affymetrix report* files which don't
+Other scenarios could be *Illumina report* or *Affymetrix report* files which don't
 track the FID or other types of information outside sample names and genotypes.
-Another case is when your genotype files contains more samples than in the metadata
+Another case is when your genotype files contains more samples than metadata
 file, for example, when you want to track in SMARTER-database only a few samples:
 in all these cases, samples need to be created **before** processing genotypes,
 using the :ref:`import_samples.py <import_samples>` script:
@@ -202,7 +205,8 @@ through ``Makefile`` by calling:
 
     make initialize
 
-before importing datasets into the SMARTER-database.
+before importing datasets into the SMARTER-database. For more information, see
+the :ref:`Loading variants into database` section of this documentation.
 
 Converting genotypes to Illumina TOP
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -210,8 +214,8 @@ Converting genotypes to Illumina TOP
 All the received genotypes are converted in **illumina TOP** format: this coding
 convention was introduced by Illumina and its main features is that SNP
 orientation is determined from the sequence around the SNP itself. This seems
-complex but has the advantage that the *SNPs remains the same even if the SNP
-database or the genome assembly changes*. In detail, illumina defines as unambiguous
+complex but has the advantage that the **SNPs remains the same even if the SNP
+database or the genome assembly changes**. In detail, illumina defines as unambiguous
 a SNP with only one of A or T calls: SNPs like A/G or A/C will be TOP snps;
 SNP with T/C and T/G are BOTTOM SNPs. All the other ambiguous cases are determined
 using the sequence walking method: starting from the SNPs itself, take a letter
@@ -246,7 +250,7 @@ be reversed. But how the snp ``OAR1_103790218.1`` can be converted?
     :file: _static/OAR1_103790218_to_top.csv
     :header-rows: 1
 
-This case is more complex since ``C`` call is the complement of ``G``, so you can't
+This case is more complex since the ``C`` call is the complement of ``G``, so you can't
 determine the coding of this genotype. The only way to determine the genotype coding
 of this SNP is to check the coding of the other SNPs in the same dataset. The other
 source of information required is the orientation of the probe to the reference genome.
@@ -262,12 +266,12 @@ method, called by the proper importing script.
 
 So why convert genotypes into illumina TOP? Because illumina TOP SNPs are identical
 in different genome assemblies, and this means that if you have a new genome
-version you don't need to convert the genotype accordingly to the strand and
-the SNP position, you will need only to update the genomic positions of the SNPs.
+version you don't need to convert the genotype,
+you will need only to update the genomic positions of the SNPs.
 For such reason, each genotype importing script has a ``--coding`` option with
 let you to specify the genotype coding of the source file. Source coding will be
-checked against SMARTER-database variant information in order to be converted in
-Illumina TOP coding.
+checked against SMARTER-database :py:class:`variant <src.features.smarterdb.VariantSpecies>`
+information in order to be converted in Illumina TOP coding.
 
 To read more about illumina TOP/BOTTOM coding convention, please see
 `illumina technical notes`_ documentation and also
@@ -294,7 +298,7 @@ script, like in the following example:
 The ``--bfile/--file`` options (mutually exclusive) let you to specify a file prefix
 (like PLINK does) for a binary/text file respectively. The ``--dataset`` option
 lets to specify which dataset contains the genotype file; ``--coding`` option lets
-to specify source coding (if the provided coding does not match with database data
+to specify the source coding (if the provided coding does not match with database data,
 the import process will fail). The ``--assembly`` parameter will be the destination
 assembly version of the converted genotypes. There are also other parameter, for
 example when you have source genotypes with *rs_id* or when the source assembly
@@ -355,7 +359,8 @@ Next step in the data import pipeline is importing metadata into SMARTER-databas
 those data can't be provided in the final genotype file, and so will be made available
 through the `SMARTER-backend <https://webserver.ibba.cnr.it/smarter-api/docs/>`__
 with the help of the `r-smarter-api <https://cnr-ibba.github.io/r-smarter-api/>`__
-R package. There are two main scripts to import metadata:
+R package and `SMARTER-frontend <https://webserver.ibba.cnr.it/smarter/>`__.
+There are two main scripts to import metadata:
 :ref:`import_metadata.py <import_metadata>` and :ref:`import_phenotypes.py <import_phenotypes>`.
 :ref:`import_metadata.py <import_metadata>` should be used to import GPS coordinates
 and other generic metadata fields, while :ref:`import_phenotypes.py <import_phenotypes>`

@@ -17,6 +17,7 @@ TODO
 * Check if ``rs_id`` is still valid or not (with EVA)
 * Manage python packages with `poetry <https://python-poetry.org/>`__
 * Remove ``--chip_name`` from import genotypes script (derive it from dataset)
+* Capitalize ``species_class`` parameter in ``src.data.import_breeds.py``
 
 0.4.6 (2022-09-26)
 ------------------

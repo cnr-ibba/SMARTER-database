@@ -9,7 +9,7 @@ initialize the MongoDB database by loading variants information. This process
 is independent from the :ref:`data generation <Processing genotype files>` step,
 but those information are used to convert genotype files to the same format and
 produce the final genotype dataset.
-Information on variants need to be loaded for both SMARTER species (*Goat* and *Sheep*)
+Information on variants need to be loaded for both SMARTER species (*goat* and *sheep*)
 in order to do this data conversion. Some accessory information
 are also required, for example ``rs_is``, since the same SNP can be called
 with different names.
@@ -28,9 +28,9 @@ by WGS are retrieved and replaced with the proper Illumina variants when possibl
 in order to make possible the comparison between samples derived from different
 technologies. When genotypes are processed during the
 :ref:`data import process<Processing genotype files>`, variants are retrieved
-relying their names or attributes like genomic positions or ``rs_id``, and genotypes
-are checked against database and then converted with
-:ref:`illumina TOP <Converting genotypes to Illumina TOP>` coding convention.
+relying their names or attributes like genomic positions or ``rs_id``, then genotypes
+are checked against database and converted with
+:ref:`Illumina TOP <Converting genotypes to Illumina TOP>` coding convention.
 
 About supported assemblies
 --------------------------
@@ -47,18 +47,19 @@ genomic positions and genotypes relying only on one evidence: this could introdu
 some errors maybe non present in latest assemblies, however this genome assembly
 is consistent between genotype files, and this let to compare genotypes across
 different dataset produced by different platforms.
+
 When we first upload a SNP, we assign an initial
 :py:class:`Location <src.features.smarterdb.Location>` object with a ``version``
-and ``imported_from`` attribute in which track the genome assembly *version* and
+and ``imported_from`` attributes in which track the genome assembly *version* and
 the *source* of information. This let us to further update the same location, if
 the assembly and the source is the same (for example, with a more recent manifest
 file) or store another :py:class:`Location <src.features.smarterdb.Location>`
 object to manage a new genomic position from a
-different evidence. This let us also to convert from one assembly to another one,
+different evidence. This let us also to switch from one assembly to another one,
 since all the available genomic locations are stored within the SNP itself.
 
-At this time, the genome assemblies we support are ``OAR3`` for *Sheep* and
-``ARS1`` for *Goat* genome: they are not the latest assembly versions, however
+At this time, the genome assemblies we support are ``OAR3`` for *sheep* and
+``ARS1`` for *goat* genome: they are not the latest assembly versions, however
 they are supported by genome browser like `Ensembl <https://www.ensembl.org/index.html>`__
 or `UCSC <https://genome.ucsc.edu/cgi-bin/hgGateway>`__. We plan to support more
 recent assemblies to facilitate the data sharing in the future.
@@ -109,7 +110,7 @@ evidences, or update the same genomic location using a more
 recent manifest file. Since this database is modelled starting from Illumina chips,
 its better to define all the Illumina SNPs before: after that, if an Affymetrix
 chip has a correspondence with a SNP already present, the new location source can be
-integrated with the illumina genotype. To upload SNP from an illumina manifest
+integrated with the Illumina genotype. To upload SNP from an illumina manifest
 file, simply type:
 
 .. code-block:: bash
@@ -118,9 +119,9 @@ file, simply type:
         --manifest data/external/SHE/ILLUMINA/ovinesnp50-genome-assembly-oar-v3-1.csv.gz \
         --chip_name IlluminaOvineSNP50 --version Oar_v3.1 --sender AGR_BS
 
-where the ``--species_class`` must be one of *Sheep* or *Goat* and ``--manifest``,
+where the ``--species_class`` must be one of *sheep* or *goat* and ``--manifest``,
 ``--chip_name`` and ``--version`` need to specify the manifest file location, a
-:py:class:`SupportedChip <src.features.smarterdb.SupportedChip>` ``name`` already
+:py:class:`SupportedChip.name <src.features.smarterdb.SupportedChip.name>` already
 loaded into database and the assembly version. To upload data from an Affymetrix
 manifest file, there's another script:
 
@@ -141,9 +142,9 @@ Another useful source of information come from the `SNPchiMp database <https://w
 which was a project in which SNPs belonging to Affymetrix or Illumina manufacturers
 where loaded with their genome alignment from `dbSNP <https://www.ncbi.nlm.nih.gov/snp/>`__
 database: This lets to convert coordinates and genotypes between different genomic
-assemblies. Unfortunately, after dbSNP release ``151`` SNPs from animals like *Sheep* and *Goat*
+assemblies. Unfortunately, after dbSNP release ``151`` SNPs from animals like *sheep* and *goat*
 are not more managed by NCBI but were transferred to `EBI EVA <https://www.ebi.ac.uk/eva/>`__.
-This implies update importing script data and update database like SNPchiMp. At
+This implies update importing script and update database like SNPchiMp. At
 the moment SNPchiMp data are the main data used from assemblies ``OAR3``, ``OAR4``
 and ``CHI1``, while ``ARS1`` assembly is currently managed from manifest file
 (which is more recent than SNPchiMp). We plan to re-map the probes and to integrate
@@ -164,13 +165,13 @@ Import locations from genome projects
 -------------------------------------
 
 The last source of evidence that is modelled by SMARTER-database comes from
-*Sheep* and *Goat* genome initiatives like `Sheep HapMap <https://www.sheephapmap.org/>`__
+*sheep* and *goat* genome initiatives like `Sheep HapMap <https://www.sheephapmap.org/>`__
 or `VarGoats <http://www.goatgenome.org/vargoats.html>`__, which can re-map chips
 on latest genome assemblies. However, this mapping process can have some issues
 (see `here <https://github.com/cnr-ibba/SMARTER-database/blob/master/notebooks/exploratory/0.15.0-bunop-check_sheep_coordinates.ipynb>`__,
 `here <https://github.com/cnr-ibba/SMARTER-database/blob/master/notebooks/exploratory/0.15.1-bunop-about_sheep_coordinates.ipynb>`__ and
 `here <https://github.com/cnr-ibba/SMARTER-database/blob/master/notebooks/exploratory/0.16.0-bunop-check_goat_coordinates.ipynb>`__
-for example) so this source of evidence need to be revised with *Sheep* and *Goat*
+for example) so this source of evidence need to be revised with *sheep* and *goat*
 genomic projects. To upload this type of information in database, you can do as
 following:
 
