@@ -12,6 +12,20 @@ Getting started
 The SMARTER-database project
 ----------------------------
 
+The SMARTER-database projects is a repository where partners of Work Package 4 (WP4)
+of the `SMARTER project <https://www.smarterproject.eu/>`__ can share their genotype
+and phenotypes data. The main objective of this WP is to quantify the genetic diversity
+in hardy and underutilized breeds and identify signatures of selection
+related to specific breed adaptation to geo-climatic environments.
+New and available data on R&E phenotypic and genotypic information on different
+breeds from partners, from previous projects and from other WPs will be
+used to develop strategies to combine such heterogeneous data. To accomplish this
+task, data need to be standardized and merged and referred to their metadata.
+The `SMARTER-database <https://github.com/cnr-ibba/SMARTER-database>`__ project
+is a collection of scripts and code to standardize and integrate information
+in an unique place available to WP4 partners and later to the all
+community.
+
 This project is structured as described by `Cookiecutter Data Science`_
 documentation: the key idea is to structure a data science project in a standardized
 way. Every folder within the project has a precise scope which is described in both `Cookiecutter Data Science`_
@@ -267,8 +281,10 @@ the ``SMARTER-database`` conda environment):
 
   make initialize
 
-to upload all the external information on *variants* in the database. Next
-in the second step, you will process each sample by generating a *SMARTER ID*,
+to upload all the external information on *variants* in the database. This step
+is described in detail in the :ref:`Loading variants into database` section.
+
+In the next step, you will process each sample by generating a *SMARTER ID*,
 and you will insert phenotypes and other sample related metadata into the SMARTER
 database. The final output of this step will be the generation of the final genotype
 files. Like before, simply type:

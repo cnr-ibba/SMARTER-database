@@ -14,6 +14,8 @@ The Makefile contains the central entry points for common tasks related to this 
     :prog: src/data/add_breed.py
     :nested: full
 
+.. _import_affymetrix:
+
 .. click:: src.data.import_affymetrix:main
     :prog: src/data/import_affymetrix.py
     :nested: full
@@ -22,6 +24,12 @@ The Makefile contains the central entry points for common tasks related to this 
 
 .. click:: src.data.import_breeds:main
     :prog: src/data/import_breeds.py
+    :nested: full
+
+.. _import_consortium:
+
+.. click:: src.data.import_consortium:main
+    :prog: src/data/import_consortium.py
     :nested: full
 
 .. _import_datasets:
@@ -48,6 +56,12 @@ The Makefile contains the central entry points for common tasks related to this 
     :prog: src/data/import_from_plink.py
     :nested: full
 
+.. _import_manifest:
+
+.. click:: src.data.import_manifest:main
+    :prog: src/data/import_manifest.py
+    :nested: full
+
 .. _import_metadata:
 
 .. click:: src.data.import_metadata:main
@@ -64,6 +78,18 @@ The Makefile contains the central entry points for common tasks related to this 
 
 .. click:: src.data.import_samples:main
     :prog: src/data/import_samples.py
+    :nested: full
+
+.. _import_snpchimp:
+
+.. click:: src.data.import_snpchimp:main
+    :prog: src/data/import_snpchimp.py
+    :nested: full
+
+.. _import_snpchips:
+
+.. click:: src.data.import_snpchips:main
+    :prog: src/data/import_snpchips.py
     :nested: full
 
 .. _merge_datasets:

@@ -21,10 +21,12 @@ logger = logging.getLogger(__name__)
 @click.option(
     '--chip_file',
     type=click.Path(exists=True),
-    required=True)
+    required=True,
+    help="The chip description JSON file")
 def main(chip_file):
-    """ Runs data processing scripts to turn raw data from (../raw) into
-        cleaned data ready to be analyzed (saved in ../processed).
+    """
+    Upload chips into :py:class:`src.features.smarterdb.SupportedChip`
+    objects
     """
 
     logger.info(f"{Path(__file__).name} started")

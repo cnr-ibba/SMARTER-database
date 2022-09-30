@@ -97,6 +97,8 @@ def search_database(record, VariantSpecie):
 @click.option('--chip_name', type=str, required=True)
 @click.option('--version', type=str, required=True)
 def main(species_class, manifest, chip_name, version):
+    """Load SNP data from Affymetrix manifest file into SMARTER-database"""
+
     # determining the proper VariantSpecies class
     VariantSpecie = get_variant_species(species_class)
 

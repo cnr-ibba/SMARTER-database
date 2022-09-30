@@ -56,6 +56,7 @@ Documentation Contents
    :maxdepth: 2
 
    getting-started
+   initialize
    data-import
    commands
    modules
