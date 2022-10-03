@@ -1,12 +1,12 @@
 Commands
 ========
 
-The Makefile contains the central entry points for common tasks related to this project::
+.. contents:: Table of Contents
 
-    $ make help
-    $ make create_environment
-    $ conda activate SMARTER-database
-    $ make requirements
+Here are the scripts called during data import by the ``make initialize``
+and ``make data`` commands. For more information, see
+:ref:`The Data Import Process` and :ref:`Loading variants into database`
+documentation sections.
 
 .. _add_breed:
 

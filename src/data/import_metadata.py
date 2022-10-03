@@ -191,6 +191,8 @@ def main(
         src_dataset, dst_dataset, datafile, sheet_name, breed_column,
         id_column, alias_column, latitude_column, longitude_column,
         metadata_column, na_values):
+    """Read data from metadata file and add it to SMARTER-database samples"""
+
     logger.info(f"{Path(__file__).name} started")
 
     if metadata_column:

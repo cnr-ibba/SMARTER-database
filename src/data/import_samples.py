@@ -134,6 +134,8 @@ def main(
         src_dataset, dst_dataset, datafile, code_column, code_all,
         country_column, country_all, species_column, species_all,
         id_column, sex_column, chip_name, alias_column):
+    """Generate samples from a metadata file"""
+
     logger.info(f"{Path(__file__).name} started")
 
     src_dataset, dst_dataset, datapath = deal_with_datasets(
