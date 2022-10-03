@@ -1,6 +1,7 @@
 {
     "esbonio.sphinx.confDir": "",
     "cSpell.words": [
+        "AFFIMETRIX",
         "affymetrix",
         "autoclass",
         "BIOINFO",
@@ -17,6 +18,7 @@
         "pardir",
         "plinkio",
         "SGID",
+        "smarterdb",
         "SNPCHIMP",
         "tabix",
         "vcftools"

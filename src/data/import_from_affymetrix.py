@@ -139,9 +139,20 @@ def deal_with_report(report: str, dataset: Dataset, assembly: str):
     '--breed_code',
     type=str,
     help="A breed code to be assigned on all samples while creating samples")
-@click.option('--chip_name', type=str, required=True)
-@click.option('--assembly', type=str, required=True)
-@click.option('--create_samples', is_flag=True)
+@click.option(
+    '--chip_name',
+    type=str,
+    required=True,
+    help="The SMARTER SupportedChip name")
+@click.option(
+    '--assembly',
+    type=str,
+    required=True,
+    help="Destination assembly of the converted genotypes")
+@click.option(
+    '--create_samples',
+    is_flag=True,
+    help="Create a new SampleSheep or SampleGoat object if doesn't exist")
 @click.option(
     '--sample_field',
     type=str,
@@ -169,8 +180,8 @@ def main(
         create_samples, sample_field, search_field, src_version,
         src_imported_from):
     """
-    Read sample names from affymetrix files and updata smarter database (insert
-    a record if necessary and define a smarter id for each sample)
+    Read genotype data from affymetrix files and convert it
+    to the desidered assembly version using Illumina TOP coding
     """
 
     logger.info(f"{Path(__file__).name} started")

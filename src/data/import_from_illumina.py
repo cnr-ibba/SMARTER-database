@@ -47,8 +47,16 @@ def get_output_files(reportpath: str, working_dir: Path, assembly: str):
     '--dataset', type=str, required=True,
     help="The raw dataset file name (zip archive)"
 )
-@click.option('--snpfile', type=str, required=True)
-@click.option('--report', type=str, required=True)
+@click.option(
+    '--snpfile',
+    type=str,
+    required=True,
+    help="The illumina SNPlist file")
+@click.option(
+    '--report',
+    type=str,
+    required=True,
+    help="The illumina report file")
 @click.option(
     '--coding',
     type=click.Choice(
@@ -61,12 +69,27 @@ def get_output_files(reportpath: str, working_dir: Path, assembly: str):
     '--breed_code',
     type=str,
     help="Assign this FID to every sample in illumina report")
-@click.option('--chip_name', type=str, required=True)
-@click.option('--assembly', type=str, required=True)
-@click.option('--create_samples', is_flag=True)
+@click.option(
+    '--chip_name',
+    type=str,
+    required=True,
+    help="The SMARTER SupportedChip name")
+@click.option(
+    '--assembly',
+    type=str,
+    required=True,
+    help="Destination assembly of the converted genotypes")
+@click.option(
+    '--create_samples',
+    is_flag=True,
+    help="Create a new SampleSheep or SampleGoat object if doesn't exist")
 def main(
         dataset, snpfile, report, coding, breed_code, chip_name, assembly,
         create_samples):
+    """
+    Read genotype data from an Illumina report file and convert it
+    to the desidered assembly version using Illumina TOP coding
+    """
 
     logger.info(f"{Path(__file__).name} started")
 

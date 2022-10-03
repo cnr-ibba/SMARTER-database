@@ -23,9 +23,28 @@ logger = logging.getLogger(__name__)
 
 
 @click.command()
-@click.option('--species_class', type=str, required=True)
-@click.option('--assembly', type=str, required=True)
+@click.option(
+    '--species_class',
+    type=str,
+    required=True,
+    help=(
+        "Search processed genotypes belonging to this species ('Sheep'"
+        "or 'Goat')"
+    )
+)
+@click.option(
+    '--assembly',
+    type=str,
+    required=True,
+    help="Search processed genotypes belonging to this assembly"
+)
 def main(species_class, assembly):
+    """
+    Search for processed genotype files for a certain species in
+    ``data/processed`` folder and then call PLINK to join all genotypes
+    in the same dataset
+    """
+
     logger.info(f"{Path(__file__).name} started")
 
     # find assembly configuration

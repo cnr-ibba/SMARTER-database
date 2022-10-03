@@ -218,6 +218,8 @@ def add_phenotype_by_alias(
 def main(src_dataset, dst_dataset, datafile, sheet_name, breed_column,
          id_column, alias_column, purpose_column, chest_girth_column,
          height_column, length_column, additional_column, na_values):
+    """Read data from phenotype file and add it to SMARTER-database samples"""
+
     logger.info(f"{Path(__file__).name} started")
 
     if additional_column:

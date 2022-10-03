@@ -23,23 +23,48 @@ logger = logging.getLogger(__name__)
 
 
 @click.command()
-@click.option('--species_class', type=str, required=True)
+@click.option(
+    '--species_class',
+    type=str,
+    required=True,
+    help="The generic species of this breed (Sheep or Goat)"
+    )
 @click.option(
     '--src_dataset', type=str, required=True,
     help="The raw dataset file name (zip archive) in which search datafile"
 )
 @click.option(
     '--dst_dataset', type=str, required=False,
-    help=("The raw dataset file name (zip archive) in which define breeds"
+    help=("The raw dataset file name (zip archive) in which define breeds "
           "(def. the 'src_dataset')")
 )
-@click.option('--datafile', type=str, required=True)
-@click.option('--code_column', type=str, default="code")
-@click.option('--breed_column', type=str, default="breed")
-@click.option('--fid_column', type=str)
-@click.option('--country_column', type=str)
+@click.option(
+    '--datafile',
+    type=str,
+    required=True,
+    help="The metadata file in which search for information")
+@click.option(
+    '--code_column',
+    type=str,
+    default="code",
+    help="The name of the breed code column in metadata table")
+@click.option(
+    '--breed_column',
+    type=str,
+    default="breed",
+    help="The name of the breed column in metadata table")
+@click.option(
+    '--fid_column',
+    type=str,
+    help="The name of the FID column used in genotype file")
+@click.option(
+    '--country_column',
+    type=str,
+    help="The name of the country column in metadata table")
 def main(species_class, src_dataset, dst_dataset, datafile, code_column,
          breed_column, fid_column, country_column):
+    """Import breeds from metadata file into SMARTER-database"""
+
     logger.info(f"{Path(__file__).name} started")
 
     src_dataset, dst_dataset, datapath = deal_with_datasets(

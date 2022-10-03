@@ -24,6 +24,8 @@ logger = logging.getLogger(__name__)
 @click.option('--version', type=str, required=True)
 @click.option('--sender', type=str, required=True)
 def main(species_class, manifest, chip_name, version, sender):
+    """Load SNP data from Illumina manifest file into SMARTER-database"""
+
     # determining the proper VariantSpecies class
     VariantSpecie = get_variant_species(species_class)
 

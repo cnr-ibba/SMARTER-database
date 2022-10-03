@@ -123,8 +123,15 @@ def deal_with_binary_plink(bfile: str, dataset: Dataset, assembly: str):
     'Plink input parameters',
     cls=RequiredMutuallyExclusiveOptionGroup
 )
-@optgroup.option('--file', 'file_', type=str)
-@optgroup.option('--bfile', type=str)
+@optgroup.option(
+    '--file',
+    'file_',
+    type=str,
+    help="PLINK text file prefix")
+@optgroup.option(
+    '--bfile',
+    type=str,
+    help="PLINK binary file prefix")
 @click.option(
     '--dataset', type=str, required=True,
     help="The raw dataset file name (zip archive)"
@@ -137,9 +144,20 @@ def deal_with_binary_plink(bfile: str, dataset: Dataset, assembly: str):
     default="top", show_default=True,
     help="Illumina coding format"
 )
-@click.option('--chip_name', type=str, required=True)
-@click.option('--assembly', type=str, required=True)
-@click.option('--create_samples', is_flag=True)
+@click.option(
+    '--chip_name',
+    type=str,
+    required=True,
+    help="The SMARTER SupportedChip name")
+@click.option(
+    '--assembly',
+    type=str,
+    required=True,
+    help="Destination assembly of the converted genotypes")
+@click.option(
+    '--create_samples',
+    is_flag=True,
+    help="Create a new SampleSheep or SampleGoat object if doesn't exist")
 @click.option(
     '--sample_field',
     type=str,
@@ -177,8 +195,9 @@ def deal_with_binary_plink(bfile: str, dataset: Dataset, assembly: str):
 def main(file_, bfile, dataset, coding, chip_name, assembly, create_samples,
          sample_field, search_field, search_by_positions, src_version,
          src_imported_from, ignore_coding_errors):
-    """Read sample names from map/ped files and updata smarter database (insert
-    a record if necessary and define a smarter id for each sample)
+    """
+    Read genotype data from a PLINK file (text or binary) and convert it
+    to the desidered assembly version using Illumina TOP coding
     """
 
     logger.info(f"{Path(__file__).name} started")

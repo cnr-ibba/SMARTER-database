@@ -24,6 +24,8 @@ logger = logging.getLogger(__name__)
 @click.option('--snpchimp', type=str, required=True)
 @click.option('--version', type=str, required=True)
 def main(species_class, snpchimp, version):
+    """Import data from SNPchiMp dump tables"""
+
     # determining the proper VariantSpecies class
     VariantSpecie = get_variant_species(species_class)
 
