@@ -390,6 +390,34 @@ data: requirements
 		--metadata_column storage_conditions --metadata_column ena_url --metadata_column insdc_center_name \
 		--metadata_column sra_accession --metadata_column insdc_secondary_accession --metadata_column dev_stage \
 		--metadata_column description --metadata_column estimated_age --metadata_column sampling_date
+	$(PYTHON_INTERPRETER) src/data/import_metadata.py --src_dataset Smarter_Ids_Uploaded_with_GPSCordinates_FINAL.zip \
+		--dst_dataset CREOLE_INIA_UY.zip --datafile Smarter_Ids_Uploaded_with_GPSCordinates_FINAL_fix.xlsx \
+		--id_column ID --latitude_column Latitude --longitude_column Longitude --metadata_column Stall \
+		--metadata_column GPS_2
+	$(PYTHON_INTERPRETER) src/data/import_metadata.py --src_dataset Smarter_Ids_Uploaded_with_GPSCordinates_FINAL.zip \
+		--dst_dataset CORRIEDALE_INIA_UY.zip --datafile Smarter_Ids_Uploaded_with_GPSCordinates_FINAL_fix.xlsx \
+		--id_column ID --latitude_column Latitude --longitude_column Longitude --metadata_column Stall \
+		--metadata_column GPS_2
+	$(PYTHON_INTERPRETER) src/data/import_metadata.py --src_dataset Smarter_Ids_Uploaded_with_GPSCordinates_FINAL.zip \
+		--dst_dataset MERINO_INIA_UY.zip --datafile Smarter_Ids_Uploaded_with_GPSCordinates_FINAL_fix.xlsx \
+		--id_column ID --latitude_column Latitude --longitude_column Longitude --metadata_column Stall \
+		--metadata_column GPS_2
+	$(PYTHON_INTERPRETER) src/data/import_metadata.py --src_dataset Smarter_Ids_Uploaded_with_GPSCordinates_FINAL.zip \
+		--dst_dataset TEXEL_INIA_UY.zip --datafile Smarter_Ids_Uploaded_with_GPSCordinates_FINAL_fix.xlsx \
+		--id_column ID --latitude_column Latitude --longitude_column Longitude --metadata_column Stall \
+		--metadata_column GPS_2
+	$(PYTHON_INTERPRETER) src/data/import_metadata.py --src_dataset Smarter_Ids_Uploaded_with_GPSCordinates_FINAL.zip \
+		--dst_dataset Placa_Junio_recommended.zip --datafile Smarter_Ids_Uploaded_with_GPSCordinates_FINAL_fix.xlsx \
+		--alias_column ID --latitude_column Latitude --longitude_column Longitude --metadata_column Stall \
+		--metadata_column GPS_2
+	$(PYTHON_INTERPRETER) src/data/import_metadata.py --src_dataset Smarter_Ids_Uploaded_with_GPSCordinates_FINAL.zip \
+		--dst_dataset OP829-924_INIA_Abril.zip --datafile Smarter_Ids_Uploaded_with_GPSCordinates_FINAL_fix.xlsx \
+		--alias_column ID --latitude_column Latitude --longitude_column Longitude --metadata_column Stall \
+		--metadata_column GPS_2
+	$(PYTHON_INTERPRETER) src/data/import_metadata.py --src_dataset Smarter_Ids_Uploaded_with_GPSCordinates_FINAL.zip \
+		--dst_dataset Placas1_4_genotyping.zip --datafile Smarter_Ids_Uploaded_with_GPSCordinates_FINAL_fix.xlsx \
+		--alias_column ID --latitude_column Latitude --longitude_column Longitude --metadata_column Stall \
+		--metadata_column GPS_2
 
 	## add phenotypes to samples
 	$(PYTHON_INTERPRETER) src/data/import_phenotypes.py --src_dataset ADAPTmap_phenotype_20161201.zip \

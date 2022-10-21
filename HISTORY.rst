@@ -19,6 +19,11 @@ TODO
 * Remove ``--chip_name`` from import genotypes script (derive it from dataset)
 * Capitalize ``species_class`` parameter in ``src.data.import_breeds.py``
 
+0.4.7.dev0
+----------
+
+* Update Uruguay metadata locations
+
 0.4.6 (2022-09-26)
 ------------------
 
