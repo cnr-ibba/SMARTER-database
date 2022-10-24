@@ -23,6 +23,7 @@ TODO
 ----------
 
 * Update Uruguay metadata locations
+* Move *Galway* sheep to *Ireland* country (Ovine HapMap)
 
 0.4.6 (2022-09-26)
 ------------------
