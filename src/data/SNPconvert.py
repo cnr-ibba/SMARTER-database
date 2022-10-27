@@ -14,7 +14,8 @@ from pathlib import Path
 from click_option_group import optgroup, RequiredMutuallyExclusiveOptionGroup
 
 from src.features.smarterdb import Dataset, global_connection
-from src.features.plinkio import TextPlinkIO, IlluminaReportIO
+from src.features.plinkio import TextPlinkIO, IlluminaReportIO, BinaryPlinkIO
+from src.features.utils import get_interim_dir
 from src.data.common import WORKING_ASSEMBLIES, PLINK_SPECIES_OPT
 
 # Get an instance of a logger
@@ -27,8 +28,9 @@ class CustomMixin():
             line: list,
             dataset: Dataset,
             coding: str,
-            create_samples: bool = False,
-            sample_field: str = "original_id"):
+            create_sample: bool = False,
+            sample_field: str = "original_id",
+            ignore_coding_errors: bool = False):
 
         self._check_file_sizes(line)
 
@@ -38,7 +40,10 @@ class CustomMixin():
         new_line = line.copy()
 
         # check and fix genotypes if necessary
-        new_line = self._process_genotypes(new_line, coding)
+        new_line = self._process_genotypes(
+            new_line,
+            coding,
+            ignore_coding_errors)
 
         # need to remove filtered snps from ped line
         for index in sorted(self.filtered, reverse=True):
@@ -48,7 +53,12 @@ class CustomMixin():
 
         return new_line
 
+
 class CustomTextPlinkIO(CustomMixin, TextPlinkIO):
+    pass
+
+
+class CustomBinaryPlinkIO(CustomMixin, BinaryPlinkIO):
     pass
 
 
@@ -84,7 +94,7 @@ def deal_with_text_plink(file_: str, assembly: str, species: str):
     mapfile = file_ + ".map"
     pedfile = file_ + ".ped"
 
-    working_dir = Path.cwd()
+    working_dir = get_interim_dir()
 
     # instantiating a TextPlinkIO object
     plinkio = CustomTextPlinkIO(
@@ -102,10 +112,32 @@ def deal_with_text_plink(file_: str, assembly: str, species: str):
     return plinkio, output_dir, output_map, output_ped
 
 
+def deal_with_binary_plink(bfile: str, assembly: str, species: str):
+    # check for working directory
+    working_dir = get_interim_dir()
+
+    # determine full file paths
+    bfilepath = working_dir / bfile
+
+    # instantiating a BinaryPlinkIO object
+    plinkio = CustomBinaryPlinkIO(
+        prefix=str(bfilepath),
+        species=species
+    )
+
+    plinkio.read_mapfile()
+
+    # determine output files
+    output_dir, output_map, output_ped = get_output_files(
+        bfile, working_dir, assembly)
+
+    return plinkio, output_dir, output_map, output_ped
+
+
 def deal_with_illumina(
         report: str, snpfile: str, assembly: str, species: str):
 
-    working_dir = Path.cwd()
+    working_dir = get_interim_dir()
 
     plinkio = CustomIlluminaReportIO(
         snpfile=snpfile,
@@ -142,22 +174,23 @@ def deal_with_illumina(
 @click.option('--assembly', type=str, required=True)
 @click.option('--species', type=str, required=True)
 @click.option('--results_dir', type=str, required=True)
-def main(file_, bfile, report, snpfile, coding, assembly, species, 
-        results_dir):
+def main(file_, bfile, report, snpfile, coding, assembly, species,
+         results_dir):
     logger.info(f"{Path(__file__).name} started")
 
     # find assembly configuration
     if assembly not in WORKING_ASSEMBLIES:
         raise Exception(f"assembly {assembly} not managed by smarter")
 
-    assembly_conf = WORKING_ASSEMBLIES[assembly]
+    src_assembly = WORKING_ASSEMBLIES[assembly]
 
     if file_:
         plinkio, output_dir, output_map, output_ped = deal_with_text_plink(
             file_, assembly, species)
 
     elif bfile:
-        raise NotImplementedError("Plink binary files not yet supported")
+        plinkio, output_dir, output_map, output_ped = deal_with_binary_plink(
+            bfile, assembly, species)
 
     elif report:
         if not snpfile:
@@ -177,15 +210,19 @@ def main(file_, bfile, report, snpfile, coding, assembly, species,
 
     # fetch coordinates relying assembly configuration
     plinkio.fetch_coordinates(
-        version=assembly_conf.version,
-        imported_from=assembly_conf.imported_from
+        src_assembly=src_assembly,
     )
 
     logger.info("Writing a new map file with updated coordinates")
     plinkio.update_mapfile(str(output_map))
 
     logger.info("Writing a new ped file with fixed genotype")
-    plinkio.update_pedfile(output_ped, None, coding, create_samples=False)
+    plinkio.update_pedfile(
+        outputfile=output_ped,
+        dataset=None,
+        coding=coding,
+        create_samples=False,
+    )
 
     # ok time to convert data in plink binary format
     cmd = ["plink"] + PLINK_SPECIES_OPT[species] + [
