@@ -11,12 +11,14 @@ import logging
 import subprocess
 
 from pathlib import Path
-from click_option_group import optgroup, RequiredMutuallyExclusiveOptionGroup
+from click_option_group import (
+    optgroup, RequiredMutuallyExclusiveOptionGroup,
+    MutuallyExclusiveOptionGroup)
 
 from src.features.smarterdb import Dataset, global_connection
 from src.features.plinkio import TextPlinkIO, IlluminaReportIO, BinaryPlinkIO
 from src.features.utils import get_interim_dir
-from src.data.common import WORKING_ASSEMBLIES, PLINK_SPECIES_OPT
+from src.data.common import WORKING_ASSEMBLIES, PLINK_SPECIES_OPT, AssemblyConf
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -174,15 +176,56 @@ def deal_with_illumina(
 @click.option('--assembly', type=str, required=True)
 @click.option('--species', type=str, required=True)
 @click.option('--results_dir', type=str, required=True)
-def main(file_, bfile, report, snpfile, coding, assembly, species,
-         results_dir):
+@click.option(
+    '--chip_name',
+    type=str,
+    help="The SMARTER SupportedChip name")
+@optgroup.group(
+    'Variant Search Type',
+    cls=MutuallyExclusiveOptionGroup
+)
+@optgroup.option(
+    '--search_field',
+    type=str,
+    default="name",
+    show_default=True,
+    help='search variants using this field')
+@optgroup.option(
+    '--search_by_positions',
+    is_flag=True,
+    help='search variants using their positions')
+@click.option(
+    '--src_version',
+    type=str,
+    help="Source assembly version")
+@click.option(
+    '--src_imported_from',
+    type=str,
+    help="Source assembly imported_from")
+@click.option(
+    '--ignore_coding_errors',
+    is_flag=True,
+    help=(
+        'set SNP as missing when there are coding errors '
+        '(no more CodingException)'))
+def main(file_, bfile, report, snpfile, coding, assembly, species, chip_name,
+         results_dir, search_field, search_by_positions, src_version,
+         src_imported_from, ignore_coding_errors):
     logger.info(f"{Path(__file__).name} started")
 
     # find assembly configuration
     if assembly not in WORKING_ASSEMBLIES:
         raise Exception(f"assembly {assembly} not managed by smarter")
 
-    src_assembly = WORKING_ASSEMBLIES[assembly]
+    src_assembly, dst_assembly = None, None
+
+    if src_version and src_imported_from:
+        src_assembly = AssemblyConf(src_version, src_imported_from)
+        logger.info(f"Got '{src_assembly} as source assembly'")
+        dst_assembly = WORKING_ASSEMBLIES[assembly]
+
+    else:
+        src_assembly = WORKING_ASSEMBLIES[assembly]
 
     if file_:
         plinkio, output_dir, output_map, output_ped = deal_with_text_plink(
@@ -209,9 +252,21 @@ def main(file_, bfile, report, snpfile, coding, assembly, species,
     # if I arrive here, I can create output files
 
     # fetch coordinates relying assembly configuration
-    plinkio.fetch_coordinates(
-        src_assembly=src_assembly,
-    )
+    if search_by_positions:
+        # fetch variants relying positions
+        plinkio.fetch_coordinates_by_positions(
+            src_assembly=src_assembly,
+            dst_assembly=dst_assembly
+        )
+
+    else:
+        # fetch coordinates relying assembly configuration
+        plinkio.fetch_coordinates(
+            src_assembly=src_assembly,
+            dst_assembly=dst_assembly,
+            search_field=search_field,
+            chip_name=chip_name
+        )
 
     logger.info("Writing a new map file with updated coordinates")
     plinkio.update_mapfile(str(output_map))
@@ -222,6 +277,7 @@ def main(file_, bfile, report, snpfile, coding, assembly, species,
         dataset=None,
         coding=coding,
         create_samples=False,
+        ignore_coding_errors=ignore_coding_errors
     )
 
     # ok time to convert data in plink binary format
