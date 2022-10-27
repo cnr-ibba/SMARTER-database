@@ -8,6 +8,7 @@ Created on Mon Oct 18 13:55:46 2021
 
 import click
 import logging
+import tempfile
 import subprocess
 
 from pathlib import Path
@@ -17,7 +18,6 @@ from click_option_group import (
 
 from src.features.smarterdb import Dataset, global_connection
 from src.features.plinkio import TextPlinkIO, IlluminaReportIO, BinaryPlinkIO
-from src.features.utils import get_interim_dir
 from src.data.common import WORKING_ASSEMBLIES, PLINK_SPECIES_OPT, AssemblyConf
 
 # Get an instance of a logger
@@ -74,10 +74,10 @@ class CustomIlluminaReportIO(CustomMixin, IlluminaReportIO):
         return super().read_reportfile("0", dataset, *args, **kwargs)
 
 
-def get_output_files(prefix: str, working_dir: Path, assembly: str):
+def get_output_files(prefix: str, assembly: str):
     # create output directory
-    output_dir = working_dir / assembly
-    output_dir.mkdir(exist_ok=True)
+    working_dir = tempfile.mkdtemp()
+    output_dir = Path(working_dir)
 
     # determine map outputfile. get the basename of the prefix
     prefix = Path(prefix)
@@ -96,8 +96,6 @@ def deal_with_text_plink(file_: str, assembly: str, species: str):
     mapfile = file_ + ".map"
     pedfile = file_ + ".ped"
 
-    working_dir = get_interim_dir()
-
     # instantiating a TextPlinkIO object
     plinkio = CustomTextPlinkIO(
         mapfile=mapfile,
@@ -108,39 +106,28 @@ def deal_with_text_plink(file_: str, assembly: str, species: str):
     plinkio.read_mapfile()
 
     # determine output files
-    output_dir, output_map, output_ped = get_output_files(
-        file_, working_dir, assembly)
+    output_dir, output_map, output_ped = get_output_files(file_, assembly)
 
     return plinkio, output_dir, output_map, output_ped
 
 
 def deal_with_binary_plink(bfile: str, assembly: str, species: str):
-    # check for working directory
-    working_dir = get_interim_dir()
-
-    # determine full file paths
-    bfilepath = working_dir / bfile
-
     # instantiating a BinaryPlinkIO object
     plinkio = CustomBinaryPlinkIO(
-        prefix=str(bfilepath),
+        prefix=bfile,
         species=species
     )
 
     plinkio.read_mapfile()
 
     # determine output files
-    output_dir, output_map, output_ped = get_output_files(
-        bfile, working_dir, assembly)
+    output_dir, output_map, output_ped = get_output_files(bfile, assembly)
 
     return plinkio, output_dir, output_map, output_ped
 
 
 def deal_with_illumina(
         report: str, snpfile: str, assembly: str, species: str):
-
-    working_dir = get_interim_dir()
-
     plinkio = CustomIlluminaReportIO(
         snpfile=snpfile,
         report=report,
@@ -151,7 +138,7 @@ def deal_with_illumina(
 
     # determine output files
     output_dir, output_map, output_ped = get_output_files(
-        Path(report).stem, working_dir, assembly)
+        Path(report).stem, assembly)
 
     return plinkio, output_dir, output_map, output_ped
 
