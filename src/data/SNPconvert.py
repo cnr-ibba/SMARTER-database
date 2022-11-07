@@ -66,12 +66,12 @@ class CustomBinaryPlinkIO(CustomMixin, BinaryPlinkIO):
 
 class CustomIlluminaReportIO(CustomMixin, IlluminaReportIO):
     def read_reportfile(
-            self, dataset: Dataset = None, *args, **kwargs):
+            self, breed="0", dataset: Dataset = None, *args, **kwargs):
         """Custom Open illumina report returns iterator"""
 
         logger.debug("Custom 'read_reportfile' called")
 
-        return super().read_reportfile("0", dataset, *args, **kwargs)
+        return super().read_reportfile(breed, dataset, *args, **kwargs)
 
 
 def get_output_files(prefix: str, assembly: str):
