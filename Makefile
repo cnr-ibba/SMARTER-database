@@ -418,6 +418,10 @@ data: requirements
 		--dst_dataset Placas1_4_genotyping.zip --datafile Smarter_Ids_Uploaded_with_GPSCordinates_FINAL_fix.xlsx \
 		--alias_column ID --latitude_column Latitude --longitude_column Longitude --metadata_column Stall \
 		--metadata_column GPS_2
+	$(PYTHON_INTERPRETER) src/data/import_metadata.py --src_dataset Smarter_Ids_Uploaded_with_GPSCordinates_FINAL.zip \
+		--dst_dataset Affymetrix_data_Plate_652_660.zip --datafile Smarter_Ids_Uploaded_with_GPSCordinates2_FINAL_fix.xlsx \
+		--alias_column "Sample Filename" --latitude_column Latitude --longitude_column Longitude --metadata_column Stall \
+		--metadata_column GPS_2
 
 	## add phenotypes to samples
 	$(PYTHON_INTERPRETER) src/data/import_phenotypes.py --src_dataset ADAPTmap_phenotype_20161201.zip \
