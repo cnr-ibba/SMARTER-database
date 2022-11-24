@@ -1250,6 +1250,24 @@ class AffyReportIOMapTest(
 
         self.assertListEqual(plinkio.get_samples(), ["1_test", "2_test"])
 
+    def test_get_samples(self):
+        """Test getting samples from report file"""
+
+        self.plinkio.read_reportfile()
+        test = self.plinkio.get_samples()
+        reference = ["test-one", "test-two"]
+
+        self.assertEqual(reference, test)
+
+    def test_get_samples_limit(self):
+        """Test getting samples from report file by limiting number"""
+
+        self.plinkio.read_reportfile(n_samples=1)
+        test = self.plinkio.get_samples()
+        reference = ["test-one"]
+
+        self.assertEqual(reference, test)
+
     def test_fetch_coordinates(self):
         self.plinkio.read_reportfile()
         self.plinkio.fetch_coordinates(
@@ -1442,14 +1460,6 @@ class AffyReportIOPedTest(
 
             # assert two records written
             self.assertEqual(len(list(test.read_pedfile())), 2)
-
-    def test_get_samples(self):
-        """Test getting samples from genotype file"""
-
-        test = self.plinkio.get_samples()
-        reference = ["test-one", "test-two"]
-
-        self.assertEqual(reference, test)
 
 
 if __name__ == '__main__':

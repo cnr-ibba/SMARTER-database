@@ -1364,10 +1364,21 @@ class AffyReportIO(FakePedMixin, SmarterMixin):
             # get header
             return next(reader)
 
-    def read_reportfile(self):
+    def read_reportfile(self, n_samples: int = None, *args, **kwargs):
         """
         Read reportfile once and generate mapdata and pedata, with genotype
         informations by sample.
+
+        Parameters
+        ----------
+        n_samples : int, optional
+            Limit to N samples. Useful when there are different number of
+            samples from reported in file. The default is None (read number
+            of samples from reportfile).
+        *args : TYPE
+            DESCRIPTION.
+        **kwargs : TYPE
+            DESCRIPTION.
 
         Returns
         -------
@@ -1382,10 +1393,10 @@ class AffyReportIO(FakePedMixin, SmarterMixin):
         self.genotypes = []
 
         # those informations are required to define the pedfile
-        n_samples = None
         n_snps = None
         size = None
         header = None
+        initialized = False
 
         # an index to track SNP accross peddata
         snp_idx = 0
@@ -1394,8 +1405,10 @@ class AffyReportIO(FakePedMixin, SmarterMixin):
         # same time
         for row in read_affymetrixRow(self.report, delimiter=self.delimiter):
             # first determine how many SNPs and samples I have
-            if not n_samples and not n_snps:
-                n_samples = row.n_samples
+            if not initialized:
+                if not n_samples:
+                    n_samples = row.n_samples
+
                 n_snps = row.n_snps
 
                 # read the original header from report file
@@ -1409,6 +1422,9 @@ class AffyReportIO(FakePedMixin, SmarterMixin):
                 # read them from the original header row
                 for i in range(n_samples):
                     self.peddata[i][1] = header[i+1]
+
+                # change flag value
+                initialized = True
 
             # track SNP in mapdata
             self.mapdata.append(MapRecord(
