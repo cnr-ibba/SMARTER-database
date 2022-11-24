@@ -206,7 +206,7 @@ def read_affymetrixRow(path: Path, delimiter="\t") -> collections.namedtuple:
             del header[index]
 
         # define a namedtuple istance
-        Record = collections.namedtuple("Record", header)
+        Record = collections.namedtuple("Record", header, rename=True)
 
         # get record and delete duplicate column
         for record in reader:

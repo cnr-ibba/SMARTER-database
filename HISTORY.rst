@@ -22,6 +22,8 @@ TODO
 0.4.7.dev0
 ----------
 
+* Support *invalid python names* in ``src.features.affymetrix.read_affymetrixRow``
+* Update requirements
 * Deal with missing files in ``import_datasets.py``
 * Update Uruguay metadata locations
 * Move *Galway* sheep to *Ireland* country (Ovine HapMap)

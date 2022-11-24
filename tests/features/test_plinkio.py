@@ -1232,6 +1232,24 @@ class AffyReportIOMapTest(
         for record in self.plinkio.mapdata:
             self.assertIsInstance(record, MapRecord)
 
+    def test_mapdata_rename(self):
+        """Test for mapdata after reading reportfile with invalid python
+        names"""
+
+        plinkio = AffyReportIO(
+            report=DATA_DIR / "affyreport_numeric.txt",
+            species="Sheep",
+            chip_name=self.chip_name
+        )
+
+        plinkio.read_reportfile()
+        self.assertIsInstance(plinkio.mapdata, list)
+        self.assertEqual(len(plinkio.mapdata), 3)
+        for record in plinkio.mapdata:
+            self.assertIsInstance(record, MapRecord)
+
+        self.assertListEqual(plinkio.get_samples(), ["1_test", "2_test"])
+
     def test_fetch_coordinates(self):
         self.plinkio.read_reportfile()
         self.plinkio.fetch_coordinates(
