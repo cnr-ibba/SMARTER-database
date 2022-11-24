@@ -22,6 +22,7 @@ TODO
 0.4.7.dev0
 ----------
 
+* Deal with missing files in ``import_datasets.py``
 * Update Uruguay metadata locations
 * Move *Galway* sheep to *Ireland* country (Ovine HapMap)
 
