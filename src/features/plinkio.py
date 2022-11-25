@@ -1334,6 +1334,9 @@ class AffyReportIO(FakePedMixin, SmarterMixin):
     report = None
     peddata = []
     delimiter = "\t"
+    warn_missing_cols = True
+    header = []
+    n_samples = None
 
     def __init__(
             self,
@@ -1362,7 +1365,57 @@ class AffyReportIO(FakePedMixin, SmarterMixin):
             reader = csv.reader(handle, delimiter=self.delimiter)
 
             # get header
-            return next(reader)
+            self.header = next(reader)
+
+    def __warn_missing_column(self, row, columns=[]):
+        if self.warn_missing_cols:
+            for col in columns:
+                if not hasattr(row, col):
+                    logger.warning(
+                        f"Missing '{col}' column in reportfile!")
+
+    def __process_probeset(self, row, snp_idx):
+        # track SNP in mapdata
+        try:
+            self.mapdata.append(MapRecord(
+                row.chr_id, row.probeset_id, 0, row.start))
+
+        except AttributeError as exc:
+            logger.debug(exc)
+            self.__warn_missing_column(row, ["chr_id", "start"])
+
+            # maybe there are missing columns, try to define a MapRecord
+            # with at least probeset id
+            self.mapdata.append(MapRecord(
+                0, row.probeset_id, 0, 0))
+
+        # track A/B genotype
+        try:
+            self.genotypes.append(f"{row.allele_a}/{row.allele_b}")
+
+        except AttributeError as exc:
+            logger.debug(exc)
+            self.__warn_missing_column(row, ["allele_a", "allele_b"])
+
+            # track a missing genotype
+            # TODO: need to skip genotype checking somewhere
+            self.genotypes.append("-/-")
+
+        # track genotypes in the proper column (skip the first 6 columns)
+        for i in range(self.n_samples):
+            call = row[i+1]
+
+            # mind to missing values
+            if call == "NoCall":
+                logger.debug(
+                    f"Skipping SNP {snp_idx}: "
+                    f"'{self.mapdata[snp_idx].name}' for sample "
+                    f"'{self.header[i+1]}' ({call})")
+                continue
+
+            genotype = list(call)
+            self.peddata[i][6+snp_idx*2] = genotype[0]
+            self.peddata[i][6+snp_idx*2+1] = genotype[1]
 
     def read_reportfile(self, n_samples: int = None, *args, **kwargs):
         """
@@ -1388,6 +1441,9 @@ class AffyReportIO(FakePedMixin, SmarterMixin):
         self.mapdata = []
         self.peddata = []
 
+        # update samples number with received argument
+        self.n_samples = n_samples
+
         # I want to track also the AB genotypes, to check them while fetching
         # coordinates
         self.genotypes = []
@@ -1395,95 +1451,47 @@ class AffyReportIO(FakePedMixin, SmarterMixin):
         # those informations are required to define the pedfile
         n_snps = None
         size = None
-        header = None
         initialized = False
 
         # an index to track SNP accross peddata
         snp_idx = 0
 
         # warning user once
-        warn_missing_cols = True
+        self.warn_missing_cols = True
 
         # try to returns something like a ped row and derive map data in the
         # same time
         for row in read_affymetrixRow(self.report, delimiter=self.delimiter):
             # first determine how many SNPs and samples I have
             if not initialized:
-                if not n_samples:
-                    n_samples = row.n_samples
+                if not self.n_samples:
+                    self.n_samples = row.n_samples
 
                 n_snps = row.n_snps
 
                 # read the original header from report file
-                header = self.__get_header()
+                self.__get_header()
 
                 # ok create a ped data object with the required dimensions
                 size = 6 + 2 * n_snps
-                self.peddata = [["0"] * size for i in range(n_samples)]
+                self.peddata = [["0"] * size for i in range(self.n_samples)]
 
                 # track sample names in row. First column is probeset id
                 # read them from the original header row
-                for i in range(n_samples):
-                    self.peddata[i][1] = header[i+1]
+                for i in range(self.n_samples):
+                    self.peddata[i][1] = self.header[i+1]
 
                 # change flag value
                 initialized = True
 
-            # track SNP in mapdata
-            try:
-                self.mapdata.append(MapRecord(
-                    row.chr_id, row.probeset_id, 0, row.start))
-
-            except AttributeError as exc:
-                logger.debug(exc)
-
-                if warn_missing_cols:
-                    for col in ["chr_id", "start"]:
-                        if not hasattr(row, col):
-                            logger.warning(
-                                f"Missing '{col}' column in reportfile!")
-
-                # maybe there are missing columns, try to define a MapRecord
-                # with at least probeset id
-                self.mapdata.append(MapRecord(
-                    0, row.probeset_id, 0, 0))
-
-            # track A/B genotype
-            try:
-                self.genotypes.append(f"{row.allele_a}/{row.allele_b}")
-
-            except AttributeError as exc:
-                logger.debug(exc)
-
-                if warn_missing_cols:
-                    for col in ["allele_a", "allele_b"]:
-                        if not hasattr(row, col):
-                            logger.warning(
-                                f"Missing '{col}' column in reportfile!")
-
-                self.genotypes.append("-/-")
-
-            # track genotypes in the proper column (skip the first 6 columns)
-            for i in range(n_samples):
-                call = row[i+1]
-
-                # mind to missing values
-                if call == "NoCall":
-                    logger.debug(
-                        f"Skipping SNP {snp_idx}: "
-                        f"'{self.mapdata[snp_idx].name}' for sample "
-                        f"'{header[i+1]}' ({call})")
-                    continue
-
-                genotype = list(call)
-                self.peddata[i][6+snp_idx*2] = genotype[0]
-                self.peddata[i][6+snp_idx*2+1] = genotype[1]
+            # deal with a single probeset_id
+            self.__process_probeset(row, snp_idx)
 
             # update SNP column
             snp_idx += 1
 
-            # update flag for missing columns
-            warn_missing_cols = False
+            # no more reporting warnings after first row
+            self.warn_missing_cols = False
 
     def fetch_coordinates(
             self,
