@@ -22,6 +22,8 @@ TODO
 0.4.7.dev0
 ----------
 
+* Skip sample creation when there's no alias
+* Support for missing columns in affymetrix report files
 * Support *invalid python names* in ``src.features.affymetrix.read_affymetrixRow``
 * Update requirements
 * Deal with missing files in ``import_datasets.py``

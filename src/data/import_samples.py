@@ -22,6 +22,7 @@ from click_option_group import (
     MutuallyExclusiveOptionGroup)
 
 import pycountry
+import pandas as pd
 
 from src.data.common import (
     deal_with_datasets, pandas_open, get_sample_species)
@@ -130,10 +131,14 @@ def find_country(country: str):
     '--alias_column',
     type=str,
     help="An alias for original_id")
+@click.option(
+    '--skip_missing_alias',
+    is_flag=True,
+    help="Don't import samples with no alias")
 def main(
         src_dataset, dst_dataset, datafile, code_column, code_all,
         country_column, country_all, species_column, species_all,
-        id_column, sex_column, chip_name, alias_column):
+        id_column, sex_column, chip_name, alias_column, skip_missing_alias):
     """Generate samples from a metadata file"""
 
     logger.info(f"{Path(__file__).name} started")
@@ -212,12 +217,22 @@ def main(
         alias = None
 
         if alias_column:
-            alias = row.get(alias_column)
+            value = row.get(alias_column)
+
+            if pd.notnull(value) and pd.notna(value):
+                alias = value
 
         logger.debug(
             f"Got code: {code}, country: {country}, "
             f"original_id: {original_id}, sex: {sex}, alias: {alias}"
         )
+
+        if skip_missing_alias and not alias:
+            logger.warning(
+                f"Ignoring code: {code}, country: {country}, "
+                f"original_id: {original_id}, sex: {sex}, alias: {alias}"
+            )
+            continue
 
         # get or create a new Sample Obj
         sample, created = get_or_create_sample(
