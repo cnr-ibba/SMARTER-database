@@ -23,6 +23,7 @@ from click_option_group import (
 
 import pycountry
 import pandas as pd
+from pandas.core.series import Series
 
 from src.data.common import (
     deal_with_datasets, pandas_open, get_sample_species)
@@ -55,6 +56,131 @@ def find_country(country: str):
     logger.info(f"Found {fuzzy} for {country}")
 
     return fuzzy
+
+
+def deal_with_breeds(
+        code: str, code_column: str, dst_dataset: str, row: Series):
+    """
+    Determine breeds and code for each sample in dataset or apply the same
+    stuff to each samples
+
+    Parameters
+    ----------
+    code : str
+        Search for a :py:class:`Breed` object using this code and dataset
+    code_column : str
+        The column label to be searched in dataframe.
+    dst_dataset : Dataset
+        The destination dataset.
+    row : Series
+        A row of metadata file.
+
+    Returns
+    -------
+    breed : Breed
+        A breed instance.
+    code : str
+        A breed code to be applied to sample.
+    """
+
+    # assign code from parameter or from datasource column
+    # code_column has a default value. Check for provided code first
+    if code:
+        # get breed from database
+        breed = Breed.objects(
+            code=code,
+            species=dst_dataset.species
+        ).get()
+
+    else:
+        code = row.get(code_column)
+
+        logger.debug(f"search for fid: {code}, dataset: {dst_dataset}")
+
+        # get breed from database
+        breed = Breed.objects(
+            aliases__match={'fid': code, 'dataset': dst_dataset}).get()
+
+    logger.debug(f"found breed '{breed}'")
+
+    return breed, code
+
+
+def deal_with_countries(country: str, country_column: str, row: Series):
+    """
+    Search for countries relying on dataset or by input value
+
+    Parameters
+    ----------
+    country_all : str
+        Apply this country to sample.
+    country_column : str
+        The column label to be searched in dataframe.
+    row : Series
+        A row of metadata file.
+
+    Returns
+    -------
+    str
+        A country to be applied to the sample.
+    """
+
+    logger.debug(f"Got: {country}, {country_column}")
+
+    # assign country from datasource column if specified
+    # country_column has a default value. Check for provided country first
+    if not country:
+        country = row.get(country_column)
+
+    # process a country by doing a fuzzy search
+    # HINT: this function caches results relying arguments using lru_cache
+    # see find country implementation for more informations
+    return find_country(country)
+
+
+def deal_with_additional_fields(
+        sex_column: str, alias_column: str, row: Series):
+    """
+    Deal with sex and alias parameters
+
+    Parameters
+    ----------
+    sex_column : str
+        The sex column label.
+    alias_column : str
+        The alias column label.
+    row : Series
+        A row of metadata file.
+
+    Returns
+    -------
+    sex : SEX
+        A SEX instance.
+    alias : str
+        The alias read from metadata table could be None.
+
+    """
+
+    # Have I sex? search for a sex column if provided
+    sex = None
+
+    if sex_column:
+        sex = str(row.get(sex_column))
+        sex = SEX.from_string(sex)
+
+        # drop sex column if unknown
+        if sex == SEX.UNKNOWN:
+            sex = None
+
+    alias = None
+
+    if alias_column:
+        value = row.get(alias_column)
+
+        if pd.notnull(value) and pd.notna(value):
+            alias = value
+
+    return sex, alias
 
 
 @click.command()
@@ -163,33 +289,11 @@ def main(
         # this will be the original_id
         original_id = str(row.get(id_column))
 
-        # assign code from parameter or from datasource column
-        if code_all:
-            code = code_all
+        # determine breeds and code relying on parameters
+        breed, code = deal_with_breeds(code_all, code_column, dst_dataset, row)
 
-            # get breed from database
-            breed = Breed.objects(
-                code=code,
-                species=dst_dataset.species
-            ).get()
-
-        else:
-            code = row.get(code_column)
-
-            logger.debug(f"search for fid: {code}, dataset: {dst_dataset}")
-
-            # get breed from database
-            breed = Breed.objects(
-                aliases__match={'fid': code, 'dataset': dst_dataset}).get()
-
-        logger.debug(f"found breed '{breed}'")
-
-        # assign country from parameter or from datasource column
-        if country_all:
-            country = country_all
-
-        else:
-            country = row.get(country_column)
+        # determine country
+        country = deal_with_countries(country_all, country_column, row)
 
         # assign species from parameter or from datasource column
         if species_column:
@@ -198,38 +302,17 @@ def main(
         else:
             species = species_all
 
-        # process a country by doing a fuzzy search
-        # HINT: this function caches results relying arguments using lru_cache
-        # see find country implementation for more informations
-        country = find_country(country)
-
-        # Have I sex? search for a sex column if provided
-        sex = None
-
-        if sex_column:
-            sex = str(row.get(sex_column))
-            sex = SEX.from_string(sex)
-
-            # drop sex column if unknown
-            if sex == SEX.UNKNOWN:
-                sex = None
-
-        alias = None
-
-        if alias_column:
-            value = row.get(alias_column)
-
-            if pd.notnull(value) and pd.notna(value):
-                alias = value
+        sex, alias = deal_with_additional_fields(
+            sex_column, alias_column, row)
 
         logger.debug(
-            f"Got code: {code}, country: {country}, "
+            f"Got code: {code}, country: {country}, breed: {breed}, "
             f"original_id: {original_id}, sex: {sex}, alias: {alias}"
         )
 
         if skip_missing_alias and not alias:
             logger.warning(
-                f"Ignoring code: {code}, country: {country}, "
+                f"Ignoring code: {code}, country: {country}, breed: {breed}, "
                 f"original_id: {original_id}, sex: {sex}, alias: {alias}"
             )
             continue
