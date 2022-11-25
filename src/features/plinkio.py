@@ -1401,6 +1401,9 @@ class AffyReportIO(FakePedMixin, SmarterMixin):
         # an index to track SNP accross peddata
         snp_idx = 0
 
+        # warning user once
+        warn_missing_cols = True
+
         # try to returns something like a ped row and derive map data in the
         # same time
         for row in read_affymetrixRow(self.report, delimiter=self.delimiter):
@@ -1427,11 +1430,38 @@ class AffyReportIO(FakePedMixin, SmarterMixin):
                 initialized = True
 
             # track SNP in mapdata
-            self.mapdata.append(MapRecord(
-                row.chr_id, row.probeset_id, 0, row.start))
+            try:
+                self.mapdata.append(MapRecord(
+                    row.chr_id, row.probeset_id, 0, row.start))
+
+            except AttributeError as exc:
+                logger.debug(exc)
+
+                if warn_missing_cols:
+                    for col in ["chr_id", "start"]:
+                        if not hasattr(row, col):
+                            logger.warning(
+                                f"Missing '{col}' column in reportfile!")
+
+                # maybe there are missing columns, try to define a MapRecord
+                # with at least probeset id
+                self.mapdata.append(MapRecord(
+                    0, row.probeset_id, 0, 0))
 
             # track A/B genotype
-            self.genotypes.append(f"{row.allele_a}/{row.allele_b}")
+            try:
+                self.genotypes.append(f"{row.allele_a}/{row.allele_b}")
+
+            except AttributeError as exc:
+                logger.debug(exc)
+
+                if warn_missing_cols:
+                    for col in ["allele_a", "allele_b"]:
+                        if not hasattr(row, col):
+                            logger.warning(
+                                f"Missing '{col}' column in reportfile!")
+
+                self.genotypes.append("-/-")
 
             # track genotypes in the proper column (skip the first 6 columns)
             for i in range(n_samples):
@@ -1451,6 +1481,9 @@ class AffyReportIO(FakePedMixin, SmarterMixin):
 
             # update SNP column
             snp_idx += 1
+
+            # update flag for missing columns
+            warn_missing_cols = False
 
     def fetch_coordinates(
             self,

@@ -1250,6 +1250,23 @@ class AffyReportIOMapTest(
 
         self.assertListEqual(plinkio.get_samples(), ["1_test", "2_test"])
 
+    def test_mapdata_missing_cols(self):
+        """Test for mapdata after reading reportfile with missing columns"""
+
+        plinkio = AffyReportIO(
+            report=DATA_DIR / "affyreport_nocols.txt",
+            species="Sheep",
+            chip_name=self.chip_name
+        )
+
+        plinkio.read_reportfile()
+        self.assertIsInstance(plinkio.mapdata, list)
+        self.assertEqual(len(plinkio.mapdata), 3)
+        for record in plinkio.mapdata:
+            self.assertIsInstance(record, MapRecord)
+
+        self.assertListEqual(plinkio.get_samples(), ["test-one", "test-two"])
+
     def test_get_samples(self):
         """Test getting samples from report file"""
 
