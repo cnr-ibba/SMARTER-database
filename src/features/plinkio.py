@@ -1441,6 +1441,9 @@ class AffyReportIO(FakePedMixin, SmarterMixin):
         self.mapdata = []
         self.peddata = []
 
+        if n_samples:
+            logger.warning(f"Limiting import to first {n_samples} samples")
+
         # update samples number with received argument
         self.n_samples = n_samples
 
