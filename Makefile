@@ -129,6 +129,10 @@ data: requirements
 	$(PYTHON_INTERPRETER) src/data/add_breed.py --species_class sheep --name Creole --code CRL --alias CRL --dataset Placas1_4_genotyping.zip
 	$(PYTHON_INTERPRETER) src/data/add_breed.py --species_class sheep --name Texel --code TEX --alias TEX --dataset Inia_junio_2021_Texel_46_20210409_SMARTER.zip
 	$(PYTHON_INTERPRETER) src/data/add_breed.py --species_class sheep --name Texel --code TEX --alias TEX --dataset "OP635-818 genotyping_soloTexel_20211110_SMARTER.zip"
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species_class sheep --name Texel --code TEX --alias TEX --dataset Placas1_4_genotyping_Corr_Tex_20210824_SMARTER.zip
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species_class sheep --name Corriedale --code CRR --alias CRR --dataset Placas1_4_genotyping_Corr_Tex_20210824_SMARTER.zip
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species_class sheep --name Texel --code TEX --alias TEX --dataset "OP829-924 INIA Abril_20220301_Texel_SMARTER.zip"
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species_class sheep --name Texel --code TEX --alias TEX --dataset "OP925-969 1046-1085 1010-1020_20220323_texel_SMARTER.zip"
 
 	## load breeds into database relying on dataset
 	$(PYTHON_INTERPRETER) src/data/import_breeds.py --species_class Sheep --src_dataset="High density genotypes of French Sheep populations.zip" \
@@ -252,6 +256,18 @@ data: requirements
 		--dst_dataset "OP635-818 genotyping_soloTexel_20211110_SMARTER.zip" --datafile 20211110_Genexa_fix.xlsx \
 		--code_all TEX --id_column ID --chip_name AffymetrixAxiomOviCan --country_all Uruguay \
 		--sex_column Sex --alias_column alias --skip_missing_alias
+	$(PYTHON_INTERPRETER) src/data/import_samples.py --src_dataset INIA_other_WPs_metadata.zip \
+		--dst_dataset Placas1_4_genotyping_Corr_Tex_20210824_SMARTER.zip --datafile 20210824_Genexa_fix.xlsx \
+		--code_column Code --id_column ID --chip_name AffymetrixAxiomOviCan --country_all Uruguay \
+		--sex_column Sex --alias_column alias --skip_missing_alias
+	$(PYTHON_INTERPRETER) src/data/import_samples.py --src_dataset INIA_other_WPs_metadata.zip \
+		--dst_dataset "OP829-924 INIA Abril_20220301_Texel_SMARTER.zip" --datafile 20220301_Genexa_fix.xlsx \
+		--code_all TEX --id_column ID --chip_name AffymetrixAxiomOviCan --country_all Uruguay \
+		--sex_column Sex --alias_column alias --skip_missing_alias
+	$(PYTHON_INTERPRETER) src/data/import_samples.py --src_dataset INIA_other_WPs_metadata.zip \
+		--dst_dataset "OP925-969 1046-1085 1010-1020_20220323_texel_SMARTER.zip" --datafile 20220323_Genexa_fix.xlsx \
+		--code_all TEX --id_column ID --chip_name AffymetrixAxiomOviCan --country_all Uruguay \
+		--sex_column Sex --alias_column alias --skip_missing_alias
 
 	## convert genotypes without creating samples in database (SHEEP)
 	$(PYTHON_INTERPRETER) src/data/import_from_affymetrix.py --prefix Affymetrix_data_Plate_652_660/Affymetrix_data_Plate_652/Affymetrix_data_Plate_652 \
@@ -302,6 +318,15 @@ data: requirements
 	$(PYTHON_INTERPRETER) src/data/import_from_affymetrix.py --report "OP635-818 genotyping_soloTexel_20211110_SMARTER.txt" \
 		--dataset "OP635-818 genotyping_soloTexel_20211110_SMARTER.zip" --coding ab --chip_name AffymetrixAxiomOviCan --assembly OAR3 \
 		--sample_field alias --src_version Oar_v4.0 --src_imported_from affymetrix --max_samples 59
+	$(PYTHON_INTERPRETER) src/data/import_from_affymetrix.py --report Placas1_4_genotyping_Corr_Tex_20210824_SMARTER.txt \
+		--dataset Placas1_4_genotyping_Corr_Tex_20210824_SMARTER.zip --coding ab --chip_name AffymetrixAxiomOviCan --assembly OAR3 \
+		--sample_field alias --src_version Oar_v4.0 --src_imported_from affymetrix --max_samples 332
+	$(PYTHON_INTERPRETER) src/data/import_from_affymetrix.py --report "OP829-924 INIA Abril_20220301_Texel_SMARTER.txt" \
+		--dataset "OP829-924 INIA Abril_20220301_Texel_SMARTER.zip" --coding ab --chip_name AffymetrixAxiomOviCan --assembly OAR3 \
+		--sample_field alias --src_version Oar_v4.0 --src_imported_from affymetrix --max_samples 43
+	$(PYTHON_INTERPRETER) src/data/import_from_affymetrix.py --report "OP925-969 1046-1085 1010-1020_20220323_texel_SMARTER.txt" \
+		--dataset "OP925-969 1046-1085 1010-1020_20220323_texel_SMARTER.zip" --coding ab --chip_name AffymetrixAxiomOviCan --assembly OAR3 \
+		--sample_field alias --src_version Oar_v4.0 --src_imported_from affymetrix --max_samples 25
 
 	## create samples from custom files or genotypes for GOAT
 	$(PYTHON_INTERPRETER) src/data/import_samples.py --src_dataset ADAPTmap_phenotype_20161201.zip --dst_dataset ADAPTmap_genotypeTOP_20161201.zip \
@@ -444,6 +469,18 @@ data: requirements
 		--metadata_column GPS_2
 	$(PYTHON_INTERPRETER) src/data/import_metadata.py --src_dataset INIA_other_WPs_metadata.zip \
 		--dst_dataset "OP635-818 genotyping_soloTexel_20211110_SMARTER.zip" --datafile 20211110_Genexa_fix.xlsx \
+		--id_column ID --latitude_column latitude --longitude_column longitude --metadata_column Stall \
+		--metadata_column GPS_2
+	$(PYTHON_INTERPRETER) src/data/import_metadata.py --src_dataset INIA_other_WPs_metadata.zip \
+		--dst_dataset Placas1_4_genotyping_Corr_Tex_20210824_SMARTER.zip --datafile 20210824_Genexa_fix.xlsx \
+		--id_column ID --latitude_column latitude --longitude_column longitude --metadata_column Stall \
+		--metadata_column GPS_2
+	$(PYTHON_INTERPRETER) src/data/import_metadata.py --src_dataset INIA_other_WPs_metadata.zip \
+		--dst_dataset "OP829-924 INIA Abril_20220301_Texel_SMARTER.zip" --datafile 20220301_Genexa_fix.xlsx \
+		--id_column ID --latitude_column latitude --longitude_column longitude --metadata_column Stall \
+		--metadata_column GPS_2
+	$(PYTHON_INTERPRETER) src/data/import_metadata.py --src_dataset INIA_other_WPs_metadata.zip \
+		--dst_dataset "OP925-969 1046-1085 1010-1020_20220323_texel_SMARTER.zip" --datafile 20220323_Genexa_fix.xlsx \
 		--id_column ID --latitude_column latitude --longitude_column longitude --metadata_column Stall \
 		--metadata_column GPS_2
 
