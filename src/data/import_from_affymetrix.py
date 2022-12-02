@@ -179,10 +179,14 @@ def deal_with_report(report: str, dataset: Dataset, assembly: str):
     '--max_samples',
     type=int,
     help="Limit import to first samples (only valid for affymetrix report)")
+@click.option(
+    '--skip_coordinate_check',
+    is_flag=True,
+    help="Skip coordinate check (only valid for affymetrix report)")
 def main(
         prefix, report, dataset, coding, breed_code, chip_name, assembly,
         create_samples, sample_field, search_field, src_version,
-        src_imported_from, max_samples):
+        src_imported_from, max_samples, skip_coordinate_check):
     """
     Read genotype data from affymetrix files and convert it
     to the desidered assembly version using Illumina TOP coding
@@ -250,7 +254,8 @@ def main(
         src_assembly=src_assembly,
         dst_assembly=dst_assembly,
         search_field=search_field,
-        chip_name=illumina_chip.name
+        chip_name=illumina_chip.name,
+        skip_check=skip_coordinate_check
     )
 
     logger.info("Writing a new map file with updated coordinates")

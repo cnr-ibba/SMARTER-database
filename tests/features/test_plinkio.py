@@ -1404,6 +1404,35 @@ class AffyReportIOPedTest(
         self.assertEqual(len(test), 1)
         self.assertEqual(test[0][1], "test-one")
 
+    def test_read_reportfile_missing_cols(self):
+        """Test read reportfile with missing columns"""
+
+        plinkio = AffyReportIO(
+            report=str(DATA_DIR / "affyreport_nocols.txt"),
+            species="Sheep",
+            chip_name="AffymetrixAxiomOviCan"
+        )
+
+        # read info from map
+        plinkio.read_reportfile()
+
+        # collect info for source and destination assemblies
+        # skip coordinate check
+        plinkio.fetch_coordinates(
+            src_assembly=self.src_assembly,
+            dst_assembly=self.dst_assembly,
+            search_field='probeset_id',
+            chip_name=self.chip_name,
+            skip_check=True
+        )
+
+        test = plinkio.read_peddata(breed="TEX")
+        self.assertIsInstance(test, types.GeneratorType)
+
+        # consume data and count rows
+        test = list(test)
+        self.assertEqual(len(test), 2)
+
     def test_process_pedline(self):
         # define reference
         reference = [

@@ -22,6 +22,7 @@ TODO
 0.4.7.dev0
 ----------
 
+* Add an option to skip coordinate check when importing affymetrix report
 * Import from affymetrix a limited number of samples
 * Skip sample creation when there's no alias
 * Support for missing columns in affymetrix report files

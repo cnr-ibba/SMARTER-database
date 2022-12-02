@@ -393,7 +393,8 @@ class SmarterMixin():
             src_assembly: AssemblyConf,
             dst_assembly: AssemblyConf = None,
             search_field: str = "name",
-            chip_name: str = None):
+            chip_name: str = None,
+            *args, **kwargs):
         """Search for variants in smarter database
 
         Args:
@@ -1428,10 +1429,6 @@ class AffyReportIO(FakePedMixin, SmarterMixin):
             Limit to N samples. Useful when there are different number of
             samples from reported in file. The default is None (read number
             of samples from reportfile).
-        *args : TYPE
-            DESCRIPTION.
-        **kwargs : TYPE
-            DESCRIPTION.
 
         Returns
         -------
@@ -1501,7 +1498,8 @@ class AffyReportIO(FakePedMixin, SmarterMixin):
             src_assembly: AssemblyConf,
             dst_assembly: AssemblyConf = None,
             search_field: str = "name",
-            chip_name: str = None):
+            chip_name: str = None,
+            skip_check: bool = False):
         """Search for variants in smarter database. Check if the provided
         A/B information is equal to the database content
 
@@ -1510,6 +1508,7 @@ class AffyReportIO(FakePedMixin, SmarterMixin):
             dst_assembly (AssemblyConf): the destination data assembly version
             search_field (str): search variant by field (def. "name")
             chip_name (str): limit search to this chip_name
+            skip_check (bool): skipp coordinate check
         """
 
         # call base method
@@ -1522,7 +1521,8 @@ class AffyReportIO(FakePedMixin, SmarterMixin):
                 # this genotype is discared
                 continue
 
-            if genotype != self.src_locations[idx].affymetrix_ab:
+            if (not skip_check and
+                    genotype != self.src_locations[idx].affymetrix_ab):
                 raise AffyReportException(
                     "Genotypes differ from reportfile and src_assembly")
 
