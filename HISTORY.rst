@@ -22,6 +22,7 @@ TODO
 0.4.7.dev0
 ----------
 
+* Import genotypes of other WPs coming from Uruguay
 * Deal with affymetrix report with less SNPs than declared
 * Add an option to skip coordinate check when importing affymetrix report
 * Import from affymetrix a limited number of samples
