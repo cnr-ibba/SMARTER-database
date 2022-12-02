@@ -1399,7 +1399,6 @@ class AffyReportIO(FakePedMixin, SmarterMixin):
             self.__warn_missing_column(row, ["allele_a", "allele_b"])
 
             # track a missing genotype
-            # TODO: need to skip genotype checking somewhere
             self.genotypes.append("-/-")
 
         # track genotypes in the proper column (skip the first 6 columns)
@@ -1492,6 +1491,24 @@ class AffyReportIO(FakePedMixin, SmarterMixin):
 
             # no more reporting warnings after first row
             self.warn_missing_cols = False
+
+        # check for n of snp after processing reportfile
+        if snp_idx != n_snps:
+            logger.warning(
+                f"Got a different number of SNPs {snp_idx}<>{n_snps}.")
+
+            if snp_idx < n_snps:
+                logger.warning("Dropping unused SNPs")
+
+                # determining the proper size
+                size = 6 + 2 * snp_idx
+
+                for i, line in enumerate(self.peddata):
+                    self.peddata[i] = line[:size]
+
+            else:
+                raise AffyReportException(
+                    f"Got a different number of SNPs {snp_idx}<>{n_snps}")
 
     def fetch_coordinates(
             self,

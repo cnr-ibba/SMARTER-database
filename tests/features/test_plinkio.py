@@ -1267,6 +1267,23 @@ class AffyReportIOMapTest(
 
         self.assertListEqual(plinkio.get_samples(), ["test-one", "test-two"])
 
+    def test_mapdata_missing_snps(self):
+        """Test for mapdata after reading reportfile with missing snps"""
+
+        plinkio = AffyReportIO(
+            report=DATA_DIR / "affyreport_nosnps.txt",
+            species="Sheep",
+            chip_name=self.chip_name
+        )
+
+        plinkio.read_reportfile()
+        self.assertIsInstance(plinkio.mapdata, list)
+        self.assertEqual(len(plinkio.mapdata), 3)
+        for record in plinkio.mapdata:
+            self.assertIsInstance(record, MapRecord)
+
+        self.assertListEqual(plinkio.get_samples(), ["test-one", "test-two"])
+
     def test_get_samples(self):
         """Test getting samples from report file"""
 
@@ -1424,6 +1441,34 @@ class AffyReportIOPedTest(
             search_field='probeset_id',
             chip_name=self.chip_name,
             skip_check=True
+        )
+
+        test = plinkio.read_peddata(breed="TEX")
+        self.assertIsInstance(test, types.GeneratorType)
+
+        # consume data and count rows
+        test = list(test)
+        self.assertEqual(len(test), 2)
+
+    def test_read_reportfile_missing_snps(self):
+        """Test read reportfile with missing snps"""
+
+        plinkio = AffyReportIO(
+            report=str(DATA_DIR / "affyreport_nosnps.txt"),
+            species="Sheep",
+            chip_name="AffymetrixAxiomOviCan"
+        )
+
+        # read info from map
+        plinkio.read_reportfile()
+
+        # collect info for source and destination assemblies
+        # skip coordinate check
+        plinkio.fetch_coordinates(
+            src_assembly=self.src_assembly,
+            dst_assembly=self.dst_assembly,
+            search_field='probeset_id',
+            chip_name=self.chip_name,
         )
 
         test = plinkio.read_peddata(breed="TEX")
