@@ -22,6 +22,8 @@ TODO
 0.4.7.dev1
 ----------
 
+* Upgrade CI workflows to ``actions/cache@v3``
+* Add ``SNPconvert.py`` script
 * Import genotypes of other WPs coming from Uruguay
 * Deal with affymetrix report with less SNPs than declared
 * Add an option to skip coordinate check when importing affymetrix report

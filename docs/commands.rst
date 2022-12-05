@@ -97,3 +97,9 @@ documentation sections.
 .. click:: src.data.merge_datasets:main
     :prog: src/data/merge_datasets.py
     :nested: full
+
+.. _SNPconvert:
+
+.. click:: src.data.SNPconvert:main
+    :prog: src/data/SNPconvert.py
+    :nested: full
