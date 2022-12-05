@@ -20,10 +20,10 @@ FEATURES_DATA_DIR = pathlib.Path(__file__).parent / "data"
 
 
 class ReadManifest(unittest.TestCase):
-    data_path = SCRIPTS_DATA_DIR / "test_affy.csv"
+    manifest_path = SCRIPTS_DATA_DIR / "test_affy.csv"
 
     def test_skip_comments(self):
-        with open(self.data_path) as handle:
+        with open(self.manifest_path) as handle:
             position, skipped = skip_comments(handle)
             self.assertEqual(len(skipped), 20)
 
@@ -41,7 +41,7 @@ class ReadManifest(unittest.TestCase):
         self.assertEqual(reference, test)
 
     def test_readManifest(self):
-        iterator = read_Manifest(self.data_path)
+        iterator = read_Manifest(self.manifest_path)
 
         self.assertIsInstance(iterator, types.GeneratorType)
 
@@ -50,10 +50,11 @@ class ReadManifest(unittest.TestCase):
 
 
 class ReadReport(unittest.TestCase):
-    data_path = FEATURES_DATA_DIR / "affyreport.txt"
+    report_path = FEATURES_DATA_DIR / "affyreport.txt"
+    numeric_report_path = FEATURES_DATA_DIR / "affyreport_numeric.txt"
 
     def test_skip_comments(self):
-        with open(self.data_path) as handle:
+        with open(self.report_path) as handle:
             position, skipped = skip_comments(handle)
             self.assertEqual(len(skipped), 5)
 
@@ -70,7 +71,19 @@ class ReadReport(unittest.TestCase):
         self.assertEqual(3, test)
 
     def test_read_affymetrixRow(self):
-        iterator = read_affymetrixRow(self.data_path)
+        iterator = read_affymetrixRow(self.report_path)
+
+        self.assertIsInstance(iterator, types.GeneratorType)
+
+        test = next(iterator)
+        self.assertEqual(test.probeset_id, "AX-124372958")
+
+        # test for custom attributes
+        self.assertEqual(test.n_snps, 3)
+        self.assertEqual(test.n_samples, 2)
+
+    def test_read_affymetrixRow_rename(self):
+        iterator = read_affymetrixRow(self.numeric_report_path)
 
         self.assertIsInstance(iterator, types.GeneratorType)
 
