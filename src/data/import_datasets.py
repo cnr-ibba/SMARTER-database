@@ -7,6 +7,7 @@ Created on Mon Feb 22 18:32:54 2021
 """
 
 import csv
+import sys
 import click
 import logging
 import zipfile
@@ -67,8 +68,13 @@ def main(input_filepath, types):
             logger.debug(record)
 
             # search for the archive file
-            archive = next(raw_dir.rglob(record.file))
-            logger.info(f"Found '{archive}' dataset")
+            try:
+                archive = next(raw_dir.rglob(record.file))
+                logger.info(f"Found '{archive}' dataset")
+
+            except StopIteration:
+                logger.critical(f"Cannot find '{record.file}' in '{raw_dir}'")
+                sys.exit(f"'{record.file}' does not exists")
 
             archive = zipfile.ZipFile(archive)
 

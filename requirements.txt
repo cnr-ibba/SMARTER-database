@@ -62,7 +62,7 @@ jupyter==1.0.0
 jupyter-client==7.0.2
 jupyter-console==6.2.0
 jupyter-core==4.7.1
-jupyter-server==1.15.4
+jupyter-server==1.17.0
 jupyterlab==3.1.9
 jupyterlab-pygments==0.1.2
 jupyterlab-server==2.7.2
@@ -94,7 +94,7 @@ parso==0.8.1
 partd==1.1.0
 pexpect==4.8.0
 pickleshare==0.7.5
-Pillow==9.0.1
+Pillow==9.3.0
 plinkio @ git+https://github.com/bunop/libplinkio.git@bc1c13507cf5c2d60ffe20e12a1997021f37ceb4
 pluggy==0.13.1
 pockets==0.9.1

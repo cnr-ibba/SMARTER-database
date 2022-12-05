@@ -62,7 +62,8 @@ class SmarterIDMixin():
                 "finalreport.txt",
                 "affytest.map",
                 "affytest.ped",
-                "affyreport.txt"
+                "affyreport.txt",
+                "affyreport_nocols.txt"
             ],
             type_=["background", "genotypes"]
         )

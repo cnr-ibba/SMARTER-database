@@ -19,9 +19,18 @@ TODO
 * Remove ``--chip_name`` from import genotypes script (derive it from dataset)
 * Capitalize ``species_class`` parameter in ``src.data.import_breeds.py``
 
-0.4.7.dev0
+0.4.7.dev1
 ----------
 
+* Import genotypes of other WPs coming from Uruguay
+* Deal with affymetrix report with less SNPs than declared
+* Add an option to skip coordinate check when importing affymetrix report
+* Import from affymetrix a limited number of samples
+* Skip sample creation when there's no alias
+* Support for missing columns in affymetrix report files
+* Support *invalid python names* in ``src.features.affymetrix.read_affymetrixRow``
+* Update requirements
+* Deal with missing files in ``import_datasets.py``
 * Update Uruguay metadata locations
 * Move *Galway* sheep to *Ireland* country (Ovine HapMap)
 

@@ -72,6 +72,14 @@ class TestImportSamples(
         cls.sheet.cell(row=3, column=5, value="test-two")
         cls.sheet.cell(row=3, column=6, value="Ovis orientalis")
 
+        # adding values
+        cls.sheet.cell(row=4, column=1, value="TEX_IT")
+        cls.sheet.cell(row=4, column=2, value="test-3")
+        cls.sheet.cell(row=4, column=3, value="Italy")
+        cls.sheet.cell(row=4, column=4, value="F")
+        # no alias for this samples
+        cls.sheet.cell(row=4, column=6, value="Ovis aries")
+
     def setUp(self):
         self.runner = CliRunner()
 
@@ -133,12 +141,15 @@ class TestImportSamples(
 
             self.assertEqual(0, result.exit_code, msg=result.exception)
 
-            # I should have two record for samples, One already present one new
-            self.assertEqual(SampleSheep.objects.count(), 2)
+            # One record is already present, two new
+            self.assertEqual(SampleSheep.objects.count(), 3)
 
             # get the new sample
             sample = SampleSheep.objects.get(original_id="test-2")
             self.assertEqual(sample.smarter_id, "ESOA-TEX-000000002")
+
+            # this will be the default value, since I haven't specified a
+            # species column in this test
             self.assertEqual(sample.species, "Ovis aries")
 
     @patch('src.features.smarterdb.Dataset.working_dir',
@@ -179,8 +190,8 @@ class TestImportSamples(
 
             self.assertEqual(0, result.exit_code, msg=result.exception)
 
-            # I should have two record for samples, One already present one new
-            self.assertEqual(SampleSheep.objects.count(), 2)
+            # One record is already present, two new
+            self.assertEqual(SampleSheep.objects.count(), 3)
 
             # first sampla wasn't been updated. Unknown sex
             self.sample.reload()
@@ -190,6 +201,7 @@ class TestImportSamples(
             sample = SampleSheep.objects.get(original_id="test-2")
             self.assertEqual(sample.smarter_id, "ESOA-TEX-000000002")
             self.assertEqual(sample.sex, SEX.FEMALE)
+            # default value for this sample
             self.assertEqual(sample.species, "Ovis aries")
 
     @patch('src.features.smarterdb.Dataset.working_dir',
@@ -230,12 +242,13 @@ class TestImportSamples(
 
             self.assertEqual(0, result.exit_code, msg=result.exception)
 
-            # I should have two record for samples, One already present one new
-            self.assertEqual(SampleSheep.objects.count(), 2)
+            # One record is already present, two new
+            self.assertEqual(SampleSheep.objects.count(), 3)
 
             # get the new sample: country will be always Italy
             sample = SampleSheep.objects.get(original_id="test-2")
             self.assertEqual(sample.smarter_id, "ITOA-TEX-000000002")
+            # default value with no species
             self.assertEqual(sample.species, "Ovis aries")
 
     @patch('src.features.smarterdb.Dataset.working_dir',
@@ -276,6 +289,72 @@ class TestImportSamples(
                     "Id",
                     "--alias_column",
                     "Alias",
+                    "--chip_name",
+                    self.chip_name
+                ]
+            )
+
+            self.assertEqual(0, result.exit_code, msg=result.exception)
+
+            # One record is already present, two new
+            self.assertEqual(SampleSheep.objects.count(), 3)
+
+            # get the old sample
+            sample = SampleSheep.objects.get(original_id="test-1")
+            self.assertEqual(sample.smarter_id, "ITOA-TEX-000000001")
+            self.assertEqual(sample.alias, "test-one")
+
+            # get the new sample
+            sample = SampleSheep.objects.get(original_id="test-2")
+            self.assertEqual(sample.smarter_id, "ESOA-TEX-000000002")
+            self.assertEqual(sample.alias, "test-two")
+            self.assertEqual(sample.species, "Ovis aries")
+
+            # get the sample with no alias
+            sample = SampleSheep.objects.get(original_id="test-3")
+            self.assertEqual(sample.smarter_id, "ITOA-TEX-000000003")
+            self.assertIsNone(sample.alias)
+            self.assertEqual(sample.species, "Ovis aries")
+
+    @patch('src.features.smarterdb.Dataset.working_dir',
+           new_callable=PropertyMock)
+    def test_import_alias_skip(self, my_working_dir):
+        """Test importing samples skipping by aliases"""
+
+        # alias need to be defined in original samples, to get the same
+        # entity
+        self.sample.alias = "test-one"
+        self.sample.save()
+
+        # create a temporary directory using the context manager
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            working_dir = pathlib.Path(tmpdirname)
+            my_working_dir.return_value = working_dir
+
+            # save worksheet in temporary folder
+            self.workbook.save(f"{working_dir}/metadata.xlsx")
+
+            # got first sample from database
+            self.assertEqual(SampleSheep.objects.count(), 1)
+
+            result = self.runner.invoke(
+                import_samples,
+                [
+                    "--src_dataset",
+                    "test2.zip",
+                    "--dst_dataset",
+                    "test.zip",
+                    "--datafile",
+                    "metadata.xlsx",
+                    "--code_column",
+                    "Code",
+                    "--country_column",
+                    "Country",
+                    "--id_column",
+                    "Id",
+                    "--alias_column",
+                    "Alias",
+                    "--skip_missing_alias",
                     "--chip_name",
                     self.chip_name
                 ]
@@ -337,8 +416,8 @@ class TestImportSamples(
 
             self.assertEqual(0, result.exit_code, msg=result.exception)
 
-            # I should have two record for samples, One already present one new
-            self.assertEqual(SampleSheep.objects.count(), 2)
+            # One record is already present, two new
+            self.assertEqual(SampleSheep.objects.count(), 3)
 
             # get the old sample. Species hasn't changed
             sample = SampleSheep.objects.get(original_id="test-1")
