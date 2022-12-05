@@ -149,10 +149,23 @@ def deal_with_illumina(
     'Plink input parameters',
     cls=RequiredMutuallyExclusiveOptionGroup
 )
-@optgroup.option('--file', 'file_', type=str)
-@optgroup.option('--bfile', type=str)
-@optgroup.option('--report', type=str)
-@click.option('--snpfile', type=str)
+@optgroup.option(
+    '--file',
+    'file_',
+    type=str,
+    help="PLINK text file prefix")
+@optgroup.option(
+    '--bfile',
+    type=str,
+    help="PLINK binary file prefix")
+@optgroup.option(
+    '--report',
+    type=str,
+    help="The illumina report file")
+@click.option(
+    '--snpfile',
+    type=str,
+    help="The illumina SNPlist file")
 @click.option(
     '--coding',
     type=click.Choice(
@@ -161,9 +174,21 @@ def deal_with_illumina(
     default="top", show_default=True,
     help="Illumina coding format"
 )
-@click.option('--assembly', type=str, required=True)
-@click.option('--species', type=str, required=True)
-@click.option('--results_dir', type=str, required=True)
+@click.option(
+    '--assembly',
+    type=str,
+    required=True,
+    help="Destination assembly of the converted genotypes")
+@click.option(
+    '--species',
+    type=str,
+    required=True,
+    help="The SMARTER assembly species (Goat or Sheep)")
+@click.option(
+    '--results_dir',
+    type=str,
+    required=True,
+    help="Where results will be saved")
 @click.option(
     '--chip_name',
     type=str,
@@ -199,6 +224,13 @@ def deal_with_illumina(
 def main(file_, bfile, report, snpfile, coding, assembly, species, chip_name,
          results_dir, search_field, search_by_positions, src_version,
          src_imported_from, ignore_coding_errors):
+    """
+    Convert a PLINK/Illumina report file in a SMARTER-like ouput file, without
+    inserting data in SMARTER-database. Useful to convert data relying on
+    SMARTER-database for private datasets (data which cannot be included in
+    SMARTER-database)
+    """
+
     logger.info(f"{Path(__file__).name} started")
 
     # find assembly configuration
