@@ -16,7 +16,8 @@ from click_option_group import (
     optgroup, RequiredMutuallyExclusiveOptionGroup,
     MutuallyExclusiveOptionGroup)
 
-from src.features.smarterdb import Dataset, global_connection
+from src.features.smarterdb import (
+    Dataset, global_connection, SmarterDBException)
 from src.features.plinkio import TextPlinkIO, IlluminaReportIO, BinaryPlinkIO
 from src.data.common import WORKING_ASSEMBLIES, PLINK_SPECIES_OPT, AssemblyConf
 
@@ -202,7 +203,8 @@ def main(file_, bfile, report, snpfile, coding, assembly, species, chip_name,
 
     # find assembly configuration
     if assembly not in WORKING_ASSEMBLIES:
-        raise Exception(f"assembly {assembly} not managed by smarter")
+        raise SmarterDBException(
+            f"assembly {assembly} not managed by smarter")
 
     src_assembly, dst_assembly = None, None
 
