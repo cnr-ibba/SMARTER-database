@@ -22,6 +22,7 @@ TODO
 0.4.7.dev1
 ----------
 
+* Model *doi* in datasets
 * Upgrade CI workflows to ``actions/cache@v3``
 * Add ``SNPconvert.py`` script
 * Import genotypes of other WPs coming from Uruguay

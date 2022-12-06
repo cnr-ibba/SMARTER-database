@@ -419,6 +419,9 @@ class Dataset(mongoengine.Document):
     """The :py:class:`SupportedChip.name` attribute of the
     technology used"""
 
+    doi = mongoengine.StringField()
+    """The publication DOI of this dataset"""
+
     meta = {
         'db_alias': DB_ALIAS,
         'collection': 'dataset'
