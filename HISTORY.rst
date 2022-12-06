@@ -22,6 +22,8 @@ TODO
 0.4.7.dev1
 ----------
 
+* Import 18 *welsh* breed as background genotypes
+* Rename two *welsh* breeds
 * Model *doi* in datasets
 * Upgrade CI workflows to ``actions/cache@v3``
 * Add ``SNPconvert.py`` script

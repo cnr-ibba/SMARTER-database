@@ -155,6 +155,9 @@ data: requirements
 	$(PYTHON_INTERPRETER) src/data/import_breeds.py --species_class Sheep --src_dataset=ovine_SNP50HapMap_data.zip \
 		--datafile ovine_SNP50HapMap_data/SNP50_Breedv2.xlsx --code_column code --breed_column breed \
 		--fid_column fid --country_column country
+	$(PYTHON_INTERPRETER) src/data/import_breeds.py --species_class Sheep --src_dataset Welsh_sheep_genotyping.zip \
+		--datafile welsh-metadata.xlsx --code_column code --breed_column breed \
+		--fid_column fid --country_column country
 
 	## create SHEEP samples from raw data files or from XLS (orders matter)
 	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --file TEXEL_UY --dataset TEXEL_INIA_UY.zip --chip_name IlluminaOvineSNP50 \
@@ -274,6 +277,9 @@ data: requirements
 		--dst_dataset "OP1586-1666 OP1087-1106 Placa6 Corr_Tex_Genotyping_20220810_SMARTER.zip" --datafile 20220810_Genexa_fix.xlsx \
 		--code_column Code --id_column ID --chip_name AffymetrixAxiomOviCan --country_all Uruguay \
 		--sex_column Sex --alias_column alias --skip_missing_alias
+	$(PYTHON_INTERPRETER) src/data/import_samples.py --src_dataset Welsh_sheep_genotyping.zip \
+		--datafile welsh-metadata.xlsx --code_column fid --id_column original_id --chip_name IlluminaOvineSNP50 \
+		--country_column country
 
 	## convert genotypes without creating samples in database (SHEEP)
 	$(PYTHON_INTERPRETER) src/data/import_from_affymetrix.py --prefix Affymetrix_data_Plate_652_660/Affymetrix_data_Plate_652/Affymetrix_data_Plate_652 \
@@ -336,6 +342,8 @@ data: requirements
 	$(PYTHON_INTERPRETER) src/data/import_from_affymetrix.py --report "OP1586-1666 OP1087-1106 Placa6 Corr_Tex_Genotyping_20220810_SMARTER.txt" \
 		--dataset "OP1586-1666 OP1087-1106 Placa6 Corr_Tex_Genotyping_20220810_SMARTER.zip" --coding ab --chip_name AffymetrixAxiomOviCan --assembly OAR3 \
 		--sample_field alias --src_version Oar_v4.0 --src_imported_from affymetrix --max_samples 35 --skip_coordinate_check
+	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --file "genotyping data/WelshSheepBreeds2015" \
+		--dataset Welsh_sheep_genotyping.zip --coding top --chip_name IlluminaOvineSNP50 --assembly OAR3 --sample_field original_id
 
 	## create samples from custom files or genotypes for GOAT
 	$(PYTHON_INTERPRETER) src/data/import_samples.py --src_dataset ADAPTmap_phenotype_20161201.zip --dst_dataset ADAPTmap_genotypeTOP_20161201.zip \
