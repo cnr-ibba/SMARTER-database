@@ -22,6 +22,8 @@ TODO
 0.4.7.dev1
 ----------
 
+* Update species for *european mouflon*
+* Support species update with ``import_metadata.py``
 * Import 18 *welsh* breed as background genotypes
 * Rename two *welsh* breeds
 * Model *doi* in datasets

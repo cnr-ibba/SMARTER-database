@@ -78,9 +78,6 @@ def add_metadata_by_breed(
         columns: dict):
     """Add metadata relying on breed name (column)"""
 
-    # mind dataset species
-    SampleSpecie = get_sample_species(dst_dataset.species)
-
     for index, row in data.iterrows():
         breed = row.get(columns["breed_column"])
 
@@ -88,28 +85,19 @@ def add_metadata_by_breed(
         locations = get_locations(row, columns, breed)
         metadata = get_metadata(row, columns, breed)
 
+        # mind to custom species
+        species = None
+
+        if columns["species_column"]:
+            species = row.get(columns["species_column"])
+
         logger.debug(
             f"Got breed: '{breed}', locations: {locations}, "
             f"metadata: {metadata}"
         )
 
-        # ok iterate over all samples of this dataset
-        for sample in SampleSpecie.objects.filter(
-                dataset=dst_dataset, breed=breed):
-
-            # set locations features
-            sample.locations = locations
-
-            # set metadata if necessary
-            if metadata:
-                sample.metadata = metadata
-
-            logger.info(
-                f"Updating '{sample}' with locations: '{locations}' "
-                f"and metadata: '{metadata}'")
-
-            # update sample
-            sample.save()
+        update_samples(
+            dst_dataset, {'breed': breed}, species, locations, metadata)
 
 
 def add_metadata_by_sample(
@@ -119,15 +107,18 @@ def add_metadata_by_sample(
         id_field="id_column"):
     """Add metadata relying on original_id or alias"""
 
-    # mind dataset species
-    SampleSpecie = get_sample_species(dst_dataset.species)
-
     for index, row in data.iterrows():
         sample_id = str(row.get(columns[id_field]))
 
         # get additional columns for original_id
         locations = get_locations(row, columns, sample_id)
         metadata = get_metadata(row, columns, sample_id)
+
+        # mind to custom species
+        species = None
+
+        if columns["species_column"]:
+            species = row.get(columns["species_column"])
 
         logger.debug(
             f"Got {id_field}: '{sample_id}', locations: {locations}, "
@@ -141,23 +132,40 @@ def add_metadata_by_sample(
         elif id_field == 'alias_column':
             query = {'alias': sample_id}
 
-        # ok iterate over all samples of this dataset
-        for sample in SampleSpecie.objects.filter(
-                dataset=dst_dataset, **query):
+        update_samples(dst_dataset, query, species, locations, metadata)
 
-            # set locations features
-            sample.locations = locations
 
-            # set metadata if necessary
-            if metadata:
-                sample.metadata = metadata
+def update_samples(
+        dst_dataset: Dataset,
+        query: dict,
+        species: str,
+        locations: list,
+        metadata: dict):
 
-            logger.info(
-                f"Updating '{sample}' with locations: '{locations}' "
-                f"and metadata: '{metadata}'")
+    # mind dataset species
+    SampleSpecie = get_sample_species(dst_dataset.species)
 
-            # update sample
-            sample.save()
+    # ok iterate over all samples of this dataset
+    for sample in SampleSpecie.objects.filter(
+            dataset=dst_dataset, **query):
+
+        # set locations features
+        sample.locations = locations
+
+        # set metadata if necessary
+        if metadata:
+            sample.metadata = metadata
+
+        # set species if any
+        if species:
+            sample.species = species
+
+        logger.info(
+            f"Updating '{sample}' with locations: '{locations}' "
+            f"and metadata: '{metadata}'")
+
+        # update sample
+        sample.save()
 
 
 @click.command()
@@ -186,11 +194,16 @@ def add_metadata_by_sample(
 @click.option('--longitude_column', type=str)
 @click.option('--metadata_column', multiple=True, help=(
     "Metadata column to track. Could be specified multiple times"))
+@click.option(
+    '--species_column',
+    type=str,
+    help="Species column in src datafile"
+)
 @click.option('--na_values', type=str, help="pandas NA values")
 def main(
         src_dataset, dst_dataset, datafile, sheet_name, breed_column,
         id_column, alias_column, latitude_column, longitude_column,
-        metadata_column, na_values):
+        metadata_column, species_column, na_values):
     """Read data from metadata file and add it to SMARTER-database samples"""
 
     logger.info(f"{Path(__file__).name} started")
@@ -215,6 +228,7 @@ def main(
         'longitude_column': longitude_column,
         'metadata_column': metadata_column,
         'alias_column': alias_column,
+        'species_column': species_column,
     }
 
     if breed_column:
