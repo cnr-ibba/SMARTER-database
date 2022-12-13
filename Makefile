@@ -158,6 +158,12 @@ data: requirements
 	$(PYTHON_INTERPRETER) src/data/import_breeds.py --species_class Sheep --src_dataset Welsh_sheep_genotyping.zip \
 		--datafile welsh-metadata.xlsx --code_column code --breed_column breed \
 		--fid_column fid --country_column country
+	$(PYTHON_INTERPRETER) src/data/import_breeds.py --species_class Sheep --src_dataset 41598_2017_7382_MOESM2_ESM.zip \
+		--datafile 41598_2017_7382_MOESM2_ESM/barbato_muflon_metadata.xlsx --code_column code --breed_column Breed \
+		--fid_column fid --country_column country_x
+	$(PYTHON_INTERPRETER) src/data/import_breeds.py --species_class Sheep --src_dataset 41598_2017_7382_MOESM2_ESM.zip \
+		--datafile 41598_2017_7382_MOESM2_ESM/barbato_sheep_metadata.xlsx --code_column code --breed_column breed_x \
+		--fid_column code --country_column country_x
 
 	## create SHEEP samples from raw data files or from XLS (orders matter)
 	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --file TEXEL_UY --dataset TEXEL_INIA_UY.zip --chip_name IlluminaOvineSNP50 \
@@ -280,6 +286,13 @@ data: requirements
 	$(PYTHON_INTERPRETER) src/data/import_samples.py --src_dataset Welsh_sheep_genotyping.zip \
 		--datafile welsh-metadata.xlsx --code_column fid --id_column original_id --chip_name IlluminaOvineSNP50 \
 		--country_column country
+	$(PYTHON_INTERPRETER) src/data/import_samples.py --src_dataset 41598_2017_7382_MOESM2_ESM.zip \
+		--datafile 41598_2017_7382_MOESM2_ESM/barbato_muflon_metadata.xlsx --code_column fid --id_column original_id \
+		--chip_name IlluminaOvineSNP50 --country_column country_x --species_column Species --alias_column alias \
+		--sex_column sex
+	$(PYTHON_INTERPRETER) src/data/import_samples.py --src_dataset 41598_2017_7382_MOESM2_ESM.zip \
+		--datafile 41598_2017_7382_MOESM2_ESM/barbato_sheep_metadata.xlsx --code_column code --id_column original_id \
+		--chip_name IlluminaOvineSNP50 --country_column country_x --sex_column sex
 
 	## convert genotypes without creating samples in database (SHEEP)
 	$(PYTHON_INTERPRETER) src/data/import_from_affymetrix.py --prefix Affymetrix_data_Plate_652_660/Affymetrix_data_Plate_652/Affymetrix_data_Plate_652 \
@@ -344,6 +357,8 @@ data: requirements
 		--sample_field alias --src_version Oar_v4.0 --src_imported_from affymetrix --max_samples 35 --skip_coordinate_check
 	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --file "genotyping data/WelshSheepBreeds2015" \
 		--dataset Welsh_sheep_genotyping.zip --coding top --chip_name IlluminaOvineSNP50 --assembly OAR3 --sample_field original_id
+	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --bfile 41598_2017_7382_MOESM2_ESM/Barbato_2016 \
+		--dataset 41598_2017_7382_MOESM2_ESM.zip --coding top --chip_name IlluminaOvineSNP50 --assembly OAR3 --sample_field original_id
 
 	## create samples from custom files or genotypes for GOAT
 	$(PYTHON_INTERPRETER) src/data/import_samples.py --src_dataset ADAPTmap_phenotype_20161201.zip --dst_dataset ADAPTmap_genotypeTOP_20161201.zip \
@@ -504,6 +519,16 @@ data: requirements
 		--dst_dataset "OP1586-1666 OP1087-1106 Placa6 Corr_Tex_Genotyping_20220810_SMARTER.zip" --datafile 20220810_Genexa_fix.xlsx \
 		--id_column ID --latitude_column latitude --longitude_column longitude --metadata_column Stall \
 		--metadata_column GPS_2
+	$(PYTHON_INTERPRETER) src/data/import_metadata.py --src_dataset 41598_2017_7382_MOESM2_ESM.zip \
+		--datafile 41598_2017_7382_MOESM2_ESM/barbato_muflon_metadata.xlsx --id_column original_id \
+		--latitude_column latitude --longitude_column longitude --metadata_column biosamples_id \
+		--metadata_column sample_accession --metadata_column sample_provider --metadata_column closest_city \
+		--metadata_column closest_locality --metadata_column estimated_age_months --metadata_column sampling_date
+	$(PYTHON_INTERPRETER) src/data/import_metadata.py --src_dataset 41598_2017_7382_MOESM2_ESM.zip \
+		--datafile 41598_2017_7382_MOESM2_ESM/barbato_sheep_metadata.xlsx --id_column original_id \
+		--latitude_column latitude --longitude_column longitude --metadata_column biosamples_id \
+		--metadata_column sample_accession --metadata_column sample_provider --metadata_column closest_city \
+		--metadata_column closest_locality --metadata_column estimated_age_months --metadata_column sampling_date
 
 	## add phenotypes to samples
 	$(PYTHON_INTERPRETER) src/data/import_phenotypes.py --src_dataset ADAPTmap_phenotype_20161201.zip \

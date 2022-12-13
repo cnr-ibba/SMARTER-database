@@ -22,6 +22,7 @@ TODO
 0.4.7.dev1
 ----------
 
+* Import background data from *Barbato et al 2017* (https://doi.org/10.1038/s41598-017-07382-7)
 * Update species for *european mouflon*
 * Support species update with ``import_metadata.py``
 * Import 18 *welsh* breed as background genotypes
