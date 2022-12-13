@@ -150,7 +150,8 @@ def update_samples(
             dataset=dst_dataset, **query):
 
         # set locations features
-        sample.locations = locations
+        if locations:
+            sample.locations = locations
 
         # set metadata if necessary
         if metadata:
@@ -160,12 +161,14 @@ def update_samples(
         if species:
             sample.species = species
 
-        logger.info(
-            f"Updating '{sample}' with locations: '{locations}' "
-            f"and metadata: '{metadata}'")
+        if any([locations, metadata, species]):
+            logger.info(
+                f"Updating '{sample}' with species: '{sample.species}', "
+                f"locations: '{locations}' "
+                f"and metadata: '{metadata}'")
 
-        # update sample
-        sample.save()
+            # update sample
+            sample.save()
 
 
 @click.command()
