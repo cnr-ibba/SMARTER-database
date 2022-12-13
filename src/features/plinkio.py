@@ -762,11 +762,12 @@ class SmarterMixin():
         try:
             breed = self.search_breed(fid=line[0], dataset=dataset)
 
-        except DoesNotExist as e:
-            logger.error(e)
-            raise SmarterDBException(
-                f"Couldn't find breed_code '{line[0]}': {line[:10]+ ['...']}"
-            )
+        except DoesNotExist:
+            # it's possible that the breed exists but not with the desidered
+            # dataset (maybe I want to skip it)
+            logger.debug(
+                f"Couldn't find breed_code '{line[0]}' for '{dataset}'")
+            return None
 
         # check for sample in database
         sample = self.get_or_create_sample(
@@ -775,6 +776,8 @@ class SmarterMixin():
         # if I couldn't find a registered sample (in such case)
         # i can skip such record
         if not sample:
+            logger.debug(
+                f"Couldn't find sample '{line[1]}' for '{dataset}'")
             return None
 
         # a new line obj
