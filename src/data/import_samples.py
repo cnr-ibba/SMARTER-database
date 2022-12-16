@@ -95,7 +95,7 @@ def deal_with_breeds(
         ).get()
 
     else:
-        code = row.get(code_column)
+        code = str(row.get(code_column))
 
         logger.debug(f"search for fid: {code}, dataset: {dst_dataset}")
 
