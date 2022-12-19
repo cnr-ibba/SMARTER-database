@@ -849,7 +849,7 @@ def get_or_create_sample(
         alias=alias)
 
     if qs.count() == 1:
-        logger.debug(f"Sample '{original_id}', alias: {alias} "
+        logger.debug(f"Sample '{original_id}', alias: '{alias}' "
                      "found in database")
         sample = qs.get()
 
@@ -869,6 +869,14 @@ def get_or_create_sample(
             alias=alias
         )
         sample.save()
+
+        logger.debug(
+            f"Created sample '{sample}' with original_id: '{original_id}', "
+            f"country: '{country}', species: '{species}', breed: "
+            f"'{breed.name}', breed_code: '{breed.code}', dataset: "
+            f"'{dataset}', type: '{type_}', chip_name: '{chip_name}', "
+            f"sex: '{sex}', alias: '{alias}'"
+        )
 
         # incrementing breed n_individuals counter
         breed.n_individuals += 1

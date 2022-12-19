@@ -173,7 +173,7 @@ def deal_with_additional_fields(
     sex = None
 
     if sex_column:
-        sex = str(row.get(sex_column))
+        sex = str(row.get(sex_column)).strip()
         sex = SEX.from_string(sex)
 
         # drop sex column if unknown
