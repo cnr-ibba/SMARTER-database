@@ -170,6 +170,9 @@ data: requirements
 	$(PYTHON_INTERPRETER) src/data/import_breeds.py --species_class Sheep --src_dataset northwest_africa_sheep.zip \
 		--datafile northwest_africa_sheep/belabdi_2019_metadata.xlsx --code_column code --breed_column breed \
 		--fid_column fid --country_column country
+	$(PYTHON_INTERPRETER) src/data/import_breeds.py --species_class Sheep --src_dataset gaouar_algerian_sheeps.zip \
+		--datafile AlgerianSheep/gaouar_2017_metadata_fix.xlsx --code_column code --breed_column Name \
+		--fid_column Fid --country_column Country
 
 	## create SHEEP samples from raw data files or from XLS (orders matter)
 	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --file TEXEL_UY --dataset TEXEL_INIA_UY.zip --chip_name IlluminaOvineSNP50 \
@@ -305,6 +308,9 @@ data: requirements
 	$(PYTHON_INTERPRETER) src/data/import_samples.py --src_dataset northwest_africa_sheep.zip \
 		--datafile northwest_africa_sheep/belabdi_2019_metadata.xlsx --code_column fid --id_column original_id \
 		--chip_name IlluminaOvineSNP50 --country_column country --sex_column sexe
+	$(PYTHON_INTERPRETER) src/data/import_samples.py --src_dataset gaouar_algerian_sheeps.zip \
+		--datafile AlgerianSheep/gaouar_2017_metadata_fix.xlsx --code_column Fid --id_column original_id \
+		--chip_name IlluminaOvineSNP50 --country_column Country
 
 	## convert genotypes without creating samples in database (SHEEP)
 	$(PYTHON_INTERPRETER) src/data/import_from_affymetrix.py --prefix Affymetrix_data_Plate_652_660/Affymetrix_data_Plate_652/Affymetrix_data_Plate_652 \
@@ -375,6 +381,9 @@ data: requirements
 		--dataset Ciani_2020.zip --coding top --chip_name IlluminaOvineSNP50 --assembly OAR3 --sample_field original_id
 	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --file northwest_africa_sheep/AlgerianSheepSidaounHamra \
 		--dataset northwest_africa_sheep.zip --coding top --chip_name IlluminaOvineSNP50 --assembly OAR3 --sample_field original_id
+	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --file AlgerianSheep/AlgerianSheep \
+		--dataset gaouar_algerian_sheeps.zip --coding illumina --chip_name IlluminaOvineSNP50 --assembly OAR3 --sample_field original_id \
+		--src_version Oar_v4.0 --src_imported_from manifest
 
 	## create samples from custom files or genotypes for GOAT
 	$(PYTHON_INTERPRETER) src/data/import_samples.py --src_dataset ADAPTmap_phenotype_20161201.zip --dst_dataset ADAPTmap_genotypeTOP_20161201.zip \
@@ -553,6 +562,10 @@ data: requirements
 		--datafile northwest_africa_sheep/belabdi_2019_metadata.xlsx --id_column original_id \
 		--latitude_column latitude --longitude_column longitude --metadata_column age \
 		--metadata_column identification
+	$(PYTHON_INTERPRETER) src/data/import_metadata.py --src_dataset gaouar_algerian_sheeps.zip \
+		--datafile AlgerianSheep/gaouar_2017_metadata_fix.xlsx --id_column original_id \
+		--latitude_column latitude --longitude_column longitude --metadata_column Site \
+		--metadata_column Note
 
 	## add phenotypes to samples
 	$(PYTHON_INTERPRETER) src/data/import_phenotypes.py --src_dataset ADAPTmap_phenotype_20161201.zip \
