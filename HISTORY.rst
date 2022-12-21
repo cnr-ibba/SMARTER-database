@@ -22,6 +22,8 @@ TODO
 0.4.7.dev1
 ----------
 
+* Import background data from *Gaouar et al 2017* (https://doi.org/10.1038/hdy.2016.86)
+* Import from plink with illumina coding (as specified in manifest: not *top* nor *forward*)
 * Import background data from *Belabdi et al 2019* (https://doi.org/10.1038/s41598-019-44137-y)
 * Import background data from *Ciani et al 2020* (https://doi.org/10.1186/s12711-020-00545-7)
 * Import background data from *Barbato et al 2017* (https://doi.org/10.1038/s41598-017-07382-7)
