@@ -139,10 +139,10 @@ def deal_with_binary_plink(bfile: str, dataset: Dataset, assembly: str):
 @click.option(
     '--coding',
     type=click.Choice(
-        ['top', 'forward', 'ab', 'affymetrix'],
+        ['top', 'forward', 'ab', 'affymetrix', 'illumina'],
         case_sensitive=False),
     default="top", show_default=True,
-    help="Illumina coding format"
+    help="Genotype coding format"
 )
 @click.option(
     '--chip_name',

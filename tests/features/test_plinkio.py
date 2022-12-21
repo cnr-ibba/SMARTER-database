@@ -241,14 +241,14 @@ class TextPlinkIOPed(
         self.assertEqual(len(test), 2)
 
     def test_process_genotypes_top(self):
-        # first record is in top coordinates
+        # first record is in top coding
         line = self.lines[0]
         test = self.plinkio._process_genotypes(line, 'top')
 
-        # a genotype in forward coordinates isn't modified
+        # a genotype in forward coding isn't modified
         self.assertEqual(line, test)
 
-        # searching forward coordinates throws exception
+        # searching forward coding throws exception
         self.assertRaisesRegex(
             CodingException,
             "not in illumina forward format",
@@ -257,7 +257,7 @@ class TextPlinkIOPed(
             "forward"
         )
 
-        # searching ab coordinates throws exception
+        # searching ab coding throws exception
         self.assertRaisesRegex(
             CodingException,
             "not in illumina ab format",
@@ -266,10 +266,19 @@ class TextPlinkIOPed(
             "ab"
         )
 
+        # searching illumina coding throws exception
+        self.assertRaisesRegex(
+            CodingException,
+            "not in illumina format",
+            self.plinkio._process_genotypes,
+            line,
+            "illumina"
+        )
+
     def test_process_genotypes_ignore_coding(self):
         """Convert with a wrong coding but ignore errors"""
 
-        # first record is in top coordinates
+        # first record is in top coding
         line = self.lines[0]
         test = self.plinkio._process_genotypes(
             line, 'forward', ignore_errors=True)
@@ -283,7 +292,7 @@ class TextPlinkIOPed(
         self.assertEqual(reference, test)
 
     def test_process_genotypes_half_missing(self):
-        # read a file in forward coordinates
+        # read a file in forward coding
         self.plinkio.pedfile = str(DATA_DIR / "plinktest_half-missing.ped")
         half_missing = next(self.plinkio.read_pedfile())
 
@@ -298,11 +307,11 @@ class TextPlinkIOPed(
         self.assertEqual(reference, test)
 
     def test_process_genotypes_forward(self):
-        # read a file in forward coordinates
+        # read a file in forward coding
         self.plinkio.pedfile = str(DATA_DIR / "plinktest_forward.ped")
         forward = next(self.plinkio.read_pedfile())
 
-        # searching top coordinates throws exception
+        # searching top coding throws exception
         self.assertRaisesRegex(
             CodingException,
             "not in illumina top format",
@@ -311,7 +320,7 @@ class TextPlinkIOPed(
             "top"
         )
 
-        # searching ab coordinates throws exception
+        # searching ab coding throws exception
         self.assertRaisesRegex(
             CodingException,
             "not in illumina ab format",
@@ -320,18 +329,20 @@ class TextPlinkIOPed(
             "ab"
         )
 
+        # cannot test for illumina coding since is equal to forward
+
         test = self.plinkio._process_genotypes(forward, 'forward')
 
-        # a genotype in forward coordinates returns in top
+        # a genotype in forward coding returns in top
         reference = self.lines[0]
         self.assertEqual(reference, test)
 
     def test_process_genotypes_ab(self):
-        # read a file in forward coordinates
+        # read a file in forward coding
         self.plinkio.pedfile = str(DATA_DIR / "plinktest_ab.ped")
         ab = next(self.plinkio.read_pedfile())
 
-        # searching top coordinates throws exception
+        # searching top coding throws exception
         self.assertRaisesRegex(
             CodingException,
             "not in illumina top format",
@@ -340,7 +351,7 @@ class TextPlinkIOPed(
             "top"
         )
 
-        # searching forward coordinates throws exception
+        # searching forward coding throws exception
         self.assertRaisesRegex(
             CodingException,
             "not in illumina forward format",
@@ -349,9 +360,49 @@ class TextPlinkIOPed(
             "forward"
         )
 
+        # searching illumina coding throws exception
+        self.assertRaisesRegex(
+            CodingException,
+            "not in illumina format",
+            self.plinkio._process_genotypes,
+            ab,
+            "illumina"
+        )
+
         test = self.plinkio._process_genotypes(ab, 'ab')
 
-        # a genotype in forward coordinates returns in top
+        # a genotype in forward coding returns in top
+        reference = self.lines[0]
+        self.assertEqual(reference, test)
+
+    def test_process_genotypes_illumina(self):
+        # read a file in illumina coding
+        self.plinkio.pedfile = str(DATA_DIR / "plinktest_illumina.ped")
+        illumina = next(self.plinkio.read_pedfile())
+
+        # searching top coding throws exception
+        self.assertRaisesRegex(
+            CodingException,
+            "not in illumina top format",
+            self.plinkio._process_genotypes,
+            illumina,
+            "top"
+        )
+
+        # cannot test agains forward since is equal to illumina
+
+        # searching ab coding throws exception
+        self.assertRaisesRegex(
+            CodingException,
+            "not in illumina ab format",
+            self.plinkio._process_genotypes,
+            illumina,
+            "ab"
+        )
+
+        test = self.plinkio._process_genotypes(illumina, 'illumina')
+
+        # a genotype in forward coding returns in top
         reference = self.lines[0]
         self.assertEqual(reference, test)
 

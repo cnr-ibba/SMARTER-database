@@ -649,6 +649,19 @@ class SmarterMixin():
             # change the allele coding
             top_genotype = location.affy2top(genotype)
 
+        elif coding == 'illumina':
+            if not location.is_illumina(genotype):
+                logger.debug(
+                    f"Error for SNP {index}: '{self.mapdata[index].name}': "
+                    f"{a1}/{a2} <> {location.illumina}"
+                )
+                raise CodingException(
+                    f"SNP '{self.mapdata[index].name}' is "
+                    "not in illumina format")
+
+            # change the allele coding
+            top_genotype = location.illumina2top(genotype)
+
         else:
             raise NotImplementedError(f"Coding '{coding}' not supported")
 
