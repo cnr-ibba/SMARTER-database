@@ -20,6 +20,7 @@ from pathlib import Path
 from click_option_group import (
     optgroup, RequiredMutuallyExclusiveOptionGroup,
     MutuallyExclusiveOptionGroup)
+from mongoengine.errors import DoesNotExist
 
 import pycountry
 import pandas as pd
@@ -28,7 +29,8 @@ from pandas.core.series import Series
 from src.data.common import (
     deal_with_datasets, pandas_open, get_sample_species)
 from src.features.smarterdb import (
-    global_connection, Breed, get_or_create_sample, SEX, get_sample_type)
+    global_connection, Breed, get_or_create_sample, SEX, get_sample_type,
+    SmarterDBException)
 from src.features.utils import UnknownCountry
 
 logger = logging.getLogger(__name__)
@@ -93,13 +95,19 @@ def deal_with_breeds(
         ).get()
 
     else:
-        code = row.get(code_column)
+        code = str(row.get(code_column))
 
         logger.debug(f"search for fid: {code}, dataset: {dst_dataset}")
 
         # get breed from database
-        breed = Breed.objects(
-            aliases__match={'fid': code, 'dataset': dst_dataset}).get()
+        try:
+            breed = Breed.objects(
+                aliases__match={'fid': code, 'dataset': dst_dataset}).get()
+
+        except DoesNotExist as exc:
+            logger.debug(exc)
+            raise SmarterDBException(
+                f"Couldn't find fid: {code}, dataset: {dst_dataset}")
 
     logger.debug(f"found breed '{breed}'")
 
@@ -165,7 +173,7 @@ def deal_with_additional_fields(
     sex = None
 
     if sex_column:
-        sex = str(row.get(sex_column))
+        sex = str(row.get(sex_column)).strip()
         sex = SEX.from_string(sex)
 
         # drop sex column if unknown
@@ -206,7 +214,7 @@ def deal_with_additional_fields(
     '--code_column',
     type=str,
     default="code",
-    help="Code column in src datafile"
+    help="Code column in src datafile (ie FID)"
 )
 @optgroup.option(
     '--code_all',

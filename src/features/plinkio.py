@@ -596,7 +596,58 @@ class SmarterMixin():
         # the returned value
         top_genotype = []
 
-        # TODO: coding need to be a dataset attribute
+        # define a dictionary with useful data
+        config = {
+            'forward': {
+                'check': 'is_forward',
+                'convert': 'forward2top',
+                'message': (
+                    f"Error for SNP {index}: '{self.mapdata[index].name}': "
+                    f"{a1}/{a2} <> {location.illumina_forward}"
+                ),
+                'exception': (
+                    f"SNP '{self.mapdata[index].name}' is "
+                    "not in illumina forward format"
+                )
+            },
+            'ab': {
+                'check': 'is_ab',
+                'convert': 'ab2top',
+                'message': (
+                    f"Error for SNP {index}: '{self.mapdata[index].name}': "
+                    f"{a1}/{a2} <> A/B"
+                ),
+                'exception': (
+                    f"SNP '{self.mapdata[index].name}' is "
+                    "not in illumina ab format"
+                )
+            },
+            'affymetrix': {
+                'check': 'is_affymetrix',
+                'convert': 'affy2top',
+                'message': (
+                    f"Error for SNP {index}: '{self.mapdata[index].name}': "
+                    f"{a1}/{a2} <> {location.affymetrix_ab}"
+                ),
+                'exception': (
+                    f"SNP '{self.mapdata[index].name}' is "
+                    "not in affymetrix format"
+                )
+            },
+            'illumina': {
+                'check': 'is_illumina',
+                'convert': 'illumina2top',
+                'message': (
+                    f"Error for SNP {index}: '{self.mapdata[index].name}': "
+                    f"{a1}/{a2} <> {location.illumina}"
+                ),
+                'exception': (
+                    f"SNP '{self.mapdata[index].name}' is "
+                    "not in illumina format"
+                )
+            }
+        }
+
         if coding == 'top':
             if not location.is_top(genotype):
                 logger.debug(
@@ -610,44 +661,19 @@ class SmarterMixin():
             # allele coding is the same received as input
             top_genotype = genotype
 
-        elif coding == 'forward':
-            if not location.is_forward(genotype):
-                logger.debug(
-                    f"Error for SNP {index}: '{self.mapdata[index].name}': "
-                    f"{a1}/{a2} <> {location.illumina_forward}"
-                )
-                raise CodingException(
-                    f"SNP '{self.mapdata[index].name}' is "
-                    "not in illumina forward format")
+        elif coding in config:
+            # get the proper method to check genotype
+            check = getattr(location, config[coding]['check'])
+
+            if not check(genotype):
+                logger.debug(config[coding]['message'])
+                raise CodingException(config[coding]['exception'])
+
+            # get the proper method to convert genotype
+            convert = getattr(location, config[coding]['convert'])
 
             # change the allele coding
-            top_genotype = location.forward2top(genotype)
-
-        elif coding == 'ab':
-            if not location.is_ab(genotype):
-                logger.debug(
-                    f"Error for SNP {index}: '{self.mapdata[index].name}': "
-                    f"{a1}/{a2} <> A/B"
-                )
-                raise CodingException(
-                    f"SNP '{self.mapdata[index].name}' is "
-                    "not in illumina ab format")
-
-            # change the allele coding
-            top_genotype = location.ab2top(genotype)
-
-        elif coding == 'affymetrix':
-            if not location.is_affymetrix(genotype):
-                logger.debug(
-                    f"Error for SNP {index}: '{self.mapdata[index].name}': "
-                    f"{a1}/{a2} <> {location.affymetrix_ab}"
-                )
-                raise CodingException(
-                    f"SNP '{self.mapdata[index].name}' is "
-                    "not in affymetrix format")
-
-            # change the allele coding
-            top_genotype = location.affy2top(genotype)
+            top_genotype = convert(genotype)
 
         else:
             raise NotImplementedError(f"Coding '{coding}' not supported")
@@ -762,11 +788,12 @@ class SmarterMixin():
         try:
             breed = self.search_breed(fid=line[0], dataset=dataset)
 
-        except DoesNotExist as e:
-            logger.error(e)
-            raise SmarterDBException(
-                f"Couldn't find breed_code '{line[0]}': {line[:10]+ ['...']}"
-            )
+        except DoesNotExist:
+            # it's possible that the breed exists but not with the desidered
+            # dataset (maybe I want to skip it)
+            logger.debug(
+                f"Couldn't find breed_code '{line[0]}' for '{dataset}'")
+            return None
 
         # check for sample in database
         sample = self.get_or_create_sample(
@@ -775,6 +802,8 @@ class SmarterMixin():
         # if I couldn't find a registered sample (in such case)
         # i can skip such record
         if not sample:
+            logger.debug(
+                f"Couldn't find sample '{line[1]}' for '{dataset}'")
             return None
 
         # a new line obj

@@ -427,6 +427,44 @@ class LocationTestCase(VariantMixin, MongoMockMixin, unittest.TestCase):
             ["A", "T"]
         )
 
+    def test_is_illumina(self):
+        for genotype in ["T/C", "T/T", "C/T", "C/C", "0/0"]:
+            genotype = genotype.split("/")
+
+            self.assertTrue(
+                self.location.is_illumina(genotype),
+                msg=f"{genotype} is not in affymetrix coordinates!"
+            )
+
+        # this is false, for example with top coding
+        for genotype in ["A/A", "A/G", "G/A", "G/G"]:
+            self.assertFalse(
+                self.location.is_illumina(genotype),
+                msg=f"{genotype} is in affymetrix coordinates!"
+            )
+
+    def test_illumina2top(self):
+        """Test illumina to top conversion"""
+
+        illuminas = ["T/C", "T/T", "C/T", "C/C", "0/0"]
+        tops = ["A/G", "A/A", "G/A", "G/G", "0/0"]
+
+        for i, genotype in enumerate(illuminas):
+            reference = tops[i].split("/")
+            genotype = genotype.split("/")
+
+            test = self.location.illumina2top(genotype)
+            self.assertEqual(reference, test)
+
+    def test_illumina2top_error(self):
+        """Test exception with an allele not in illumina coding"""
+        self.assertRaisesRegex(
+            SmarterDBException,
+            "is not in illumina coding",
+            self.location.illumina2top,
+            ["A", "T"]
+        )
+
 
 class VariantSheepTestCase(VariantMixin, MongoMockMixin, unittest.TestCase):
     def setUp(self):

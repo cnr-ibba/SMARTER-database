@@ -16,15 +16,15 @@ from unittest.mock import patch, PropertyMock
 from pycountry.db import Data as KnownCountry
 
 from src.data.import_samples import main as import_samples, find_country
-from src.features.smarterdb import Dataset, SampleSheep, SEX
+from src.features.smarterdb import (
+    Dataset, SampleSheep, SEX, SmarterDBException)
 from src.features.utils import UnknownCountry
 
 from ..common import (
     MongoMockMixin, SmarterIDMixin, SupportedChipMixin)
 
 
-class TestImportSamples(
-        SmarterIDMixin, SupportedChipMixin, MongoMockMixin, unittest.TestCase):
+class ImportSamplesMixin(SmarterIDMixin, SupportedChipMixin, MongoMockMixin):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
@@ -100,6 +100,8 @@ class TestImportSamples(
 
         super().tearDown()
 
+
+class TestImportSamples(ImportSamplesMixin, unittest.TestCase):
     def test_help(self):
         result = self.runner.invoke(import_samples, ["--help"])
         self.assertEqual(0, result.exit_code)
@@ -428,6 +430,52 @@ class TestImportSamples(
             sample = SampleSheep.objects.get(original_id="test-2")
             self.assertEqual(sample.smarter_id, "ESOA-TEX-000000002")
             self.assertEqual(sample.species, "Ovis orientalis")
+
+
+class TestImportSamplesNoFid(ImportSamplesMixin, unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+
+        # adding values
+        cls.sheet.cell(row=2, column=1, value="DOES_NOT_EXISTS")
+
+    @patch('src.features.smarterdb.Dataset.working_dir',
+           new_callable=PropertyMock)
+    def test_breed_does_not_exists(self, my_working_dir):
+        # create a temporary directory using the context manager
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            working_dir = pathlib.Path(tmpdirname)
+            my_working_dir.return_value = working_dir
+
+            # save worksheet in temporary folder
+            self.workbook.save(f"{working_dir}/metadata.xlsx")
+
+            # got first sample from database
+            self.assertEqual(SampleSheep.objects.count(), 1)
+
+            result = self.runner.invoke(
+                import_samples,
+                [
+                    "--src_dataset",
+                    "test2.zip",
+                    "--dst_dataset",
+                    "test.zip",
+                    "--datafile",
+                    "metadata.xlsx",
+                    "--code_column",
+                    "Code",
+                    "--country_column",
+                    "Country",
+                    "--id_column",
+                    "Id",
+                    "--chip_name",
+                    self.chip_name
+                ]
+            )
+
+            self.assertEqual(1, result.exit_code, msg=result.exception)
+            self.assertIsInstance(result.exception, SmarterDBException)
 
 
 class TestFindCountry(unittest.TestCase):

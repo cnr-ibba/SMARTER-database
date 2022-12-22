@@ -849,7 +849,7 @@ def get_or_create_sample(
         alias=alias)
 
     if qs.count() == 1:
-        logger.debug(f"Sample '{original_id}', alias: {alias} "
+        logger.debug(f"Sample '{original_id}', alias: '{alias}' "
                      "found in database")
         sample = qs.get()
 
@@ -869,6 +869,14 @@ def get_or_create_sample(
             alias=alias
         )
         sample.save()
+
+        logger.debug(
+            f"Created sample '{sample}' with original_id: '{original_id}', "
+            f"country: '{country}', species: '{species}', breed: "
+            f"'{breed.name}', breed_code: '{breed.code}', dataset: "
+            f"'{dataset}', type: '{type_}', chip_name: '{chip_name}', "
+            f"sex: '{sex}', alias: '{alias}'"
+        )
 
         # incrementing breed n_individuals counter
         breed.n_individuals += 1
@@ -1098,6 +1106,21 @@ class Location(mongoengine.EmbeddedDocument):
 
         return self.__check_coding(genotype, "affymetrix_ab", missing)
 
+    def is_illumina(
+            self, genotype: list, missing: list = ["0", "-"]) -> bool:
+        """Return True if genotype is compatible with illumina coding
+        (as it's recorded in manifest)
+
+        Args:
+            genotype (list): a list of two alleles (ex ['A','C'])
+            missing (list): a list of missing allele strings (def ["0", "-"])
+
+        Returns:
+            bool: True if in affymetrix AB coding
+        """
+
+        return self.__check_coding(genotype, "illumina", missing)
+
     def forward2top(self, genotype: list, missing: list = ["0", "-"]) -> list:
         """Convert an illumina forward SNP in a illumina top snp
 
@@ -1188,6 +1211,37 @@ class Location(mongoengine.EmbeddedDocument):
 
             else:
                 result.append(top[affymetrix.index(allele)])
+
+        return result
+
+    def illumina2top(self, genotype: list, missing: list = ["0", "-"]) -> list:
+        """Convert an illumina SNP in a illumina top snp
+
+        Args:
+            genotype (list): a list of two alleles (ex ['A','C'])
+            missing (list): a list of missing allele strings (def ["0", "-"])
+
+        Returns:
+            list: The genotype in top format
+        """
+
+        # get illumina data as an array
+        illumina = self.illumina.split("/")
+        top = self.illumina_top.split("/")
+
+        result = []
+
+        for allele in genotype:
+            # mind to missing values
+            if allele in missing:
+                result.append("0")
+
+            elif allele not in illumina:
+                raise SmarterDBException(
+                    f"{genotype} is not in illumina coding")
+
+            else:
+                result.append(top[illumina.index(allele)])
 
         return result
 

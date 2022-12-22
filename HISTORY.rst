@@ -19,9 +19,18 @@ TODO
 * Remove ``--chip_name`` from import genotypes script (derive it from dataset)
 * Capitalize ``species_class`` parameter in ``src.data.import_breeds.py``
 
-0.4.7.dev1
+0.4.7.dev2
 ----------
 
+* Import background data from *Gaouar et al 2017* (https://doi.org/10.1038/hdy.2016.86)
+* Import from plink with illumina coding (as specified in manifest: not *top* nor *forward*)
+* Import background data from *Belabdi et al 2019* (https://doi.org/10.1038/s41598-019-44137-y)
+* Import background data from *Ciani et al 2020* (https://doi.org/10.1186/s12711-020-00545-7)
+* Import background data from *Barbato et al 2017* (https://doi.org/10.1038/s41598-017-07382-7)
+* Update species for *european mouflon*
+* Support species update with ``import_metadata.py``
+* Import 18 *welsh* breed as background genotypes
+* Rename two *welsh* breeds
 * Model *doi* in datasets
 * Upgrade CI workflows to ``actions/cache@v3``
 * Add ``SNPconvert.py`` script
