@@ -19,8 +19,8 @@ TODO
 * Remove ``--chip_name`` from import genotypes script (derive it from dataset)
 * Capitalize ``species_class`` parameter in ``src.data.import_breeds.py``
 
-0.4.7.dev2
-----------
+0.4.7 (2022-12-22)
+------------------
 
 * Import background data from *Gaouar et al 2017* (https://doi.org/10.1038/hdy.2016.86)
 * Import from plink with illumina coding (as specified in manifest: not *top* nor *forward*)
