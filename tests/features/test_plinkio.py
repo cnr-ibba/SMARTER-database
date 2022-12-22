@@ -241,14 +241,14 @@ class TextPlinkIOPed(
         self.assertEqual(len(test), 2)
 
     def test_process_genotypes_top(self):
-        # first record is in top coordinates
+        # first record is in top coding
         line = self.lines[0]
         test = self.plinkio._process_genotypes(line, 'top')
 
-        # a genotype in forward coordinates isn't modified
+        # a genotype in forward coding isn't modified
         self.assertEqual(line, test)
 
-        # searching forward coordinates throws exception
+        # searching forward coding throws exception
         self.assertRaisesRegex(
             CodingException,
             "not in illumina forward format",
@@ -257,7 +257,7 @@ class TextPlinkIOPed(
             "forward"
         )
 
-        # searching ab coordinates throws exception
+        # searching ab coding throws exception
         self.assertRaisesRegex(
             CodingException,
             "not in illumina ab format",
@@ -266,10 +266,19 @@ class TextPlinkIOPed(
             "ab"
         )
 
+        # searching illumina coding throws exception
+        self.assertRaisesRegex(
+            CodingException,
+            "not in illumina format",
+            self.plinkio._process_genotypes,
+            line,
+            "illumina"
+        )
+
     def test_process_genotypes_ignore_coding(self):
         """Convert with a wrong coding but ignore errors"""
 
-        # first record is in top coordinates
+        # first record is in top coding
         line = self.lines[0]
         test = self.plinkio._process_genotypes(
             line, 'forward', ignore_errors=True)
@@ -283,7 +292,7 @@ class TextPlinkIOPed(
         self.assertEqual(reference, test)
 
     def test_process_genotypes_half_missing(self):
-        # read a file in forward coordinates
+        # read a file in forward coding
         self.plinkio.pedfile = str(DATA_DIR / "plinktest_half-missing.ped")
         half_missing = next(self.plinkio.read_pedfile())
 
@@ -298,11 +307,11 @@ class TextPlinkIOPed(
         self.assertEqual(reference, test)
 
     def test_process_genotypes_forward(self):
-        # read a file in forward coordinates
+        # read a file in forward coding
         self.plinkio.pedfile = str(DATA_DIR / "plinktest_forward.ped")
         forward = next(self.plinkio.read_pedfile())
 
-        # searching top coordinates throws exception
+        # searching top coding throws exception
         self.assertRaisesRegex(
             CodingException,
             "not in illumina top format",
@@ -311,7 +320,7 @@ class TextPlinkIOPed(
             "top"
         )
 
-        # searching ab coordinates throws exception
+        # searching ab coding throws exception
         self.assertRaisesRegex(
             CodingException,
             "not in illumina ab format",
@@ -320,18 +329,20 @@ class TextPlinkIOPed(
             "ab"
         )
 
+        # cannot test for illumina coding since is equal to forward
+
         test = self.plinkio._process_genotypes(forward, 'forward')
 
-        # a genotype in forward coordinates returns in top
+        # a genotype in forward coding returns in top
         reference = self.lines[0]
         self.assertEqual(reference, test)
 
     def test_process_genotypes_ab(self):
-        # read a file in forward coordinates
+        # read a file in forward coding
         self.plinkio.pedfile = str(DATA_DIR / "plinktest_ab.ped")
         ab = next(self.plinkio.read_pedfile())
 
-        # searching top coordinates throws exception
+        # searching top coding throws exception
         self.assertRaisesRegex(
             CodingException,
             "not in illumina top format",
@@ -340,7 +351,7 @@ class TextPlinkIOPed(
             "top"
         )
 
-        # searching forward coordinates throws exception
+        # searching forward coding throws exception
         self.assertRaisesRegex(
             CodingException,
             "not in illumina forward format",
@@ -349,9 +360,49 @@ class TextPlinkIOPed(
             "forward"
         )
 
+        # searching illumina coding throws exception
+        self.assertRaisesRegex(
+            CodingException,
+            "not in illumina format",
+            self.plinkio._process_genotypes,
+            ab,
+            "illumina"
+        )
+
         test = self.plinkio._process_genotypes(ab, 'ab')
 
-        # a genotype in forward coordinates returns in top
+        # a genotype in forward coding returns in top
+        reference = self.lines[0]
+        self.assertEqual(reference, test)
+
+    def test_process_genotypes_illumina(self):
+        # read a file in illumina coding
+        self.plinkio.pedfile = str(DATA_DIR / "plinktest_illumina.ped")
+        illumina = next(self.plinkio.read_pedfile())
+
+        # searching top coding throws exception
+        self.assertRaisesRegex(
+            CodingException,
+            "not in illumina top format",
+            self.plinkio._process_genotypes,
+            illumina,
+            "top"
+        )
+
+        # cannot test agains forward since is equal to illumina
+
+        # searching ab coding throws exception
+        self.assertRaisesRegex(
+            CodingException,
+            "not in illumina ab format",
+            self.plinkio._process_genotypes,
+            illumina,
+            "ab"
+        )
+
+        test = self.plinkio._process_genotypes(illumina, 'illumina')
+
+        # a genotype in forward coding returns in top
         reference = self.lines[0]
         self.assertEqual(reference, test)
 
@@ -1232,6 +1283,76 @@ class AffyReportIOMapTest(
         for record in self.plinkio.mapdata:
             self.assertIsInstance(record, MapRecord)
 
+    def test_mapdata_rename(self):
+        """Test for mapdata after reading reportfile with invalid python
+        names"""
+
+        plinkio = AffyReportIO(
+            report=DATA_DIR / "affyreport_numeric.txt",
+            species="Sheep",
+            chip_name=self.chip_name
+        )
+
+        plinkio.read_reportfile()
+        self.assertIsInstance(plinkio.mapdata, list)
+        self.assertEqual(len(plinkio.mapdata), 3)
+        for record in plinkio.mapdata:
+            self.assertIsInstance(record, MapRecord)
+
+        self.assertListEqual(plinkio.get_samples(), ["1_test", "2_test"])
+
+    def test_mapdata_missing_cols(self):
+        """Test for mapdata after reading reportfile with missing columns"""
+
+        plinkio = AffyReportIO(
+            report=DATA_DIR / "affyreport_nocols.txt",
+            species="Sheep",
+            chip_name=self.chip_name
+        )
+
+        plinkio.read_reportfile()
+        self.assertIsInstance(plinkio.mapdata, list)
+        self.assertEqual(len(plinkio.mapdata), 3)
+        for record in plinkio.mapdata:
+            self.assertIsInstance(record, MapRecord)
+
+        self.assertListEqual(plinkio.get_samples(), ["test-one", "test-two"])
+
+    def test_mapdata_missing_snps(self):
+        """Test for mapdata after reading reportfile with missing snps"""
+
+        plinkio = AffyReportIO(
+            report=DATA_DIR / "affyreport_nosnps.txt",
+            species="Sheep",
+            chip_name=self.chip_name
+        )
+
+        plinkio.read_reportfile()
+        self.assertIsInstance(plinkio.mapdata, list)
+        self.assertEqual(len(plinkio.mapdata), 3)
+        for record in plinkio.mapdata:
+            self.assertIsInstance(record, MapRecord)
+
+        self.assertListEqual(plinkio.get_samples(), ["test-one", "test-two"])
+
+    def test_get_samples(self):
+        """Test getting samples from report file"""
+
+        self.plinkio.read_reportfile()
+        test = self.plinkio.get_samples()
+        reference = ["test-one", "test-two"]
+
+        self.assertEqual(reference, test)
+
+    def test_get_samples_limit(self):
+        """Test getting samples from report file by limiting number"""
+
+        self.plinkio.read_reportfile(n_samples=1)
+        test = self.plinkio.get_samples()
+        reference = ["test-one"]
+
+        self.assertEqual(reference, test)
+
     def test_fetch_coordinates(self):
         self.plinkio.read_reportfile()
         self.plinkio.fetch_coordinates(
@@ -1351,6 +1472,63 @@ class AffyReportIOPedTest(
         self.assertEqual(len(test), 1)
         self.assertEqual(test[0][1], "test-one")
 
+    def test_read_reportfile_missing_cols(self):
+        """Test read reportfile with missing columns"""
+
+        plinkio = AffyReportIO(
+            report=str(DATA_DIR / "affyreport_nocols.txt"),
+            species="Sheep",
+            chip_name="AffymetrixAxiomOviCan"
+        )
+
+        # read info from map
+        plinkio.read_reportfile()
+
+        # collect info for source and destination assemblies
+        # skip coordinate check
+        plinkio.fetch_coordinates(
+            src_assembly=self.src_assembly,
+            dst_assembly=self.dst_assembly,
+            search_field='probeset_id',
+            chip_name=self.chip_name,
+            skip_check=True
+        )
+
+        test = plinkio.read_peddata(breed="TEX")
+        self.assertIsInstance(test, types.GeneratorType)
+
+        # consume data and count rows
+        test = list(test)
+        self.assertEqual(len(test), 2)
+
+    def test_read_reportfile_missing_snps(self):
+        """Test read reportfile with missing snps"""
+
+        plinkio = AffyReportIO(
+            report=str(DATA_DIR / "affyreport_nosnps.txt"),
+            species="Sheep",
+            chip_name="AffymetrixAxiomOviCan"
+        )
+
+        # read info from map
+        plinkio.read_reportfile()
+
+        # collect info for source and destination assemblies
+        # skip coordinate check
+        plinkio.fetch_coordinates(
+            src_assembly=self.src_assembly,
+            dst_assembly=self.dst_assembly,
+            search_field='probeset_id',
+            chip_name=self.chip_name,
+        )
+
+        test = plinkio.read_peddata(breed="TEX")
+        self.assertIsInstance(test, types.GeneratorType)
+
+        # consume data and count rows
+        test = list(test)
+        self.assertEqual(len(test), 2)
+
     def test_process_pedline(self):
         # define reference
         reference = [
@@ -1424,14 +1602,6 @@ class AffyReportIOPedTest(
 
             # assert two records written
             self.assertEqual(len(list(test.read_pedfile())), 2)
-
-    def test_get_samples(self):
-        """Test getting samples from genotype file"""
-
-        test = self.plinkio.get_samples()
-        reference = ["test-one", "test-two"]
-
-        self.assertEqual(reference, test)
 
 
 if __name__ == '__main__':

@@ -53,6 +53,7 @@ class MetaDataMixin(SmarterIDMixin, SupportedChipMixin, MongoMockMixin):
         cls.sheet.cell(row=1, column=7, value="Col 2")
         cls.sheet.cell(row=1, column=8, value="Id")
         cls.sheet.cell(row=1, column=9, value="Alias")
+        cls.sheet.cell(row=1, column=10, value="Species")
 
         # adding values
         cls.sheet.cell(row=2, column=1, value="TEX")
@@ -64,6 +65,7 @@ class MetaDataMixin(SmarterIDMixin, SupportedChipMixin, MongoMockMixin):
         cls.sheet.cell(row=2, column=7, value="Val2")
         cls.sheet.cell(row=2, column=8, value="test-1")
         cls.sheet.cell(row=2, column=9, value="test-one")
+        cls.sheet.cell(row=2, column=10, value="Ovis aries")
 
         cls.sheet.cell(row=3, column=1, value="MER")
         cls.sheet.cell(row=3, column=2, value="Merino")
@@ -74,6 +76,7 @@ class MetaDataMixin(SmarterIDMixin, SupportedChipMixin, MongoMockMixin):
         cls.sheet.cell(row=3, column=7, value="Val4")
         cls.sheet.cell(row=3, column=8, value="test-2")
         cls.sheet.cell(row=3, column=9, value="test-two")
+        cls.sheet.cell(row=3, column=10, value="Ovis orientalis")
 
     @classmethod
     def tearDownClass(cls):
@@ -156,6 +159,14 @@ class MetaDataMixin(SmarterIDMixin, SupportedChipMixin, MongoMockMixin):
                 'col_2': 'Val4'
             }
         )
+
+    def check_sample1_species(self):
+        self.sample1.reload()
+        self.assertEqual(self.sample1.species, "Ovis aries")
+
+    def check_sample2_species(self):
+        self.sample2.reload()
+        self.assertEqual(self.sample2.species, "Ovis orientalis")
 
 
 class TestImportMetadataCLI(MetaDataMixin, unittest.TestCase):
@@ -271,6 +282,42 @@ class TestImportMetadataByBreeds(MetaDataMixin, unittest.TestCase):
             self.check_sample1_metadata()
             self.check_sample2_metadata()
 
+    @patch('src.features.smarterdb.Dataset.working_dir',
+           new_callable=PropertyMock)
+    def test_import_with_species(self, my_working_dir):
+        # create a temporary directory using the context manager
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            working_dir = pathlib.Path(tmpdirname)
+            my_working_dir.return_value = working_dir
+
+            # save worksheet in temporary folder
+            self.workbook.save(f"{working_dir}/metadata.xlsx")
+
+            # test two records in database
+            self.assertEqual(SampleSheep.objects.count(), 2)
+
+            result = self.runner.invoke(
+                import_metadata,
+                [
+                    "--src_dataset",
+                    "test2.zip",
+                    "--dst_dataset",
+                    "test.zip",
+                    "--datafile",
+                    "metadata.xlsx",
+                    "--breed_column",
+                    "Name",
+                    "--species_column",
+                    "Species"
+                ]
+            )
+
+            self.assertEqual(0, result.exit_code, msg=result.exception)
+
+            # check species
+            self.check_sample1_species()
+            self.check_sample2_species()
+
 
 class TestImportMetadataBySamples(MetaDataMixin, unittest.TestCase):
     @patch('src.features.smarterdb.Dataset.working_dir',
@@ -348,6 +395,42 @@ class TestImportMetadataBySamples(MetaDataMixin, unittest.TestCase):
             # check metadata
             self.check_sample1_metadata()
             self.check_sample2_metadata()
+
+    @patch('src.features.smarterdb.Dataset.working_dir',
+           new_callable=PropertyMock)
+    def test_import_with_species(self, my_working_dir):
+        # create a temporary directory using the context manager
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            working_dir = pathlib.Path(tmpdirname)
+            my_working_dir.return_value = working_dir
+
+            # save worksheet in temporary folder
+            self.workbook.save(f"{working_dir}/metadata.xlsx")
+
+            # test two records in database
+            self.assertEqual(SampleSheep.objects.count(), 2)
+
+            result = self.runner.invoke(
+                import_metadata,
+                [
+                    "--src_dataset",
+                    "test2.zip",
+                    "--dst_dataset",
+                    "test.zip",
+                    "--datafile",
+                    "metadata.xlsx",
+                    "--id_column",
+                    "Id",
+                    "--species_column",
+                    "Species"
+                ]
+            )
+
+            self.assertEqual(0, result.exit_code, msg=result.exception)
+
+            # check species
+            self.check_sample1_species()
+            self.check_sample2_species()
 
 
 class TestImportMetadataBySamplesNA(MetaDataMixin, unittest.TestCase):
@@ -482,6 +565,42 @@ class TestImportMetadataByAlias(MetaDataMixin, unittest.TestCase):
             # check metadata
             self.check_sample1_metadata()
             self.check_sample2_metadata()
+
+    @patch('src.features.smarterdb.Dataset.working_dir',
+           new_callable=PropertyMock)
+    def test_import_with_species(self, my_working_dir):
+        # create a temporary directory using the context manager
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            working_dir = pathlib.Path(tmpdirname)
+            my_working_dir.return_value = working_dir
+
+            # save worksheet in temporary folder
+            self.workbook.save(f"{working_dir}/metadata.xlsx")
+
+            # test two records in database
+            self.assertEqual(SampleSheep.objects.count(), 2)
+
+            result = self.runner.invoke(
+                import_metadata,
+                [
+                    "--src_dataset",
+                    "test2.zip",
+                    "--dst_dataset",
+                    "test.zip",
+                    "--datafile",
+                    "metadata.xlsx",
+                    "--alias_column",
+                    "Alias",
+                    "--species_column",
+                    "Species"
+                ]
+            )
+
+            self.assertEqual(0, result.exit_code, msg=result.exception)
+
+            # check species
+            self.check_sample1_species()
+            self.check_sample2_species()
 
 
 if __name__ == '__main__':

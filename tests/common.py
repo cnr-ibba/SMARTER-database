@@ -62,9 +62,11 @@ class SmarterIDMixin():
                 "finalreport.txt",
                 "affytest.map",
                 "affytest.ped",
-                "affyreport.txt"
+                "affyreport.txt",
+                "affyreport_nocols.txt"
             ],
-            type_=["background", "genotypes"]
+            type_=["background", "genotypes"],
+            doi="https://example.com"
         )
         cls.dataset.save()
 

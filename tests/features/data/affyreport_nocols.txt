@@ -1,0 +1,9 @@
+##batch-folder=\\path\to\somewhere\
+##annotation-file=C:\Users\Public\Documents\AxiomAnalysisSuite\Library\Axiom_Ovi_Can_ovine_Analysis.r5\Axiom_Ovi_Can.na35.r5.a6.annot.db
+##export-txt-file=\\path\to\somewhere\text.txt
+##snp-count=3
+##samples-per-snp=2
+probeset_id	test-one	test-two	Affy_SNP_ID
+AX-124372958	NoCall	AB	Affx-122818990
+AX-106736140	BB	BB	Affx-139959201
+AX-174973831	BB	BB	Affx-282916465

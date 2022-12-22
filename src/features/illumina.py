@@ -274,7 +274,7 @@ def read_snpList(path: str, size=2048, skip=0, delimiter=None):
 def read_illuminaRow(path: str, size=2048):
     with text_or_gzip_open(path) as handle:
         # search for [DATA] record
-        position, _ = skip_until_section(handle, "[Data]")
+        position, skipped = skip_until_section(handle, "[Data]")
 
         # try to determine dialect
         reader = sniff_file(handle, size, position)
@@ -289,10 +289,15 @@ def read_illuminaRow(path: str, size=2048):
         IlluminaRow = collections.namedtuple("IlluminaRow", header)
 
         # add records to data
-        for record in reader:
+        for i, record in enumerate(reader):
             # convert into collection
-            record = IlluminaRow._make(record)
-            yield record
+            try:
+                record = IlluminaRow._make(record)
+                yield record
+
+            except TypeError as exc:
+                raise IlluSNPException(
+                    f"Error for line {i+len(skipped)+1}:{record}: {exc}. ")
 
 
 class IlluSNP():

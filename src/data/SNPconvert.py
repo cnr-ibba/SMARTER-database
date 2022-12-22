@@ -1,21 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Tue Mar 16 10:36:56 2021
+Created on Mon Oct 18 13:55:46 2021
 
 @author: Paolo Cozzi <paolo.cozzi@ibba.cnr.it>
-
-This script will upload data into smarter database starting from a couple of
-MAP/PED (plink) files and the archive file used for the dataset upload in the
-smarter database. Dataset country and species are mandatory and need to be
-correctly defined, breed also must be loaded in database in order to define
-the full smarter id like CO(untry)SP(ecies)-BREED-ID
-The default format is illumina top, but its possible to convert into it
-from an illumina forward format
 """
 
 import click
 import logging
+import tempfile
 import subprocess
 
 from pathlib import Path
@@ -23,97 +16,130 @@ from click_option_group import (
     optgroup, RequiredMutuallyExclusiveOptionGroup,
     MutuallyExclusiveOptionGroup)
 
-from src.features.plinkio import (
-    TextPlinkIO, BinaryPlinkIO, plink_binary_exists)
-from src.features.smarterdb import Dataset, global_connection, SupportedChip
+from src.features.smarterdb import (
+    Dataset, global_connection, SmarterDBException)
+from src.features.plinkio import TextPlinkIO, IlluminaReportIO, BinaryPlinkIO
 from src.data.common import WORKING_ASSEMBLIES, PLINK_SPECIES_OPT, AssemblyConf
 
+# Get an instance of a logger
 logger = logging.getLogger(__name__)
 
 
-def get_output_files(prefix: str, working_dir: Path, assembly: str):
+class CustomMixin():
+    def _process_pedline(
+            self,
+            line: list,
+            dataset: Dataset,
+            coding: str,
+            create_sample: bool = False,
+            sample_field: str = "original_id",
+            ignore_coding_errors: bool = False):
+
+        self._check_file_sizes(line)
+
+        logger.debug(f"Processing {line[:10]+ ['...']}")
+
+        # a new line obj
+        new_line = line.copy()
+
+        # check and fix genotypes if necessary
+        new_line = self._process_genotypes(
+            new_line,
+            coding,
+            ignore_coding_errors)
+
+        # need to remove filtered snps from ped line
+        for index in sorted(self.filtered, reverse=True):
+            # index is snp position. Need to delete two fields
+            del new_line[6+index*2+1]
+            del new_line[6+index*2]
+
+        return new_line
+
+
+class CustomTextPlinkIO(CustomMixin, TextPlinkIO):
+    pass
+
+
+class CustomBinaryPlinkIO(CustomMixin, BinaryPlinkIO):
+    pass
+
+
+class CustomIlluminaReportIO(CustomMixin, IlluminaReportIO):
+    def read_reportfile(
+            self, breed="0", dataset: Dataset = None, *args, **kwargs):
+        """Custom Open illumina report returns iterator"""
+
+        logger.debug("Custom 'read_reportfile' called")
+
+        return super().read_reportfile(breed, dataset, *args, **kwargs)
+
+
+def get_output_files(prefix: str, assembly: str):
     # create output directory
-    output_dir = working_dir / assembly
-    output_dir.mkdir(exist_ok=True)
+    working_dir = tempfile.mkdtemp()
+    output_dir = Path(working_dir)
 
     # determine map outputfile. get the basename of the prefix
     prefix = Path(prefix)
 
-    # sanitize names
-    output_map = f"{prefix.name}_updated.map".replace(" ", "_")
+    output_map = f"{prefix.name}_updated.map"
     output_map = output_dir / output_map
 
     # determine ped outputfile
-    output_ped = f"{prefix.name}_updated.ped".replace(" ", "_")
+    output_ped = f"{prefix.name}_updated.ped"
     output_ped = output_dir / output_ped
 
     return output_dir, output_map, output_ped
 
 
-def deal_with_text_plink(file_: str, dataset: Dataset, assembly: str):
+def deal_with_text_plink(file_: str, assembly: str, species: str):
     mapfile = file_ + ".map"
     pedfile = file_ + ".ped"
 
-    # check files are in dataset
-    if mapfile not in dataset.contents or pedfile not in dataset.contents:
-        raise Exception(
-            "Couldn't find files in dataset: check for both "
-            f"'{mapfile}' and '{pedfile}' in '{dataset}'")
-
-    # check for working directory
-    working_dir = dataset.working_dir
-
-    if not working_dir.exists():
-        raise Exception(f"Could find dataset directory {working_dir}")
-
-    # determine full file paths
-    mappath = working_dir / mapfile
-    pedpath = working_dir / pedfile
-
     # instantiating a TextPlinkIO object
-    plinkio = TextPlinkIO(
-        mapfile=str(mappath),
-        pedfile=str(pedpath),
-        species=dataset.species
+    plinkio = CustomTextPlinkIO(
+        mapfile=mapfile,
+        pedfile=pedfile,
+        species=species
     )
 
+    plinkio.read_mapfile()
+
     # determine output files
-    output_dir, output_map, output_ped = get_output_files(
-        file_, working_dir, assembly)
+    output_dir, output_map, output_ped = get_output_files(file_, assembly)
 
     return plinkio, output_dir, output_map, output_ped
 
 
-def deal_with_binary_plink(bfile: str, dataset: Dataset, assembly: str):
-    bedfile = bfile + ".bed"
-    bimfile = bfile + ".bim"
-    famfile = bfile + ".fam"
-
-    all_files = set([bedfile, bimfile, famfile])
-
-    if not all_files.issubset(set(dataset.contents)):
-        raise Exception(
-            "Couldn't find files in dataset: check for "
-            f"'{all_files}' in '{dataset}'")
-
-    # check for working directory
-    working_dir = dataset.working_dir
-
-    if not working_dir.exists():
-        raise Exception(f"Could find dataset directory {working_dir}")
-
-    # determine full file paths
-    bfilepath = working_dir / bfile
-
+def deal_with_binary_plink(bfile: str, assembly: str, species: str):
     # instantiating a BinaryPlinkIO object
-    plinkio = BinaryPlinkIO(
-        prefix=str(bfilepath),
-        species=dataset.species
+    plinkio = CustomBinaryPlinkIO(
+        prefix=bfile,
+        species=species
     )
+
+    plinkio.read_mapfile()
+
+    # determine output files
+    output_dir, output_map, output_ped = get_output_files(bfile, assembly)
+
+    return plinkio, output_dir, output_map, output_ped
+
+
+def deal_with_illumina(
+        report: str, snpfile: str, assembly: str, species: str):
+    plinkio = CustomIlluminaReportIO(
+        snpfile=snpfile,
+        report=report,
+        species=species,
+    )
+
+    plinkio.read_snpfile()
 
     # determine output files
     output_dir, output_map, output_ped = get_output_files(
-        bfile, working_dir, assembly)
+        Path(report).stem, assembly)
 
     return plinkio, output_dir, output_map, output_ped
 
@@ -132,38 +158,41 @@ def deal_with_binary_plink(bfile: str, dataset: Dataset, assembly: str):
     '--bfile',
     type=str,
     help="PLINK binary file prefix")
+@optgroup.option(
+    '--report',
+    type=str,
+    help="The illumina report file")
 @click.option(
-    '--dataset', type=str, required=True,
-    help="The raw dataset file name (zip archive)"
-)
+    '--snpfile',
+    type=str,
+    help="The illumina SNPlist file")
 @click.option(
     '--coding',
     type=click.Choice(
-        ['top', 'forward', 'ab', 'affymetrix', 'illumina'],
+        ['top', 'forward', 'ab'],
         case_sensitive=False),
     default="top", show_default=True,
-    help="Genotype coding format"
+    help="Illumina coding format"
 )
-@click.option(
-    '--chip_name',
-    type=str,
-    required=True,
-    help="The SMARTER SupportedChip name")
 @click.option(
     '--assembly',
     type=str,
     required=True,
     help="Destination assembly of the converted genotypes")
 @click.option(
-    '--create_samples',
-    is_flag=True,
-    help="Create a new SampleSheep or SampleGoat object if doesn't exist")
-@click.option(
-    '--sample_field',
+    '--species',
     type=str,
-    default="original_id",
-    help="Search samples using this attribute"
-)
+    required=True,
+    help="The SMARTER assembly species (Goat or Sheep)")
+@click.option(
+    '--results_dir',
+    type=str,
+    required=True,
+    help="Where results will be saved")
+@click.option(
+    '--chip_name',
+    type=str,
+    help="The SMARTER SupportedChip name")
 @optgroup.group(
     'Variant Search Type',
     cls=MutuallyExclusiveOptionGroup
@@ -192,19 +221,22 @@ def deal_with_binary_plink(bfile: str, dataset: Dataset, assembly: str):
     help=(
         'set SNP as missing when there are coding errors '
         '(no more CodingException)'))
-def main(file_, bfile, dataset, coding, chip_name, assembly, create_samples,
-         sample_field, search_field, search_by_positions, src_version,
+def main(file_, bfile, report, snpfile, coding, assembly, species, chip_name,
+         results_dir, search_field, search_by_positions, src_version,
          src_imported_from, ignore_coding_errors):
     """
-    Read genotype data from a PLINK file (text or binary) and convert it
-    to the desidered assembly version using Illumina TOP coding
+    Convert a PLINK/Illumina report file in a SMARTER-like ouput file, without
+    inserting data in SMARTER-database. Useful to convert data relying on
+    SMARTER-database for private datasets (data which cannot be included in
+    SMARTER-database)
     """
 
     logger.info(f"{Path(__file__).name} started")
 
     # find assembly configuration
     if assembly not in WORKING_ASSEMBLIES:
-        raise Exception(f"assembly {assembly} not managed by smarter")
+        raise SmarterDBException(
+            f"assembly {assembly} not managed by smarter")
 
     src_assembly, dst_assembly = None, None
 
@@ -216,46 +248,31 @@ def main(file_, bfile, dataset, coding, chip_name, assembly, create_samples,
     else:
         src_assembly = WORKING_ASSEMBLIES[assembly]
 
-    # get the dataset object
-    dataset = Dataset.objects(file=dataset).get()
-
-    logger.debug(f"Found {dataset}")
-
     if file_:
         plinkio, output_dir, output_map, output_ped = deal_with_text_plink(
-            file_, dataset, assembly)
+            file_, assembly, species)
 
     elif bfile:
         plinkio, output_dir, output_map, output_ped = deal_with_binary_plink(
-            bfile, dataset, assembly)
+            bfile, assembly, species)
 
-    # check chip_name
-    illumina_chip = SupportedChip.objects(name=chip_name).get()
+    elif report:
+        if not snpfile:
+            raise RuntimeError(f"Missing snpfile for report {report}")
 
-    # set chip name for this sample
-    plinkio.chip_name = illumina_chip.name
-
-    # test if I have already run this analysis
+        plinkio, output_dir, output_map, output_ped = deal_with_illumina(
+            report, snpfile, assembly, species)
 
     # ok check for results dir
-    results_dir = dataset.result_dir
-    results_dir = results_dir / assembly
+    results_dir = Path(results_dir)
     results_dir.mkdir(parents=True, exist_ok=True)
 
     # define final filename
     final_prefix = results_dir / output_ped.stem
 
-    # test for processed files existance
-    if plink_binary_exists(final_prefix):
-        logger.warning(f"Skipping {dataset} processing: {final_prefix} exists")
-        logger.info(f"{Path(__file__).name} ended")
-        return
-
     # if I arrive here, I can create output files
 
-    # read mapdata and read updated coordinates from db
-    plinkio.read_mapfile()
-
+    # fetch coordinates relying assembly configuration
     if search_by_positions:
         # fetch variants relying positions
         plinkio.fetch_coordinates_by_positions(
@@ -269,7 +286,7 @@ def main(file_, bfile, dataset, coding, chip_name, assembly, create_samples,
             src_assembly=src_assembly,
             dst_assembly=dst_assembly,
             search_field=search_field,
-            chip_name=illumina_chip.name
+            chip_name=chip_name
         )
 
     logger.info("Writing a new map file with updated coordinates")
@@ -278,15 +295,14 @@ def main(file_, bfile, dataset, coding, chip_name, assembly, create_samples,
     logger.info("Writing a new ped file with fixed genotype")
     plinkio.update_pedfile(
         outputfile=output_ped,
-        dataset=dataset,
+        dataset=None,
         coding=coding,
-        create_samples=create_samples,
-        sample_field=sample_field,
+        create_samples=False,
         ignore_coding_errors=ignore_coding_errors
     )
 
     # ok time to convert data in plink binary format
-    cmd = ["plink"] + PLINK_SPECIES_OPT[dataset.species] + [
+    cmd = ["plink"] + PLINK_SPECIES_OPT[species] + [
         "--file",
         f"{output_dir / output_ped.stem}",
         "--make-bed",
@@ -309,4 +325,5 @@ if __name__ == '__main__':
     # connect to database
     global_connection()
 
+    # call main function
     main()

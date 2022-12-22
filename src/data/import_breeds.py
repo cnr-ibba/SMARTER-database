@@ -74,6 +74,8 @@ def main(species_class, src_dataset, dst_dataset, datafile, code_column,
     data = pandas_open(datapath)
 
     for index, row in data.iterrows():
+        logger.debug(row)
+
         code = row.get(code_column)
         name = row.get(breed_column)
 
@@ -81,7 +83,7 @@ def main(species_class, src_dataset, dst_dataset, datafile, code_column,
         if not fid_column:
             fid_column = code_column
 
-        fid = row.get(fid_column)
+        fid = str(row.get(fid_column))
 
         logger.debug(
             f"Got code: '{code}', breed_name: '{name}', "

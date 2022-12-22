@@ -393,7 +393,8 @@ class SmarterMixin():
             src_assembly: AssemblyConf,
             dst_assembly: AssemblyConf = None,
             search_field: str = "name",
-            chip_name: str = None):
+            chip_name: str = None,
+            *args, **kwargs):
         """Search for variants in smarter database
 
         Args:
@@ -595,7 +596,58 @@ class SmarterMixin():
         # the returned value
         top_genotype = []
 
-        # TODO: coding need to be a dataset attribute
+        # define a dictionary with useful data
+        config = {
+            'forward': {
+                'check': 'is_forward',
+                'convert': 'forward2top',
+                'message': (
+                    f"Error for SNP {index}: '{self.mapdata[index].name}': "
+                    f"{a1}/{a2} <> {location.illumina_forward}"
+                ),
+                'exception': (
+                    f"SNP '{self.mapdata[index].name}' is "
+                    "not in illumina forward format"
+                )
+            },
+            'ab': {
+                'check': 'is_ab',
+                'convert': 'ab2top',
+                'message': (
+                    f"Error for SNP {index}: '{self.mapdata[index].name}': "
+                    f"{a1}/{a2} <> A/B"
+                ),
+                'exception': (
+                    f"SNP '{self.mapdata[index].name}' is "
+                    "not in illumina ab format"
+                )
+            },
+            'affymetrix': {
+                'check': 'is_affymetrix',
+                'convert': 'affy2top',
+                'message': (
+                    f"Error for SNP {index}: '{self.mapdata[index].name}': "
+                    f"{a1}/{a2} <> {location.affymetrix_ab}"
+                ),
+                'exception': (
+                    f"SNP '{self.mapdata[index].name}' is "
+                    "not in affymetrix format"
+                )
+            },
+            'illumina': {
+                'check': 'is_illumina',
+                'convert': 'illumina2top',
+                'message': (
+                    f"Error for SNP {index}: '{self.mapdata[index].name}': "
+                    f"{a1}/{a2} <> {location.illumina}"
+                ),
+                'exception': (
+                    f"SNP '{self.mapdata[index].name}' is "
+                    "not in illumina format"
+                )
+            }
+        }
+
         if coding == 'top':
             if not location.is_top(genotype):
                 logger.debug(
@@ -609,44 +661,19 @@ class SmarterMixin():
             # allele coding is the same received as input
             top_genotype = genotype
 
-        elif coding == 'forward':
-            if not location.is_forward(genotype):
-                logger.debug(
-                    f"Error for SNP {index}: '{self.mapdata[index].name}': "
-                    f"{a1}/{a2} <> {location.illumina_forward}"
-                )
-                raise CodingException(
-                    f"SNP '{self.mapdata[index].name}' is "
-                    "not in illumina forward format")
+        elif coding in config:
+            # get the proper method to check genotype
+            check = getattr(location, config[coding]['check'])
+
+            if not check(genotype):
+                logger.debug(config[coding]['message'])
+                raise CodingException(config[coding]['exception'])
+
+            # get the proper method to convert genotype
+            convert = getattr(location, config[coding]['convert'])
 
             # change the allele coding
-            top_genotype = location.forward2top(genotype)
-
-        elif coding == 'ab':
-            if not location.is_ab(genotype):
-                logger.debug(
-                    f"Error for SNP {index}: '{self.mapdata[index].name}': "
-                    f"{a1}/{a2} <> A/B"
-                )
-                raise CodingException(
-                    f"SNP '{self.mapdata[index].name}' is "
-                    "not in illumina ab format")
-
-            # change the allele coding
-            top_genotype = location.ab2top(genotype)
-
-        elif coding == 'affymetrix':
-            if not location.is_affymetrix(genotype):
-                logger.debug(
-                    f"Error for SNP {index}: '{self.mapdata[index].name}': "
-                    f"{a1}/{a2} <> {location.affymetrix_ab}"
-                )
-                raise CodingException(
-                    f"SNP '{self.mapdata[index].name}' is "
-                    "not in affymetrix format")
-
-            # change the allele coding
-            top_genotype = location.affy2top(genotype)
+            top_genotype = convert(genotype)
 
         else:
             raise NotImplementedError(f"Coding '{coding}' not supported")
@@ -761,11 +788,12 @@ class SmarterMixin():
         try:
             breed = self.search_breed(fid=line[0], dataset=dataset)
 
-        except DoesNotExist as e:
-            logger.error(e)
-            raise SmarterDBException(
-                f"Couldn't find breed_code '{line[0]}': {line[:10]+ ['...']}"
-            )
+        except DoesNotExist:
+            # it's possible that the breed exists but not with the desidered
+            # dataset (maybe I want to skip it)
+            logger.debug(
+                f"Couldn't find breed_code '{line[0]}' for '{dataset}'")
+            return None
 
         # check for sample in database
         sample = self.get_or_create_sample(
@@ -774,6 +802,8 @@ class SmarterMixin():
         # if I couldn't find a registered sample (in such case)
         # i can skip such record
         if not sample:
+            logger.debug(
+                f"Couldn't find sample '{line[1]}' for '{dataset}'")
             return None
 
         # a new line obj
@@ -1334,6 +1364,9 @@ class AffyReportIO(FakePedMixin, SmarterMixin):
     report = None
     peddata = []
     delimiter = "\t"
+    warn_missing_cols = True
+    header = []
+    n_samples = None
 
     def __init__(
             self,
@@ -1362,12 +1395,68 @@ class AffyReportIO(FakePedMixin, SmarterMixin):
             reader = csv.reader(handle, delimiter=self.delimiter)
 
             # get header
-            return next(reader)
+            self.header = next(reader)
 
-    def read_reportfile(self):
+    def __warn_missing_column(self, row, columns=[]):
+        if self.warn_missing_cols:
+            for col in columns:
+                if not hasattr(row, col):
+                    logger.warning(
+                        f"Missing '{col}' column in reportfile!")
+
+    def __process_probeset(self, row, snp_idx):
+        # track SNP in mapdata
+        try:
+            self.mapdata.append(MapRecord(
+                row.chr_id, row.probeset_id, 0, row.start))
+
+        except AttributeError as exc:
+            logger.debug(exc)
+            self.__warn_missing_column(row, ["chr_id", "start"])
+
+            # maybe there are missing columns, try to define a MapRecord
+            # with at least probeset id
+            self.mapdata.append(MapRecord(
+                0, row.probeset_id, 0, 0))
+
+        # track A/B genotype
+        try:
+            self.genotypes.append(f"{row.allele_a}/{row.allele_b}")
+
+        except AttributeError as exc:
+            logger.debug(exc)
+            self.__warn_missing_column(row, ["allele_a", "allele_b"])
+
+            # track a missing genotype
+            self.genotypes.append("-/-")
+
+        # track genotypes in the proper column (skip the first 6 columns)
+        for i in range(self.n_samples):
+            call = row[i+1]
+
+            # mind to missing values
+            if call == "NoCall":
+                logger.debug(
+                    f"Skipping SNP {snp_idx}: "
+                    f"'{self.mapdata[snp_idx].name}' for sample "
+                    f"'{self.header[i+1]}' ({call})")
+                continue
+
+            genotype = list(call)
+            self.peddata[i][6+snp_idx*2] = genotype[0]
+            self.peddata[i][6+snp_idx*2+1] = genotype[1]
+
+    def read_reportfile(self, n_samples: int = None, *args, **kwargs):
         """
         Read reportfile once and generate mapdata and pedata, with genotype
         informations by sample.
+
+        Parameters
+        ----------
+        n_samples : int, optional
+            Limit to N samples. Useful when there are different number of
+            samples from reported in file. The default is None (read number
+            of samples from reportfile).
 
         Returns
         -------
@@ -1377,71 +1466,86 @@ class AffyReportIO(FakePedMixin, SmarterMixin):
         self.mapdata = []
         self.peddata = []
 
+        if n_samples:
+            logger.warning(f"Limiting import to first {n_samples} samples")
+
+        # update samples number with received argument
+        self.n_samples = n_samples
+
         # I want to track also the AB genotypes, to check them while fetching
         # coordinates
         self.genotypes = []
 
         # those informations are required to define the pedfile
-        n_samples = None
         n_snps = None
         size = None
-        header = None
+        initialized = False
 
         # an index to track SNP accross peddata
         snp_idx = 0
+
+        # warning user once
+        self.warn_missing_cols = True
 
         # try to returns something like a ped row and derive map data in the
         # same time
         for row in read_affymetrixRow(self.report, delimiter=self.delimiter):
             # first determine how many SNPs and samples I have
-            if not n_samples and not n_snps:
-                n_samples = row.n_samples
+            if not initialized:
+                if not self.n_samples:
+                    self.n_samples = row.n_samples
+
                 n_snps = row.n_snps
 
                 # read the original header from report file
-                header = self.__get_header()
+                self.__get_header()
 
                 # ok create a ped data object with the required dimensions
                 size = 6 + 2 * n_snps
-                self.peddata = [["0"] * size for i in range(n_samples)]
+                self.peddata = [["0"] * size for i in range(self.n_samples)]
 
                 # track sample names in row. First column is probeset id
                 # read them from the original header row
-                for i in range(n_samples):
-                    self.peddata[i][1] = header[i+1]
+                for i in range(self.n_samples):
+                    self.peddata[i][1] = self.header[i+1]
 
-            # track SNP in mapdata
-            self.mapdata.append(MapRecord(
-                row.chr_id, row.probeset_id, 0, row.start))
+                # change flag value
+                initialized = True
 
-            # track A/B genotype
-            self.genotypes.append(f"{row.allele_a}/{row.allele_b}")
-
-            # track genotypes in the proper column (skip the first 6 columns)
-            for i in range(n_samples):
-                call = row[i+1]
-
-                # mind to missing values
-                if call == "NoCall":
-                    logger.debug(
-                        f"Skipping SNP {snp_idx}: "
-                        f"'{self.mapdata[snp_idx].name}' for sample "
-                        f"'{header[i+1]}' ({call})")
-                    continue
-
-                genotype = list(call)
-                self.peddata[i][6+snp_idx*2] = genotype[0]
-                self.peddata[i][6+snp_idx*2+1] = genotype[1]
+            # deal with a single probeset_id
+            self.__process_probeset(row, snp_idx)
 
             # update SNP column
             snp_idx += 1
+
+            # no more reporting warnings after first row
+            self.warn_missing_cols = False
+
+        # check for n of snp after processing reportfile
+        if snp_idx != n_snps:
+            logger.warning(
+                f"Got a different number of SNPs {snp_idx}<>{n_snps}.")
+
+            if snp_idx < n_snps:
+                logger.warning("Dropping unused SNPs")
+
+                # determining the proper size
+                size = 6 + 2 * snp_idx
+
+                for i, line in enumerate(self.peddata):
+                    self.peddata[i] = line[:size]
+
+            else:
+                raise AffyReportException(
+                    f"Got a different number of SNPs {snp_idx}<>{n_snps}")
 
     def fetch_coordinates(
             self,
             src_assembly: AssemblyConf,
             dst_assembly: AssemblyConf = None,
             search_field: str = "name",
-            chip_name: str = None):
+            chip_name: str = None,
+            skip_check: bool = False):
         """Search for variants in smarter database. Check if the provided
         A/B information is equal to the database content
 
@@ -1450,6 +1554,7 @@ class AffyReportIO(FakePedMixin, SmarterMixin):
             dst_assembly (AssemblyConf): the destination data assembly version
             search_field (str): search variant by field (def. "name")
             chip_name (str): limit search to this chip_name
+            skip_check (bool): skipp coordinate check
         """
 
         # call base method
@@ -1462,7 +1567,8 @@ class AffyReportIO(FakePedMixin, SmarterMixin):
                 # this genotype is discared
                 continue
 
-            if genotype != self.src_locations[idx].affymetrix_ab:
+            if (not skip_check and
+                    genotype != self.src_locations[idx].affymetrix_ab):
                 raise AffyReportException(
                     "Genotypes differ from reportfile and src_assembly")
 
