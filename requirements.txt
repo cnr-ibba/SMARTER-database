@@ -62,7 +62,7 @@ jsonschema==3.2.0
 jupyter==1.0.0
 jupyter-client==7.0.2
 jupyter-console==6.2.0
-jupyter-core==4.7.1
+jupyter-core==5.1.0
 jupyter-server==1.17.0
 jupyterlab==3.1.9
 jupyterlab-pygments==0.1.2
@@ -96,6 +96,7 @@ partd==1.1.0
 pexpect==4.8.0
 pickleshare==0.7.5
 Pillow==9.3.0
+platformdirs==2.6.0
 plinkio @ git+https://github.com/bunop/libplinkio.git@bc1c13507cf5c2d60ffe20e12a1997021f37ceb4
 pluggy==0.13.1
 pockets==0.9.1
@@ -153,7 +154,7 @@ toolz==0.11.1
 tornado==6.1
 tox==3.23.0
 tqdm==4.57.0
-traitlets==5.2.1.post0
+traitlets==5.8.0
 urllib3==1.26.5
 virtualenv==20.4.2
 wcwidth==0.2.5
