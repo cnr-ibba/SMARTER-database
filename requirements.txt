@@ -37,6 +37,7 @@ distro==1.8.0
 docutils==0.15.2
 entrypoints==0.3
 et-xmlfile==1.0.1
+exceptiongroup==1.0.4
 fastjsonschema==2.15.3
 filelock==3.0.12
 Fiona==1.8.19
@@ -115,7 +116,7 @@ pymongo==3.11.3
 pyparsing==2.4.7
 pyproj==3.0.1
 pyrsistent==0.17.3
-pytest==6.2.2
+pytest==7.2.0
 python-dateutil==2.8.1
 python-dotenv==0.15.0
 pytz==2021.1
@@ -150,6 +151,7 @@ terminado==0.9.2
 testpath==0.4.4
 tinycss2==1.1.1
 toml==0.10.2
+tomli==2.0.1
 toolz==0.11.1
 tornado==6.1
 tox==3.23.0
