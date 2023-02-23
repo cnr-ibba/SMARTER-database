@@ -254,17 +254,20 @@ def read_snpList(path: str, size=2048, skip=0, delimiter=None):
         # add records to data
         for record in reader:
             # forcing data types
-            record[header.index('index')] = int(
-                record[header.index('index')])
+            if 'index' in header:
+                # this column could be present or not
+                record[header.index('index')] = int(
+                    record[header.index('index')])
 
             record[header.index('position')] = int(
                 record[header.index('position')])
 
-            # drop brakets from SNP [A/G] -> A/G
-            record[header.index('snp')] = re.sub(
-                r'[\[\]]',
-                "",
-                record[header.index('snp')])
+            if 'snp' in header:
+                # drop brakets from SNP [A/G] -> A/G
+                record[header.index('snp')] = re.sub(
+                    r'[\[\]]',
+                    "",
+                    record[header.index('snp')])
 
             # convert into collection
             record = SnpList._make(record)

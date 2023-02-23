@@ -19,6 +19,12 @@ TODO
 * Remove ``--chip_name`` from import genotypes script (derive it from dataset)
 * Capitalize ``species_class`` parameter in ``src.data.import_breeds.py``
 
+0.4.8-dev0
+----------
+
+* Import from Illumina report with only 3 columns in SNP list file
+* Update dependencies
+
 0.4.7 (2022-12-23)
 ------------------
 

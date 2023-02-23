@@ -123,6 +123,16 @@ class ReadSnpListTest(IlluminaMixin, unittest.TestCase):
         return read_snpList(*args, **kwargs)
 
 
+class ReadSnpList3colsTest(IlluminaMixin, unittest.TestCase):
+    """Test reading a SNPlist file with only 3 columns"""
+    data_path = FEATURE_DATA_DIR / "snplist_3cols.txt"
+    snp_name = "250506CS3900140500001_312.1"
+    delimiter = "\t"
+
+    def read_func(self, *args, **kwargs):
+        return read_snpList(*args, **kwargs)
+
+
 class ReadIlluminaRowTest(unittest.TestCase):
     data_path = FEATURE_DATA_DIR / "finalreport.txt"
     snp_name = "250506CS3900140500001_312.1"

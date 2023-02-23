@@ -33,6 +33,7 @@ class SNPconvertTest(
         self.bimfile = DATA_DIR / "plinktest.bim"
         self.famfile = DATA_DIR / "plinktest.fam"
         self.snpfile = DATA_DIR / "snplist.txt"
+        self.snpfile_3cols = DATA_DIR / "snplist_3cols.txt"
         self.report = DATA_DIR / "finalreport.txt"
 
         self.main_function = snp_convert
@@ -45,6 +46,7 @@ class SNPconvertTest(
         bimfile = working_dir / "plinktest.bim"
         famfile = working_dir / "plinktest.fam"
         snpfile = working_dir / "snplist.txt"
+        snpfile_3cols = working_dir / "snplist_3cols.txt"
         report = working_dir / "finalreport.txt"
 
         # create links
@@ -54,6 +56,7 @@ class SNPconvertTest(
         bimfile.symlink_to(self.bimfile)
         famfile.symlink_to(self.famfile)
         snpfile.symlink_to(self.snpfile)
+        snpfile_3cols.symlink_to(self.snpfile_3cols)
         report.symlink_to(self.report)
 
     def test_help(self):
@@ -221,6 +224,48 @@ class SNPconvertTest(
                     str(working_dir / "finalreport.txt"),
                     "--snpfile",
                     str(working_dir / "snplist.txt"),
+                    "--coding",
+                    "ab",
+                    "--assembly",
+                    "OAR3",
+                    "--species",
+                    "Sheep",
+                    "--results_dir",
+                    results_dir,
+                    "--chip_name",
+                    self.chip_name,
+                ]
+            )
+
+            self.assertEqual(0, result.exit_code, msg=result.exception)
+
+            plink_path = results_dir / "finalreport_updated"
+            plink_file = plinkfile.open(str(plink_path))
+
+            sample_list = plink_file.get_samples()
+            locus_list = plink_file.get_loci()
+
+            self.assertEqual(len(sample_list), 2)
+            self.assertEqual(len(locus_list), 2)
+
+    def test_import_from_illumina_3_columns(self):
+        """Test importing from illumina with 3 columns in SNPfile"""
+
+        # create a temporary directory using the context manager
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            working_dir = pathlib.Path(tmpdirname)
+            results_dir = working_dir / "results"
+
+            # copy test data files
+            self.link_files(working_dir)
+
+            result = self.runner.invoke(
+                self.main_function,
+                [
+                    "--report",
+                    str(working_dir / "finalreport.txt"),
+                    "--snpfile",
+                    str(working_dir / "snplist_3cols.txt"),
                     "--coding",
                     "ab",
                     "--assembly",

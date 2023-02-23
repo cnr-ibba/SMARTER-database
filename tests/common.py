@@ -59,6 +59,7 @@ class SmarterIDMixin():
                 "plinktest.bim",
                 "plinktest.bed",
                 "snplist.txt",
+                "snplist_3cols.txt",
                 "finalreport.txt",
                 "affytest.map",
                 "affytest.ped",
