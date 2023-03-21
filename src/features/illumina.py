@@ -541,13 +541,19 @@ class IlluSNP():
         reverse = Bio.Seq.MutableSeq(sequence)
         reverse.reverse_complement()
 
-        # the snp in sequence is ordered like NCBI
-        alleles = self.alleles.split("/")
-        snp = "/".join(sorted(alleles))
+        # mind to complement the SNP
+        snp = Bio.Seq.MutableSeq(self.illumina)
+        snp.complement()
+        snp = "/".join(str(snp).split("/"))
 
         # insert SNP into sequence
-        for i, char in enumerate(list(f"[{snp}]")):
-            reverse.insert(self.pos[0]+i, char)
+        # mind that where flanking sequences are different in length
+        # the position I have is relative to the end
+        tmp = list(f"[{snp}]")
+        tmp.reverse()
+
+        for i, char in enumerate(tmp):
+            reverse.insert(-self.pos[0]-i, char)
 
         # convert into string, return a IlluSNP object
         return IlluSNP(str(reverse), max_iter=self.max_iter)
