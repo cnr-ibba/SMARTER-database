@@ -22,6 +22,7 @@ TODO
 0.4.8-dev0
 ----------
 
+* Import data from *Burren et al 2016* (https://doi.org/10.1111/age.12476)
 * Import from Illumina report with only 3 columns in SNP list file
 * Update dependencies
 
