@@ -18,6 +18,7 @@ TODO
 * Manage python packages with `poetry <https://python-poetry.org/>`__
 * Remove ``--chip_name`` from import genotypes script (derive it from dataset)
 * Capitalize ``species_class`` parameter in ``src.data.import_breeds.py``
+* Uniform *note* metadata field (add a *note* parameters in import metadata)
 
 0.4.8-dev0
 ----------
