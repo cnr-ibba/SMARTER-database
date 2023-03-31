@@ -176,6 +176,9 @@ data: requirements
 	$(PYTHON_INTERPRETER) src/data/import_breeds.py --species_class Goat --src_dataset burren_et_al_2016.zip \
 		--datafile doi_10.5061_dryad.q1cv6__v1/burren_samples_fix.xlsx --breed_column breed --code_column code \
 		--country_column country
+	$(PYTHON_INTERPRETER) src/data/import_breeds.py --species_class Goat --src_dataset cortellari_et_al_2021.zip \
+		--datafile s41598-021-89900-2/cortellari_samples_fix.xlsx --breed_column breed --code_column code \
+		--fid_column fid
 
 	## create SHEEP samples from raw data files or from XLS (orders matter)
 	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --file TEXEL_UY --dataset TEXEL_INIA_UY.zip --chip_name IlluminaOvineSNP50 \
@@ -403,6 +406,9 @@ data: requirements
 	$(PYTHON_INTERPRETER) src/data/import_samples.py --src_dataset burren_et_al_2016.zip \
 		--datafile doi_10.5061_dryad.q1cv6__v1/burren_samples_fix.xlsx --code_column code --id_column original_id \
 		--chip_name IlluminaGoatSNP50 --country_all Switzerland --species_all Goat --alias_column alias
+	$(PYTHON_INTERPRETER) src/data/import_samples.py --src_dataset cortellari_et_al_2021.zip \
+		--datafile s41598-021-89900-2/cortellari_samples_fix.xlsx --code_column fid --id_column original_id \
+		--chip_name IlluminaGoatSNP50 --country_all Italy --species_all Goat
 
 	## convert genotypes without creating samples in database (GOAT)
 	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --bfile ADAPTmap_genotypeTOP_20161201/binary_fileset/ADAPTmap_genotypeTOP_20161201 \
@@ -412,6 +418,8 @@ data: requirements
 		--chip_name IlluminaGoatSNP50 --assembly ARS1
 	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --file doi_10.5061_dryad.q1cv6__v1/goat_data2_dryad_fix \
 		--dataset burren_et_al_2016.zip --chip_name IlluminaGoatSNP50 --assembly ARS1 --sample_field alias
+	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --bfile s41598-021-89900-2/Cortellari2021 \
+		--dataset cortellari_et_al_2021.zip --chip_name IlluminaGoatSNP50 --assembly ARS1
 
 	## add additional metadata to samples
 	$(PYTHON_INTERPRETER) src/data/import_metadata.py --src_dataset "High density genotypes of French Sheep populations.zip" \
