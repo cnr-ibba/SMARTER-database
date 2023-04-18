@@ -19,7 +19,7 @@ TODO
 * Remove ``--chip_name`` from import genotypes script (derive it from dataset)
 * Capitalize ``species_class`` parameter in ``src.data.import_breeds.py``
 
-0.4.8-dev0
+0.4.8-dev1
 ----------
 
 * Uniform *note* metadata field (add a *note* parameters in import metadata)
