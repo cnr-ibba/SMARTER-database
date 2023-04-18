@@ -317,7 +317,7 @@ class testIlluSNP(unittest.TestCase):
 
     def test_toTop(self):
         # Trasnlate a BOT snp in TOP
-        illu_snp = IlluSNP(sequence="AGGAGGCTAG[G/T]CTCGCAGAGC")
+        illu_snp = IlluSNP(sequence="AGGAGGCTAG[T/G]CTCGCAGAGC")
         test = illu_snp.toTop()
         ref = IlluSNP(sequence="GCTCTGCGAG[A/C]CTAGCCTCCT")
 
@@ -330,6 +330,9 @@ class testIlluSNP(unittest.TestCase):
         self.assertEqual(test, illu_snp)
 
     def test_toTop_flank_not_equal(self):
+        """Test illumina SNP where flanking sequences are not equal in
+        length"""
+
         # Trasnlate a BOT snp in TOP
         illu_snp = IlluSNP(
             "TCCTTTGTGGGTGGAGAGGCTGACCCATTTGCAAG[C/T]"

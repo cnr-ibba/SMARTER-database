@@ -11,6 +11,7 @@ import csv
 import datetime
 import logging
 import collections
+from typing import Tuple
 
 import Bio.Seq
 
@@ -36,7 +37,7 @@ class IlluSNPException(Exception):
         return repr(self.value)
 
 
-def skip_lines(handle, skip) -> (int, list):
+def skip_lines(handle, skip) -> Tuple[int, list]:
     logger.info(f"Skipping {skip} lines")
 
     # track skipped lines
@@ -52,7 +53,7 @@ def skip_lines(handle, skip) -> (int, list):
     return position, skipped
 
 
-def skip_until_section(handle, section) -> (int, list):
+def skip_until_section(handle, section) -> Tuple[int, list]:
     """Ignore lines until a precise sections"""
 
     # track skipped lines
@@ -209,7 +210,7 @@ def read_Manifest(path: str, size=2048, skip=0, delimiter=None):
             match = re.search(SNP_PATTERN, sequence)
 
             if match is None:
-                logger.error(
+                logger.warning(
                     "Can't find a SNP in %s. No indels and only 2 "
                     "allelic SNPs are supported" % (sequence))
 
@@ -311,7 +312,8 @@ class IlluSNP():
         self.strand = None
         self.A = None
         self.B = None
-        self.snp = None
+        self.alleles = None
+        self.illumina = None
         self.max_iter = None
         self.pos = None
 
@@ -321,30 +323,31 @@ class IlluSNP():
     def __repr__(self):
         """Return a string"""
 
-        return ("<{module}.IlluSNP(sequence='{sequence}', "
-                "snp='{snp}', "
-                "strand='{strand}', A='{A}', B='{B}')>").format(
-                module=self.__module__, sequence=self.sequence,
-                A=self.A, B=self.B, strand=self.strand, snp=self.snp)
+        return (f"<{self.__module__}.IlluSNP(sequence='{self.sequence}', "
+                f"illumina='{self.illumina}', alleles='{self.alleles}, "
+                f"strand='{self.strand}', A='{self.A}', B='{self.B}')>")
 
     def __eq__(self, other):
         """Test equality"""
 
-        t1 = (self.sequence, self.strand, self.A, self.B, self.snp)
-        t2 = (other.sequence, other.strand, other.A, other.B, other.snp)
+        t1 = (self.sequence, self.strand, self.A, self.B, self.alleles)
+        t2 = (other.sequence, other.strand, other.A, other.B, other.alleles)
 
         return t1 == t2
 
     def __ne__(self, other):
         """test not equality"""
 
-        t1 = (self.sequence, self.strand, self.A, self.B, self.snp)
-        t2 = (other.sequence, other.strand, other.A, other.B, other.snp)
+        t1 = (self.sequence, self.strand, self.A, self.B, self.alleles)
+        t2 = (other.sequence, other.strand, other.A, other.B, other.alleles)
 
         return t1 != t2
 
     def fromSequence(self, sequence, max_iter=10):
         """Define a IlluSNP from a sequence"""
+
+        # mind to lower letters. Transform sequence in capital letters
+        sequence = sequence.upper()
 
         # call findSNP
         snp, pos = self.findSNP(sequence)
@@ -362,7 +365,15 @@ class IlluSNP():
             for n in range(1, max_iter+1):
                 # pos is a tuple of indices, like (10, 15). The stop position
                 # is not included
-                pair = "%s/%s" % (sequence[pos[0]-n], sequence[pos[1]+n-1])
+                try:
+                    pair = "%s/%s" % (sequence[pos[0]-n], sequence[pos[1]+n-1])
+
+                except IndexError as exc:
+                    logger.error(exc)
+                    raise IlluSNPException(
+                        "Can't find unambiguous pair, max_iter exceed "
+                        "sequence length"
+                    )
 
                 logger.debug("Step %s: considering pair %s" % (n, pair))
 
@@ -373,13 +384,14 @@ class IlluSNP():
                     break
 
             if n == max_iter and not self.isUnambiguous(pair):
-                raise IlluSNPException("Can't find unambiguous pair in %s "
-                                       "steps (%s)" % (
-                                               max_iter, sequence))
+                raise IlluSNPException(
+                    "Can't find unambiguous pair in %s "
+                    "steps (%s)" % (max_iter, sequence))
 
         # assign values
         self.sequence = sequence
-        self.snp = snp
+        self.alleles = snp
+        self.illumina = f"{self.A}/{self.B}"
         self.max_iter = max_iter
         self.pos = pos
 
@@ -408,8 +420,9 @@ class IlluSNP():
             else:
                 B, A = alleles
 
-            logger.debug("Found A. Set strand = '%s', A = '%s' B = '%s'" %
-                         (strand, A, B))
+            logger.debug(
+                "Found A. Set strand = '%s', A = '%s' B = '%s'" % (
+                    strand, A, B))
 
         # when one of the possible variations of the SNP is a thymine (T),
         # and the remaining variation is either a C or a G, the
@@ -426,8 +439,9 @@ class IlluSNP():
             else:
                 B, A = alleles
 
-            logger.debug("Found T. Set strand = '%s', A = '%s' B = '%s'" %
-                         (strand, A, B))
+            logger.debug(
+                "Found T. Set strand = '%s', A = '%s' B = '%s'" % (
+                    strand, A, B))
 
         return A, B, strand
 
@@ -440,6 +454,12 @@ class IlluSNP():
         A = None
         B = None
 
+        # To designate Strand, when the A or T in the first
+        # unambiguous pair is on the 5’ side of the SNP, then the
+        # sequence is designated TOP. To designate Allele for an [A/T] SNP,
+        # when the Strand is TOP then Allele A = A and Allele B = T.
+        # To designate Allele for a [C/G] SNP, when the Strand is
+        # TOP then Allele A = C and Allele B = G.
         if "A" in pair[0] or "T" in pair[0]:
             strand = "TOP"
             A, B = alleles
@@ -448,6 +468,12 @@ class IlluSNP():
                 "Found %s in 5'. Set strand = '%s', A = '%s' "
                 "B = '%s'" % (pair[0], strand, A, B))
 
+        # When the A or T in the first
+        # unambiguous pair is on the 3’ side of the SNP, then the
+        # sequence is designated BOT. To designate Allele for an [A/T] SNP,
+        # when the strand is BOT, then Allele A = T and Allele B = A.
+        # To designate Allele for a [C/G] SNP, when the Strand is
+        # BOT then Allele A = G and Allele B = C.
         else:
             strand = "BOT"
             B, A, = alleles
@@ -459,7 +485,7 @@ class IlluSNP():
         return A, B, strand
 
     def findSNP(self, sequence):
-        """Find snp (eg [A/G] in sqequence (0-based)"""
+        """Find snp (eg [A/G] in sequence (0-based)"""
 
         logger.debug(f"Got '{sequence}' as sequence")
 
@@ -501,24 +527,33 @@ class IlluSNP():
         return False
 
     def toTop(self):
-        """Convert a BOT snp into TOP"""
+        """Convert a BOT sequence into TOP"""
 
         logger.debug("Convert SNP into illumina top")
 
         if self.strand == "TOP":
             return self
 
-        # get rid of []
-        sequence = re.sub(r"[\[\]\/]", "", self.sequence)
+        # create a copy of the sequence without SNP
+        sequence = self.sequence.replace(f"[{self.alleles}]", '')
 
         # get reverse complement of the sequence
         reverse = Bio.Seq.MutableSeq(sequence)
         reverse.reverse_complement()
 
-        # add []
-        reverse.insert(-self.pos[0], "]")
-        reverse.insert(-self.pos[0]-2, "/")
-        reverse.insert(-self.pos[0]-4, "[")
+        # mind to complement the SNP
+        snp = Bio.Seq.MutableSeq(self.illumina)
+        snp.complement()
+        snp = "/".join(str(snp).split("/"))
+
+        # insert SNP into sequence
+        # mind that where flanking sequences are different in length
+        # the position I have is relative to the end
+        tmp = list(f"[{snp}]")
+        tmp.reverse()
+
+        for i, char in enumerate(tmp):
+            reverse.insert(-self.pos[0]-i, char)
 
         # convert into string, return a IlluSNP object
         return IlluSNP(str(reverse), max_iter=self.max_iter)

@@ -150,7 +150,7 @@ def main(species_class, manifest, chip_name, version):
             affymetrix_ab=affymetrix_ab,
             alleles=alleles,
             strand=record.strand,
-            illumina_top=illusnp.snp,
+            illumina=illusnp.illumina,
             illumina_strand=illusnp.strand,
             imported_from="affymetrix",
             date=record.date,
