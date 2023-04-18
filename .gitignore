@@ -87,3 +87,12 @@ target/
 
 # pdf data
 *.pdf
+
+# exclude plink files
+*.map
+*.ped
+*.bed
+*.bim
+*.fam
+*.hh
+*.nosex"

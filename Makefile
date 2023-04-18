@@ -173,6 +173,12 @@ data: requirements
 	$(PYTHON_INTERPRETER) src/data/import_breeds.py --species_class Sheep --src_dataset gaouar_algerian_sheeps.zip \
 		--datafile AlgerianSheep/gaouar_2017_metadata_fix.xlsx --code_column code --breed_column Name \
 		--fid_column Fid --country_column Country
+	$(PYTHON_INTERPRETER) src/data/import_breeds.py --species_class Goat --src_dataset burren_et_al_2016.zip \
+		--datafile doi_10.5061_dryad.q1cv6__v1/burren_samples_fix.xlsx --breed_column breed --code_column code \
+		--country_column country
+	$(PYTHON_INTERPRETER) src/data/import_breeds.py --species_class Goat --src_dataset cortellari_et_al_2021.zip \
+		--datafile s41598-021-89900-2/cortellari_samples_fix.xlsx --breed_column breed --code_column code \
+		--fid_column fid
 
 	## create SHEEP samples from raw data files or from XLS (orders matter)
 	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --file TEXEL_UY --dataset TEXEL_INIA_UY.zip --chip_name IlluminaOvineSNP50 \
@@ -397,6 +403,12 @@ data: requirements
 		--code_column breed_code --id_column sample_name --chip_name IlluminaGoatSNP50 --country_column Country
 	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --bfile SMARTER_CHFR \
 		--dataset SMARTER_CHFR.zip --chip_name IlluminaGoatSNP50 --assembly ARS1 --create_samples
+	$(PYTHON_INTERPRETER) src/data/import_samples.py --src_dataset burren_et_al_2016.zip \
+		--datafile doi_10.5061_dryad.q1cv6__v1/burren_samples_fix.xlsx --code_column code --id_column original_id \
+		--chip_name IlluminaGoatSNP50 --country_all Switzerland --species_all Goat --alias_column alias
+	$(PYTHON_INTERPRETER) src/data/import_samples.py --src_dataset cortellari_et_al_2021.zip \
+		--datafile s41598-021-89900-2/cortellari_samples_fix.xlsx --code_column fid --id_column original_id \
+		--chip_name IlluminaGoatSNP50 --country_all Italy --species_all Goat
 
 	## convert genotypes without creating samples in database (GOAT)
 	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --bfile ADAPTmap_genotypeTOP_20161201/binary_fileset/ADAPTmap_genotypeTOP_20161201 \
@@ -404,6 +416,10 @@ data: requirements
 	$(PYTHON_INTERPRETER) src/data/import_from_illumina.py --report AUTH_GOAT53KV1_EGHORIA_SKOPELOS/Aristotle_University_GOAT53KV1_20200728_FinalReport.txt \
 		--snpfile AUTH_GOAT53KV1_EGHORIA_SKOPELOS/SNP_Map.txt --dataset AUTH_GOAT53KV1_EGHORIA_SKOPELOS.zip \
 		--chip_name IlluminaGoatSNP50 --assembly ARS1
+	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --file doi_10.5061_dryad.q1cv6__v1/goat_data2_dryad_fix \
+		--dataset burren_et_al_2016.zip --chip_name IlluminaGoatSNP50 --assembly ARS1 --sample_field alias
+	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --bfile s41598-021-89900-2/Cortellari2021 \
+		--dataset cortellari_et_al_2021.zip --chip_name IlluminaGoatSNP50 --assembly ARS1
 
 	## add additional metadata to samples
 	$(PYTHON_INTERPRETER) src/data/import_metadata.py --src_dataset "High density genotypes of French Sheep populations.zip" \
@@ -566,6 +582,9 @@ data: requirements
 		--datafile AlgerianSheep/gaouar_2017_metadata_fix.xlsx --id_column original_id \
 		--latitude_column latitude --longitude_column longitude --metadata_column Site \
 		--metadata_column Note
+	$(PYTHON_INTERPRETER) src/data/import_metadata.py --src_dataset burren_et_al_2016.zip \
+		--datafile doi_10.5061_dryad.q1cv6__v1/burren_phenotypes_fix.xlsx --breed_column breed \
+		--metadata_column rare --metadata_column note
 
 	## add phenotypes to samples
 	$(PYTHON_INTERPRETER) src/data/import_phenotypes.py --src_dataset ADAPTmap_phenotype_20161201.zip \
@@ -633,6 +652,10 @@ data: requirements
 		--dst_dataset AUTH_OVN50KV2_CHI_FRZ.zip \
 		--datafile greece_foreground_sheep/AUTH_OVN50KV2_CHI_FRZ.xlsx --id_column sample_name \
 		--purpose_column Purpose
+	$(PYTHON_INTERPRETER) src/data/import_phenotypes.py --src_dataset burren_et_al_2016.zip \
+		--datafile doi_10.5061_dryad.q1cv6__v1/burren_phenotypes_fix.xlsx --breed_column breed \
+		--additional_column coat_color --additional_column hair --additional_column horns \
+		--additional_column size_male --additional_column size_female --additional_column performance
 
 	## merge SNPs into 1 file
 	$(PYTHON_INTERPRETER) src/data/merge_datasets.py --species_class sheep --assembly OAR3
