@@ -62,6 +62,14 @@ def get_locations(row: pd.Series, columns: dict, label: str):
 def get_metadata(row: pd.Series, columns: dict, label: str):
     metadata = dict()
 
+    # set notes column with a fixed attribute
+    if columns["notes_column"]:
+        notes = row.get(columns["notes_column"])
+        if pd.notnull(notes):
+            metadata["notes"] = notes
+
+            logger.debug(f"Got notes: '{notes}' for '{label}'")
+
     if columns["metadata_column"]:
         for column in columns["metadata_column"]:
             if pd.notnull(row.get(column)):
@@ -195,6 +203,7 @@ def update_samples(
 @optgroup.option('--alias_column', type=str, help="The alias column")
 @click.option('--latitude_column', type=str)
 @click.option('--longitude_column', type=str)
+@click.option('--notes_column', type=str, help="The notes field in metadata")
 @click.option('--metadata_column', multiple=True, help=(
     "Metadata column to track. Could be specified multiple times"))
 @click.option(
@@ -206,13 +215,16 @@ def update_samples(
 def main(
         src_dataset, dst_dataset, datafile, sheet_name, breed_column,
         id_column, alias_column, latitude_column, longitude_column,
-        metadata_column, species_column, na_values):
+        notes_column, metadata_column, species_column, na_values):
     """Read data from metadata file and add it to SMARTER-database samples"""
 
     logger.info(f"{Path(__file__).name} started")
 
     if metadata_column:
         logger.info(f"Got {metadata_column} as additional metadata")
+
+    if notes_column:
+        logger.info(f"Got {notes_column} as notes")
 
     src_dataset, dst_dataset, datapath = deal_with_datasets(
         src_dataset, dst_dataset, datafile)
@@ -230,6 +242,7 @@ def main(
         'latitude_column': latitude_column,
         'longitude_column': longitude_column,
         'metadata_column': metadata_column,
+        'notes_column': notes_column,
         'alias_column': alias_column,
         'species_column': species_column,
     }

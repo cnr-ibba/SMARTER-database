@@ -434,7 +434,7 @@ data: requirements
 		--dst_dataset ADAPTmap_genotypeTOP_20161201.zip \
 		--datafile ADAPTmap_phenotype_20161201/ADAPTmap_InfoSample_20161201_fix.xlsx --id_column ADAPTmap_code \
 		--latitude_column GPS_Latitude --longitude_column GPS_Longitude --metadata_column Sampling_info \
-		--metadata_column DOB --metadata_column Notes --na_values NA
+		--metadata_column DOB --notes_column Notes --na_values NA
 	$(PYTHON_INTERPRETER) src/data/import_metadata.py --src_dataset greece_foreground_sheep.zip \
 		--dst_dataset AUTH_OVN50KV2_CHIOS_FRIZARTA.zip \
 		--datafile greece_foreground_sheep/AUTH_OVN50KV2_CHIOS_FRIZARTA.xlsx --id_column sample_name \
@@ -454,12 +454,12 @@ data: requirements
 		--dst_dataset AUTH_OVN50KV2_CHIOS_MYTILINI_BOUTSKO.zip \
 		--datafile greece_foreground_sheep/AUTH_OVN50KV2_CHIOS_MYTILINI_BOUTSKO.xlsx --id_column sample_name \
 		--latitude_column Latitude --longitude_column Longitude --metadata_column Region \
-		--metadata_column "Farm Coding" --metadata_column Note
+		--metadata_column "Farm Coding" --notes_column Note
 	$(PYTHON_INTERPRETER) src/data/import_metadata.py --src_dataset greece_foreground_sheep.zip \
 		--dst_dataset AUTH_OVN50KV2_CHI_BOU_MYT_FRI.zip \
 		--datafile greece_foreground_sheep/AUTH_OVN50KV2_CHI_BOU_MYT_FRI.xlsx --id_column sample_name \
 		--latitude_column Latitude --longitude_column Longitude --metadata_column Region \
-		--metadata_column "Farm Coding" --metadata_column Note
+		--metadata_column "Farm Coding" --notes_column Note
 	$(PYTHON_INTERPRETER) src/data/import_metadata.py --src_dataset "Sweden_goat_metadata.zip" \
 		--dst_dataset "Swedish_Univ_Eriksson_GOAT53KV1_20200722.zip" \
 		--datafile SMARTER-metadata-SLU.xlsx --sheet_name samples --id_column original_id \
@@ -468,7 +468,7 @@ data: requirements
 		--dst_dataset AUTH_OVN50KV2_CHI_FRZ.zip \
 		--datafile greece_foreground_sheep/AUTH_OVN50KV2_CHI_FRZ.xlsx --id_column sample_name \
 		--latitude_column Latitude --longitude_column Longitude --metadata_column Region \
-		--metadata_column "Farm Coding" --metadata_column Note
+		--metadata_column "Farm Coding" --notes_column Note
 	$(PYTHON_INTERPRETER) src/data/import_metadata.py --src_dataset Nativesheep_Hu_metadata.zip \
 		--dst_dataset NativesheepBreeds_Hu.zip --datafile nativesheeps_hu_fixed.xlsx --id_column original_id \
 		--latitude_column latitude --longitude_column longitude
@@ -581,10 +581,10 @@ data: requirements
 	$(PYTHON_INTERPRETER) src/data/import_metadata.py --src_dataset gaouar_algerian_sheeps.zip \
 		--datafile AlgerianSheep/gaouar_2017_metadata_fix.xlsx --id_column original_id \
 		--latitude_column latitude --longitude_column longitude --metadata_column Site \
-		--metadata_column Note
+		--notes_column Note
 	$(PYTHON_INTERPRETER) src/data/import_metadata.py --src_dataset burren_et_al_2016.zip \
 		--datafile doi_10.5061_dryad.q1cv6__v1/burren_phenotypes_fix.xlsx --breed_column breed \
-		--metadata_column rare --metadata_column note
+		--metadata_column rare --notes_column note
 
 	## add phenotypes to samples
 	$(PYTHON_INTERPRETER) src/data/import_phenotypes.py --src_dataset ADAPTmap_phenotype_20161201.zip \
