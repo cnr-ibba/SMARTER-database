@@ -11,8 +11,8 @@ import pathlib
 
 from click.testing import CliRunner
 
-from src.data.import_consortium import (main as
-    import_consortium, check_chromosomes)
+from src.data.import_consortium import (
+    main as import_consortium, check_chromosomes)
 from src.features.smarterdb import VariantSheep
 
 from ..common import MongoMockMixin, VariantsMixin
@@ -65,7 +65,7 @@ class ImportConsortiumTest(VariantsMixin, MongoMockMixin, unittest.TestCase):
 
         self.assertEqual(location.chrom, "15")
         self.assertEqual(location.position, 5870057)
-        self.assertEqual(location.illumina_top, "T/C")
+        self.assertEqual(location.illumina_top, "A/G")
 
     def test_check_chromosomes(self):
         self.assertEqual(check_chromosomes("26", "Sheep"), "26")

@@ -13,7 +13,8 @@ import logging
 from pathlib import Path
 from collections import namedtuple
 
-from src.features.smarterdb import global_connection, Location
+from src.features.smarterdb import (
+    global_connection, Location, complement, SmarterDBException)
 from src.features.utils import text_or_gzip_open
 from src.data.common import get_variant_species, update_location
 
@@ -31,6 +32,21 @@ def check_chromosomes(chrom, species_class):
     else:
         raise NotImplementedError(
             f"Specie {species_class} not yet implemenmented")
+
+
+def check_strand(variant, alleles):
+    """Try to determine the illumina_strand relying on database data and
+    received alleles"""
+
+    if alleles == variant.illumina_top:
+        return "TOP"
+
+    elif complement(alleles) == variant.illumina_top:
+        return "BOT"
+
+    else:
+        raise SmarterDBException(
+            f"Cannot determine an illumina strand for {alleles} ({variant})")
 
 
 @click.command()
@@ -70,12 +86,16 @@ def main(species_class, datafile, version):
             # get a variant
             variant = VariantSpecie.objects.get(name=record.entry)
 
+            # try to determine illumina_strand
+            illumina_strand = check_strand(variant, record.alleles)
+
             # create a location from input data
             location = Location(
                 version=version,
                 chrom=record.chrom,
                 position=record.pos,
                 illumina=record.alleles,
+                illumina_strand=illumina_strand,
                 imported_from="consortium"
             )
 

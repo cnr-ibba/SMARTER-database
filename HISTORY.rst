@@ -7,7 +7,7 @@ TODO
 
 * Check chromosomes in *Variants locations*: mind to **scaffold**, **null**, and
   **non-autosomal** chromosomes for *Goat* and *Sheep*
-* Rename objects (use names in a consistent way)
+* Rename objects (use names in a consistent way, ex *TOP*, *BOT*)
 * Generate output files for *OARV4* and *CHIR1*
 * Check coordinates with *sheep* and *goat* genome projects
 * Release a *smarter* coordinate version with information on every variant defined
@@ -22,6 +22,8 @@ TODO
 0.4.8-dev1
 ----------
 
+* Determine ``illumina_top`` data directly from variant for Sheep when importing
+  from *consortium* data
 * Uniform *note* metadata field (add a *note* parameters in import metadata)
 * Import data from *Cortellari et al 2021* (https://doi.org/10.1038/s41598-021-89900-2)
 * Import data from *Burren et al 2016* (https://doi.org/10.1111/age.12476)
