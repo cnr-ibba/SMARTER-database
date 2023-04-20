@@ -22,6 +22,8 @@ TODO
 0.4.8-dev1
 ----------
 
+* Force data update when importing from consortium
+* Track date when importing from consortium
 * Determine ``illumina_top`` data directly from variant for Sheep when importing
   from *consortium* data
 * Uniform *note* metadata field (add a *note* parameters in import metadata)

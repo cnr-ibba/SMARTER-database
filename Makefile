@@ -46,9 +46,9 @@ initialize: requirements
 	$(PYTHON_INTERPRETER) src/data/import_affymetrix.py --species_class sheep --manifest data/external/SHE/AFFYMETRIX/Axiom_BGovis2_Annotation.r1.csv.gz \
 		--chip_name AffymetrixAxiomBGovis2 --version Oar_v3.1
 	$(PYTHON_INTERPRETER) src/data/import_consortium.py --species_class sheep --datafile data/external/SHE/CONSORTIUM/OvineSNP50_B.csv_v3.1_pos_20190513.csv.gz \
-		--version Oar_v3.1
+		--version Oar_v3.1 --date 2019-07-02
 	$(PYTHON_INTERPRETER) src/data/import_consortium.py --species_class sheep --datafile data/external/SHE/CONSORTIUM/SheepHD_AgResearch_Cons_15041608_A.csv_v3.1_pos_20190513.csv.gz \
-		--version Oar_v3.1
+		--version Oar_v3.1 --date 2019-07-02
 
 	### Oar_v4
 	$(PYTHON_INTERPRETER) src/data/import_manifest.py --species_class sheep --manifest data/external/SHE/ILLUMINA/ovinesnp50-genome-assembly-oar-v4-0.csv.gz \
@@ -58,9 +58,9 @@ initialize: requirements
 	$(PYTHON_INTERPRETER) src/data/import_affymetrix.py --species_class sheep --manifest data/external/SHE/AFFYMETRIX/Axiom_Ovi_Can.na35.r3.a3.annot.csv.gz \
 		--chip_name AffymetrixAxiomOviCan --version Oar_v4.0
 	$(PYTHON_INTERPRETER) src/data/import_consortium.py --species_class sheep --datafile data/external/SHE/CONSORTIUM/OvineSNP50_B.csvv4.0_pos_20190513.csv.gz \
-		--version Oar_v4.0
+		--version Oar_v4.0 --date 2019-07-02
 	$(PYTHON_INTERPRETER) src/data/import_consortium.py --species_class sheep --datafile data/external/SHE/CONSORTIUM/SheepHD_AgResearch_Cons_15041608_A.csvv4.0_pos_20190513.csv.gz \
-		--version Oar_v4.0
+		--version Oar_v4.0 --date 2019-07-02
 
 	## import data for goat
 	$(PYTHON_INTERPRETER) src/data/import_manifest.py --species_class goat --manifest data/external/GOA/ILLUMINA/Goat_IGGC_65K_v2_15069617X365016_A2.csv.gz \
