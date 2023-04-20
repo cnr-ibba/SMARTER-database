@@ -47,7 +47,7 @@ def check_strand(variant, alleles):
 
     else:
         raise SmarterDBException(
-            f"Cannot determine an illumina strand for {alleles} ({variant})")
+            f"Cannot determine an illumina strand for '{alleles}' ({variant})")
 
 
 @click.command()
@@ -59,7 +59,36 @@ def check_strand(variant, alleles):
     is_flag=True,
     help="Force location update")
 @click.option('--date', type=str, help="A date string")
-def main(species_class, datafile, version, force_update, date):
+@click.option(
+    '--entry_column',
+    type=str,
+    default="entry",
+    help="Entry name column in datafile (the SNP name)",
+    show_default=True,
+)
+@click.option(
+    '--chrom_column',
+    type=str,
+    default="chrom",
+    help="Chromosome column in datafile",
+    show_default=True,
+)
+@click.option(
+    '--pos_column',
+    type=str,
+    default="pos",
+    help="Position column in datafile",
+    show_default=True,
+)
+@click.option(
+    '--alleles_column',
+    type=str,
+    default="alleles",
+    help="Alleles column in datafile",
+    show_default=True,
+)
+def main(species_class, datafile, version, force_update, date,
+         entry_column, chrom_column, pos_column, alleles_column):
     """Read data from Goat or Sheep genome project and add a new location type
     for variants"""
 
@@ -78,32 +107,40 @@ def main(species_class, datafile, version, force_update, date):
 
         for i, line in enumerate(reader):
             # fix position column
-            idx = header.index('pos')
+            idx = header.index(pos_column)
             line[idx] = int(line[idx])
 
             # fix allele format
-            idx = header.index('alleles')
+            idx = header.index(alleles_column)
             line[idx] = "/".join(list(line[idx]))
 
             # check chromosome number (27?)
-            idx = header.index('chrom')
+            idx = header.index(chrom_column)
             line[idx] = check_chromosomes(line[idx], species_class)
+
+            # add missing data to line if necessary
+            if len(line) < len(header):
+                for i in range(len(line), len(header)):
+                    line.append(None)
 
             # make a record from csv line
             record = Record._make(line)
 
             # get a variant
-            variant = VariantSpecie.objects.get(name=record.entry)
+            variant = VariantSpecie.objects.get(
+                name=getattr(record, entry_column))
 
             # try to determine illumina_strand
-            illumina_strand = check_strand(variant, record.alleles)
+            illumina_strand = check_strand(
+                variant,
+                getattr(record, alleles_column))
 
             # create a location from input data
             location = Location(
                 version=version,
-                chrom=record.chrom,
-                position=record.pos,
-                illumina=record.alleles,
+                chrom=getattr(record, chrom_column),
+                position=getattr(record, pos_column),
+                illumina=getattr(record, alleles_column),
                 illumina_strand=illumina_strand,
                 imported_from="consortium",
                 date=date,
