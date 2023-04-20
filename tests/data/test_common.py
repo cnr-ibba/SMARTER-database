@@ -293,6 +293,21 @@ class VariantUpdateTests(VariantsMixin, MongoMockMixin, unittest.TestCase):
         self.assertEqual(location.chrom, "test")
         self.assertEqual(location.date, datetime.datetime(2022, 5, 27))
 
+    def test_update_location_force_update(self):
+        """Test a location mismatch with a new location"""
+
+        # now update location date
+        self.location.chrom = "test"
+        record, updated = update_location(self.location, self.record, True)
+        self.assertTrue(updated)
+
+        # now location is updated
+        self.assertEqual(len(record.locations), 3)
+
+        location = record.get_location(
+            version="Oar_v3.1", imported_from="manifest")
+        self.assertEqual(location.chrom, "test")
+
     def test_update_rs_id(self):
         record, updated = update_rs_id(self.variant, self.record)
         self.assertFalse(updated)

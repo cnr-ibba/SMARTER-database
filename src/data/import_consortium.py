@@ -53,7 +53,11 @@ def check_strand(variant, alleles):
 @click.option('--species_class', type=str, required=True)
 @click.option('--datafile', type=str, required=True)
 @click.option('--version', type=str, required=True)
-def main(species_class, datafile, version):
+@click.option(
+    '--force_update',
+    is_flag=True,
+    help="Force location update")
+def main(species_class, datafile, version, force_update):
     """Read data from Goat or Sheep genome project and add a new location type
     for variants"""
 
@@ -100,7 +104,8 @@ def main(species_class, datafile, version):
             )
 
             # Should I update a location or not?
-            variant, updated = update_location(location, variant)
+            variant, updated = update_location(
+                location, variant, force_update)
 
             if updated:
                 # update variant with snpchimp data

@@ -401,7 +401,27 @@ def update_affymetrix_record(
 def update_location(
         location: Location,
         variant: Union[VariantSheep, VariantGoat],
+        force_update: bool = False
         ) -> [Union[VariantSheep, VariantGoat], bool]:
+    """
+    Check provided Location with variant Locations: append new object or
+    update a Location object if more recent than the data stored in database
+
+    Parameters
+    ----------
+    location : Location
+        The location to test against the database.
+    variant : Union[VariantSheep, VariantGoat]
+        The variant to test.
+    force_update : bool, optional
+        Force location update. The default is False.
+
+    Returns
+    -------
+    [Union[VariantSheep, VariantGoat], bool]
+        A list with the updated VariantSpecie object and a boolean value
+        which is True if the location was updated
+    """
 
     updated = False
 
@@ -415,6 +435,13 @@ def update_location(
 
         if old_location == location:
             logger.debug("Locations match")
+
+        elif force_update:
+            # update location
+            logger.warning(
+                f"Force update for '{variant}' location")
+            variant.locations[index] = location
+            updated = True
 
         # upgrade locations relying dates
         else:
