@@ -8,6 +8,7 @@ Created on Fri Jul 23 18:02:09 2021
 
 import unittest
 import pathlib
+import datetime
 
 from click.testing import CliRunner
 
@@ -130,3 +131,17 @@ class ConsortiumUpdateTest(ConsortiumMixin, unittest.TestCase):
         self.assertEqual(location.chrom, "15")
         self.assertEqual(location.position, 5870057)
         self.assertEqual(location.illumina_top, "A/G")
+
+    def test_update_time(self):
+        self.import_data("--force_update", "--date", "20230420")
+
+        # get first inserted object
+        self.variant.reload()
+        location = self.variant.get_location(
+            version=self.version,
+            imported_from='consortium')
+
+        self.assertEqual(location.chrom, "15")
+        self.assertEqual(location.position, 5870057)
+        self.assertEqual(location.illumina_top, "A/G")
+        self.assertEqual(location.date, datetime.datetime(2023, 4, 20, 0, 0))

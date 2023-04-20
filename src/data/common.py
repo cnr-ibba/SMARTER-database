@@ -425,23 +425,30 @@ def update_location(
 
     updated = False
 
+    if location.date:
+        # make location.date offset-naive
+        # https://stackoverflow.com/a/796019
+        location.date = location.date.replace(tzinfo=None)
+
     # get the old location as index
     try:
         index = variant.get_location_index(
             version=location.version, imported_from=location.imported_from)
+
+        if force_update:
+            # update location
+            logger.warning(
+                f"Force update for '{variant}' location")
+            variant.locations[index] = location
+            updated = True
+
+            return variant, updated
 
         # ok get the old location and check with the new one
         old_location = variant.locations[index]
 
         if old_location == location:
             logger.debug("Locations match")
-
-        elif force_update:
-            # update location
-            logger.warning(
-                f"Force update for '{variant}' location")
-            variant.locations[index] = location
-            updated = True
 
         # upgrade locations relying dates
         else:
@@ -452,10 +459,6 @@ def update_location(
 
             # check if values are defined
             if old_location.date and location.date:
-                # make location.date offset-naive
-                # https://stackoverflow.com/a/796019
-                location.date = location.date.replace(tzinfo=None)
-
                 if old_location.date < location.date:
                     # update location
                     logger.warning(

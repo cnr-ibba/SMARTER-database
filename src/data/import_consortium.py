@@ -12,6 +12,7 @@ import logging
 
 from pathlib import Path
 from collections import namedtuple
+from dateutil.parser import parse as parse_date
 
 from src.features.smarterdb import (
     global_connection, Location, complement, SmarterDBException)
@@ -57,11 +58,15 @@ def check_strand(variant, alleles):
     '--force_update',
     is_flag=True,
     help="Force location update")
-def main(species_class, datafile, version, force_update):
+@click.option('--date', type=str, help="A date string")
+def main(species_class, datafile, version, force_update, date):
     """Read data from Goat or Sheep genome project and add a new location type
     for variants"""
 
     logger.info(f"{Path(__file__).name} started")
+
+    if date:
+        date = parse_date(date)
 
     # determining the proper VariantSpecies class
     VariantSpecie = get_variant_species(species_class)
@@ -100,7 +105,8 @@ def main(species_class, datafile, version, force_update):
                 position=record.pos,
                 illumina=record.alleles,
                 illumina_strand=illumina_strand,
-                imported_from="consortium"
+                imported_from="consortium",
+                date=date,
             )
 
             # Should I update a location or not?
