@@ -36,6 +36,29 @@ def check_strand(strand):
         return None
 
 
+def update_stuff(variant, location, force_update, record, rs_column):
+    # Should I update a location or not?
+    update_variant = False
+
+    variant, updated = update_location(location, variant, force_update)
+
+    if updated:
+        update_variant = True
+
+    if getattr(record, rs_column):
+        variant, updated = update_rs_id(
+            # create a fake variant with rs_id to use this method
+            VariantGoat(rs_id=[getattr(record, rs_column)]),
+            variant)
+
+        if updated:
+            update_variant = True
+
+    if update_variant:
+        # update variant with consortium data
+        variant.save()
+
+
 @click.command()
 @click.option('--datafile', type=str, required=True)
 @click.option('--version', type=str, required=True)
@@ -148,26 +171,7 @@ def main(datafile, version, force_update, date, entry_column, chrom_column,
 
             logger.debug(f"Got Location {location}")
 
-            # Should I update a location or not?
-            update_variant = False
-
-            variant, updated = update_location(location, variant, force_update)
-
-            if updated:
-                update_variant = True
-
-            if getattr(record, rs_column):
-                variant, updated = update_rs_id(
-                    # create a fake variant with rs_id to use this method
-                    VariantGoat(rs_id=[getattr(record, rs_column)]),
-                    variant)
-
-                if updated:
-                    update_variant = True
-
-            if update_variant:
-                # update variant with consortium data
-                variant.save()
+            update_stuff(variant, location, force_update, record, rs_column)
 
             if (i+1) % 5000 == 0:
                 logger.info(f"{i+1} variants processed")
