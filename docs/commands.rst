@@ -50,6 +50,12 @@ documentation sections.
     :prog: src/data/import_from_plink.py
     :nested: full
 
+.. _import_iggc:
+
+.. click:: src.data.import_iggc:main
+    :prog: src/data/import_iggc.py
+    :nested: full
+
 .. _import_isgc:
 
 .. click:: src.data.import_isgc:main
