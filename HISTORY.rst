@@ -22,6 +22,9 @@ TODO
 0.4.8-dev1
 ----------
 
+* Import data from *IGGC*
+* Split ``import_consortium.py`` in ``import_isgc.py`` and ``import_iggc.py``
+  to import data from Sheep and Goat genome *consortia* respectively
 * Force data update when importing from consortium
 * Track date when importing from consortium
 * Determine ``illumina_top`` data directly from variant for Sheep when importing
