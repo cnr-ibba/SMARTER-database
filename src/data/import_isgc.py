@@ -4,6 +4,8 @@
 Created on Fri Jul 23 18:01:40 2021
 
 @author: Paolo Cozzi <paolo.cozzi@ibba.cnr.it>
+
+Import data from International Sheep Genome Consortium metadata files
 """
 
 import csv
@@ -15,24 +17,19 @@ from collections import namedtuple
 from dateutil.parser import parse as parse_date
 
 from src.features.smarterdb import (
-    global_connection, Location, complement, SmarterDBException)
+    global_connection, Location, complement, SmarterDBException, VariantSheep)
 from src.features.utils import text_or_gzip_open
-from src.data.common import get_variant_species, update_location
+from src.data.common import update_location
 
 logger = logging.getLogger(__name__)
 
 
-def check_chromosomes(chrom, species_class):
-    if species_class.lower() == "sheep":
-        if int(chrom) <= 26:
-            return chrom
+def check_chromosomes(chrom):
+    if int(chrom) <= 26:
+        return chrom
 
-        elif int(chrom) == 27:
-            return "X"
-
-    else:
-        raise NotImplementedError(
-            f"Specie {species_class} not yet implemenmented")
+    elif int(chrom) == 27:
+        return "X"
 
 
 def check_strand(variant, alleles):
@@ -51,7 +48,6 @@ def check_strand(variant, alleles):
 
 
 @click.command()
-@click.option('--species_class', type=str, required=True)
 @click.option('--datafile', type=str, required=True)
 @click.option('--version', type=str, required=True)
 @click.option(
@@ -87,18 +83,15 @@ def check_strand(variant, alleles):
     help="Alleles column in datafile",
     show_default=True,
 )
-def main(species_class, datafile, version, force_update, date,
+def main(datafile, version, force_update, date,
          entry_column, chrom_column, pos_column, alleles_column):
-    """Read data from Goat or Sheep genome project and add a new location type
+    """Read data from Sheep genome project and add a new location type
     for variants"""
 
     logger.info(f"{Path(__file__).name} started")
 
     if date:
         date = parse_date(date)
-
-    # determining the proper VariantSpecies class
-    VariantSpecie = get_variant_species(species_class)
 
     with text_or_gzip_open(datafile) as handle:
         reader = csv.reader(handle, delimiter=",")
@@ -116,7 +109,7 @@ def main(species_class, datafile, version, force_update, date,
 
             # check chromosome number (27?)
             idx = header.index(chrom_column)
-            line[idx] = check_chromosomes(line[idx], species_class)
+            line[idx] = check_chromosomes(line[idx])
 
             # add missing data to line if necessary
             if len(line) < len(header):
@@ -127,7 +120,7 @@ def main(species_class, datafile, version, force_update, date,
             record = Record._make(line)
 
             # get a variant
-            variant = VariantSpecie.objects.get(
+            variant = VariantSheep.objects.get(
                 name=getattr(record, entry_column))
 
             # try to determine illumina_strand

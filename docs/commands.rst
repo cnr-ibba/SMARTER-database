@@ -26,12 +26,6 @@ documentation sections.
     :prog: src/data/import_breeds.py
     :nested: full
 
-.. _import_consortium:
-
-.. click:: src.data.import_consortium:main
-    :prog: src/data/import_consortium.py
-    :nested: full
-
 .. _import_datasets:
 
 .. click:: src.data.import_datasets:main
@@ -54,6 +48,12 @@ documentation sections.
 
 .. click:: src.data.import_from_plink:main
     :prog: src/data/import_from_plink.py
+    :nested: full
+
+.. _import_isgc:
+
+.. click:: src.data.import_isgc:main
+    :prog: src/data/import_isgc.py
     :nested: full
 
 .. _import_manifest:

@@ -12,7 +12,7 @@ import datetime
 
 from click.testing import CliRunner
 
-from src.data.import_consortium import (
+from src.data.import_isgc import (
     main as import_consortium, check_chromosomes)
 from src.features.smarterdb import VariantSheep, Location, SmarterDBException
 
@@ -34,13 +34,11 @@ class ConsortiumMixin(VariantsMixin, MongoMockMixin):
             name="250506CS3900065000002_1238.1")
 
     def import_data(self, *args):
-        data_file = DATA_DIR / "test_consortium.csv"
+        data_file = DATA_DIR / "test_isgc.csv"
 
         result = self.runner.invoke(
             self.main_function,
             [
-                "--species_class",
-                "Sheep",
                 "--datafile",
                 str(data_file),
                 "--version",
@@ -72,9 +70,8 @@ class ImportConsortiumTest(ConsortiumMixin, unittest.TestCase):
         self.assertEqual(location.illumina_top, "A/G")
 
     def test_check_chromosomes(self):
-        self.assertEqual(check_chromosomes("26", "Sheep"), "26")
-        self.assertEqual(check_chromosomes("27", "Sheep"), "X")
-        self.assertRaises(NotImplementedError, check_chromosomes, 1, "Goat")
+        self.assertEqual(check_chromosomes("26"), "26")
+        self.assertEqual(check_chromosomes("27"), "X")
 
 
 class ConsortiumUpdateTest(ConsortiumMixin, unittest.TestCase):
