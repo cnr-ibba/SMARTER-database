@@ -124,48 +124,5 @@
     "rs_id": [
       "rs268233145"
     ]
-  },
-  {
-    "_id": {
-      "$oid": "641afbabe9f71770967e2fb8"
-    },
-    "chip_name": [
-      "IlluminaGoatSNP50"
-    ],
-    "name": "snp4-scaffold1-120438",
-    "sequence": {
-      "IlluminaGoatSNP50": "TCATCAACAATGCCTGAATAAATTTCGCTCCATGGTGGGAAGATGCAAACTTCAAGCTCA[T/C]GTACTTCAAAGGAAATTAATTTCCCACTGGTCTTGCAACTTTGTGTTATATAAATCCCTG"
-    },
-    "illumina_top": "A/G",
-    "locations": [
-      {
-        "version": "ARS1",
-        "chrom": "22",
-        "position": 27190249,
-        "illumina": "T/C",
-        "illumina_strand": "BOT",
-        "strand": "BOT",
-        "imported_from": "manifest",
-        "date": {
-          "$date": "2021-01-08T00:00:00Z"
-        }
-      },
-      {
-        "ss_id": "ss528808894",
-        "version": "CHI1.0",
-        "chrom": "22",
-        "position": 27104485,
-        "alleles": "C/T",
-        "illumina": "T/C",
-        "illumina_forward": "T/C",
-        "illumina_strand": "bottom",
-        "strand": "forward",
-        "imported_from": "SNPchiMp v.3"
-      }
-    ],
-    "sender": "IGGC",
-    "rs_id": [
-      "rs268233146"
-    ]
   }
 ]

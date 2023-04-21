@@ -78,11 +78,7 @@ class ImportConsortiumTest(ConsortiumMixin, unittest.TestCase):
     def test_check_strand(self):
         self.assertEqual(check_strand("-"), "reverse")
         self.assertEqual(check_strand("+"), "forward")
-        self.assertRaisesRegex(
-            NotImplementedError,
-            "Strand .* not managed",
-            check_strand,
-            "meow")
+        self.assertIsNone(check_strand("meow"))
 
 
 class ConsortiumUpdateTest(ConsortiumMixin, unittest.TestCase):

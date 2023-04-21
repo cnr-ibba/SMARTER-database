@@ -15,6 +15,7 @@ import logging
 from pathlib import Path
 from collections import namedtuple
 from dateutil.parser import parse as parse_date
+from mongoengine.errors import DoesNotExist
 
 from src.features.smarterdb import (
     global_connection, Location, VariantGoat)
@@ -32,7 +33,7 @@ def check_strand(strand):
     elif strand == '-':
         return "reverse"
     else:
-        raise NotImplementedError(f"Strand {strand} not managed")
+        return None
 
 
 @click.command()
@@ -106,16 +107,23 @@ def main(datafile, version, force_update, date, entry_column, chrom_column,
 
             except ValueError:
                 logger.warning(
-                    f"Ignoring '{pos_column}' '{line[idx]}': not integer")
+                    f"Set '{pos_column}' '{line[idx]} to 0': not integer")
+                line[idx] = 0
 
             # make a record from csv line
             record = Record._make(line)
 
-            logger.info(f"Processing {record}")
+            logger.debug(f"Processing {record}")
 
             # get a variant
-            variant = VariantGoat.objects.get(
-                name=getattr(record, entry_column))
+            snp_name = getattr(record, entry_column)
+
+            try:
+                variant = VariantGoat.objects.get(name=snp_name)
+
+            except DoesNotExist:
+                logger.warning(f"SNP '{snp_name}' not found")
+                continue
 
             logger.debug(f"Got variant {variant}")
 
