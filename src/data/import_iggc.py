@@ -32,7 +32,7 @@ def check_strand(strand):
     elif strand == '-':
         return "reverse"
     else:
-        raise Exception(f"Strand {strand} not managed")
+        raise NotImplementedError(f"Strand {strand} not managed")
 
 
 @click.command()
