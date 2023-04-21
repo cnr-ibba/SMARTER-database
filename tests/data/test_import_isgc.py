@@ -16,12 +16,12 @@ from src.data.import_isgc import (
     main as import_consortium, check_chromosomes)
 from src.features.smarterdb import VariantSheep, Location, SmarterDBException
 
-from ..common import MongoMockMixin, VariantsMixin
+from ..common import MongoMockMixin, VariantSheepMixin
 
 DATA_DIR = pathlib.Path(__file__).parent / "data"
 
 
-class ConsortiumMixin(VariantsMixin, MongoMockMixin):
+class ConsortiumMixin(VariantSheepMixin, MongoMockMixin):
     main_function = import_consortium
 
     def setUp(self):

@@ -174,9 +174,9 @@ def sanitize_list(record: list):
     return record
 
 
-class VariantsMixin():
+class VariantSheepMixin():
     # This will be the default fixture loaded by this class
-    variant_fixture = "variants.json"
+    variant_fixture = "sheep_variants.json"
 
     @classmethod
     def setUpClass(cls):

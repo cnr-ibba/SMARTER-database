@@ -14,12 +14,12 @@ from click.testing import CliRunner
 from src.data.import_snpchimp import main as import_snpchimp
 from src.features.smarterdb import VariantSheep
 
-from ..common import MongoMockMixin, VariantsMixin
+from ..common import MongoMockMixin, VariantSheepMixin
 
 DATA_DIR = pathlib.Path(__file__).parent / "data"
 
 
-class ImportSNPChimpTest(VariantsMixin, MongoMockMixin, unittest.TestCase):
+class ImportSNPChimpTest(VariantSheepMixin, MongoMockMixin, unittest.TestCase):
     main_function = import_snpchimp
 
     def setUp(self):

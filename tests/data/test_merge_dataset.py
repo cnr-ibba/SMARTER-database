@@ -18,13 +18,13 @@ from src import __version__
 from src.features.smarterdb import SampleSheep
 from src.data.merge_datasets import main as merge_datasets
 
-from ..common import MongoMockMixin, SmarterIDMixin, VariantsMixin
+from ..common import MongoMockMixin, SmarterIDMixin, VariantSheepMixin
 
 DATA_DIR = pathlib.Path(__file__).parent / "data"
 
 
 class TestMergeDataset(
-        VariantsMixin, SmarterIDMixin, MongoMockMixin, unittest.TestCase):
+        VariantSheepMixin, SmarterIDMixin, MongoMockMixin, unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):

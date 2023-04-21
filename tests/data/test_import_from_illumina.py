@@ -18,13 +18,13 @@ from src.data.import_from_illumina import main as import_from_illumina
 from src.features.smarterdb import SampleSheep, Dataset
 
 from ..common import (
-    MongoMockMixin, SmarterIDMixin, VariantsMixin, SupportedChipMixin)
+    MongoMockMixin, SmarterIDMixin, VariantSheepMixin, SupportedChipMixin)
 
 DATA_DIR = pathlib.Path(__file__).parents[1] / "features/data"
 
 
 class TestImportFromIllumina(
-        VariantsMixin, SmarterIDMixin, SupportedChipMixin, MongoMockMixin,
+        VariantSheepMixin, SmarterIDMixin, SupportedChipMixin, MongoMockMixin,
         unittest.TestCase):
 
     @classmethod
@@ -243,7 +243,7 @@ class TestImportFromIllumina(
 
 
 class TestImportFromIllumina3columns(
-        VariantsMixin, SmarterIDMixin, SupportedChipMixin, MongoMockMixin,
+        VariantSheepMixin, SmarterIDMixin, SupportedChipMixin, MongoMockMixin,
         unittest.TestCase):
     """Testing importing from illumina with only 3 columns in SNPlist.txt"""
 

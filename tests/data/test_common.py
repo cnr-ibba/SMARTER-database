@@ -23,7 +23,7 @@ from src.features.smarterdb import (
     Dataset, VariantGoat, VariantSheep, SampleSheep, SampleGoat, Location,
     Probeset)
 
-from ..common import MongoMockMixin, SmarterIDMixin, VariantsMixin
+from ..common import MongoMockMixin, SmarterIDMixin, VariantSheepMixin
 
 FEATURE_DATA_DIR = pathlib.Path(__file__).parents[1] / "features/data"
 SCRIPTS_DATA_DIR = pathlib.Path(__file__).parents[1] / "data/data"
@@ -208,7 +208,7 @@ class PandasOpenTest(unittest.TestCase):
             self.assertIsInstance(data, pd.DataFrame)
 
 
-class VariantUpdateTests(VariantsMixin, MongoMockMixin, unittest.TestCase):
+class VariantUpdateTests(VariantSheepMixin, MongoMockMixin, unittest.TestCase):
     def setUp(self):
         self.record = VariantSheep.objects.get(
             name="250506CS3900065000002_1238.1")

@@ -18,16 +18,16 @@ from src.data.import_from_affymetrix import main as import_from_affymetrix
 from src.features.smarterdb import SampleSheep, Dataset
 
 from ..common import (
-    MongoMockMixin, SmarterIDMixin, VariantsMixin, SupportedChipMixin)
+    MongoMockMixin, SmarterIDMixin, VariantSheepMixin, SupportedChipMixin)
 
 DATA_DIR = pathlib.Path(__file__).parents[1] / "features/data"
 
 
 class AffyTestMixin(
-        VariantsMixin, SmarterIDMixin, SupportedChipMixin, MongoMockMixin):
+        VariantSheepMixin, SmarterIDMixin, SupportedChipMixin, MongoMockMixin):
 
     # a different fixture file to load in VariantMixin
-    variant_fixture = "affy_variants.json"
+    variant_fixture = "affy_sheep_variants.json"
 
     # a custom chip name
     chip_name = "AffymetrixAxiomOviCan"

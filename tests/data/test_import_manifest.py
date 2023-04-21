@@ -15,7 +15,7 @@ from click.testing import CliRunner
 from src.data.import_manifest import main as import_manifest
 from src.features.smarterdb import VariantSheep
 
-from ..common import MongoMockMixin, VariantsMixin, SupportedChipMixin
+from ..common import MongoMockMixin, VariantSheepMixin, SupportedChipMixin
 
 DATA_DIR = pathlib.Path(__file__).parent / "data"
 
@@ -88,7 +88,7 @@ class ImportManifestTest(
 
 
 class UpdateManifestTest(
-        ManifestMixin, SupportedChipMixin, VariantsMixin, MongoMockMixin,
+        ManifestMixin, SupportedChipMixin, VariantSheepMixin, MongoMockMixin,
         unittest.TestCase):
 
     main_function = import_manifest
