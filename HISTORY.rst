@@ -19,10 +19,10 @@ TODO
 * Remove ``--chip_name`` from import genotypes script (derive it from dataset)
 * Capitalize ``species_class`` parameter in ``src.data.import_breeds.py``
 
-0.4.8-dev1
+0.4.8-dev2
 ----------
 
-* Import data from *IGGC*
+* Import data from *IGGC* (`#18 <https://github.com/cnr-ibba/SMARTER-database/issues/18>`__)
 * Split ``import_consortium.py`` in ``import_isgc.py`` and ``import_iggc.py``
   to import data from Sheep and Goat genome *consortia* respectively
 * Force data update when importing from consortium
