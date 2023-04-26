@@ -17,7 +17,7 @@ from src.data.import_affymetrix import (
 from src.features.affymetrix import read_Manifest
 from src.features.smarterdb import VariantSheep, SupportedChip, Probeset
 
-from ..common import MongoMockMixin, VariantsMixin, SupportedChipMixin
+from ..common import MongoMockMixin, VariantSheepMixin, SupportedChipMixin
 
 DATA_DIR = pathlib.Path(__file__).parent / "data"
 
@@ -120,7 +120,7 @@ class ImportManifestTest(
 
 
 class UpdateManifestTest(
-        ManifestMixin, SupportedChipMixin, VariantsMixin, MongoMockMixin,
+        ManifestMixin, SupportedChipMixin, VariantSheepMixin, MongoMockMixin,
         unittest.TestCase):
 
     """test import with already loaded data"""

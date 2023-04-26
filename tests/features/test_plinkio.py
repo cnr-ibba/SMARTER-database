@@ -20,13 +20,13 @@ from src.features.plinkio import (
     AffyPlinkIO, AssemblyConf, AffyReportIO)
 
 from ..common import (
-    MongoMockMixin, SmarterIDMixin, VariantsMixin, SupportedChipMixin)
+    MongoMockMixin, SmarterIDMixin, VariantSheepMixin, SupportedChipMixin)
 
 # set data dir
 DATA_DIR = pathlib.Path(__file__).parent / "data"
 
 
-class TextPlinkIOMap(VariantsMixin, MongoMockMixin, unittest.TestCase):
+class TextPlinkIOMap(VariantSheepMixin, MongoMockMixin, unittest.TestCase):
     def setUp(self):
         super().setUp()
 
@@ -171,7 +171,7 @@ class TextPlinkIOMap(VariantsMixin, MongoMockMixin, unittest.TestCase):
                 self.assertEqual(location.position, record.position)
 
 
-class TextPlinkIOMapRSID(VariantsMixin, MongoMockMixin, unittest.TestCase):
+class TextPlinkIOMapRSID(VariantSheepMixin, MongoMockMixin, unittest.TestCase):
     """A class to test plink files with rsid as SNP names"""
 
     def setUp(self):
@@ -210,7 +210,7 @@ class TextPlinkIOMapRSID(VariantsMixin, MongoMockMixin, unittest.TestCase):
 
 
 class TextPlinkIOPed(
-        VariantsMixin, SmarterIDMixin, MongoMockMixin, unittest.TestCase):
+        VariantSheepMixin, SmarterIDMixin, MongoMockMixin, unittest.TestCase):
 
     def setUp(self):
         super().setUp()
@@ -845,7 +845,7 @@ class TextPlinkIOPed(
 
 
 class BinaryPlinkIOTest(
-        VariantsMixin, SmarterIDMixin, MongoMockMixin, unittest.TestCase):
+        VariantSheepMixin, SmarterIDMixin, MongoMockMixin, unittest.TestCase):
     def setUp(self):
         super().setUp()
 
@@ -902,7 +902,7 @@ class BinaryPlinkIOTest(
         self.assertEqual(reference, test)
 
 
-class IlluminaReportIOMap(VariantsMixin, MongoMockMixin, unittest.TestCase):
+class IlluminaReportIOMap(VariantSheepMixin, MongoMockMixin, unittest.TestCase):
     def setUp(self):
         super().setUp()
 
@@ -962,7 +962,7 @@ class IlluminaReportIOMap(VariantsMixin, MongoMockMixin, unittest.TestCase):
 
 
 class IlluminaReportIOPed(
-        VariantsMixin, SmarterIDMixin, SupportedChipMixin, MongoMockMixin,
+        VariantSheepMixin, SmarterIDMixin, SupportedChipMixin, MongoMockMixin,
         unittest.TestCase):
 
     def setUp(self):
@@ -1064,7 +1064,7 @@ class AffyMixin():
     """Common stuff for affymetrix tests"""
 
     # load a custom fixture for this class
-    variant_fixture = "affy_variants.json"
+    variant_fixture = "affy_sheep_variants.json"
 
     # custom chip
     chip_name = "AffymetrixAxiomOviCan"
@@ -1080,7 +1080,7 @@ class AffyMixin():
 
 
 class AffyPlinkIOMapTest(
-        AffyMixin, VariantsMixin, MongoMockMixin, unittest.TestCase):
+        AffyMixin, VariantSheepMixin, MongoMockMixin, unittest.TestCase):
 
     def setUp(self):
         super().setUp()
@@ -1154,7 +1154,7 @@ class AffyPlinkIOMapTest(
 
 
 class AffyPlinkIOPedTest(
-        AffyMixin, VariantsMixin, SmarterIDMixin, MongoMockMixin,
+        AffyMixin, VariantSheepMixin, SmarterIDMixin, MongoMockMixin,
         unittest.TestCase):
 
     def setUp(self):
@@ -1263,7 +1263,7 @@ class AffyPlinkIOPedTest(
 
 
 class AffyReportIOMapTest(
-        AffyMixin, VariantsMixin, MongoMockMixin, unittest.TestCase):
+        AffyMixin, VariantSheepMixin, MongoMockMixin, unittest.TestCase):
 
     def setUp(self):
         super().setUp()
@@ -1409,7 +1409,7 @@ class AffyReportIOMapTest(
 
 
 class AffyReportIOPedTest(
-        AffyMixin, VariantsMixin, SmarterIDMixin, MongoMockMixin,
+        AffyMixin, VariantSheepMixin, SmarterIDMixin, MongoMockMixin,
         unittest.TestCase):
 
     def setUp(self):

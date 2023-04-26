@@ -17,13 +17,14 @@ from src.data.SNPconvert import main as snp_convert
 from src.features.smarterdb import SmarterDBException
 
 from ..common import (
-    MongoMockMixin, VariantsMixin, SupportedChipMixin)
+    MongoMockMixin, VariantSheepMixin, SupportedChipMixin)
 
 DATA_DIR = pathlib.Path(__file__).parents[1] / "features/data"
 
 
 class SNPconvertTest(
-        VariantsMixin, SupportedChipMixin, MongoMockMixin, unittest.TestCase):
+        VariantSheepMixin, SupportedChipMixin, MongoMockMixin,
+        unittest.TestCase):
     def setUp(self):
         super().setUp()
 

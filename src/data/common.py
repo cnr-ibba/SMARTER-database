@@ -401,14 +401,48 @@ def update_affymetrix_record(
 def update_location(
         location: Location,
         variant: Union[VariantSheep, VariantGoat],
+        force_update: bool = False
         ) -> [Union[VariantSheep, VariantGoat], bool]:
+    """
+    Check provided Location with variant Locations: append new object or
+    update a Location object if more recent than the data stored in database
+
+    Parameters
+    ----------
+    location : Location
+        The location to test against the database.
+    variant : Union[VariantSheep, VariantGoat]
+        The variant to test.
+    force_update : bool, optional
+        Force location update. The default is False.
+
+    Returns
+    -------
+    [Union[VariantSheep, VariantGoat], bool]
+        A list with the updated VariantSpecie object and a boolean value
+        which is True if the location was updated
+    """
 
     updated = False
+
+    if location.date:
+        # make location.date offset-naive
+        # https://stackoverflow.com/a/796019
+        location.date = location.date.replace(tzinfo=None)
 
     # get the old location as index
     try:
         index = variant.get_location_index(
             version=location.version, imported_from=location.imported_from)
+
+        if force_update:
+            # update location
+            logger.warning(
+                f"Force update for '{variant}' location")
+            variant.locations[index] = location
+            updated = True
+
+            return variant, updated
 
         # ok get the old location and check with the new one
         old_location = variant.locations[index]
@@ -425,10 +459,6 @@ def update_location(
 
             # check if values are defined
             if old_location.date and location.date:
-                # make location.date offset-naive
-                # https://stackoverflow.com/a/796019
-                location.date = location.date.replace(tzinfo=None)
-
                 if old_location.date < location.date:
                     # update location
                     logger.warning(

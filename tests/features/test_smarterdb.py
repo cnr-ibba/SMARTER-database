@@ -149,10 +149,10 @@ class BreedTestCase(MongoMockMixin, unittest.TestCase):
 class VariantMixin():
     @classmethod
     def setUpClass(cls):
-        with open(DATA_DIR / "variants.json") as handle:
+        with open(DATA_DIR / "sheep_variants.json") as handle:
             cls.data = json.load(handle)[0]
 
-        with open(DATA_DIR / "affy_variants.json") as handle:
+        with open(DATA_DIR / "affy_sheep_variants.json") as handle:
             cls.affy_data = json.load(handle)[2]
 
         super().setUpClass()

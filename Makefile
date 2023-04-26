@@ -45,10 +45,10 @@ initialize: requirements
 		--chip_name AffymetrixAxiomBGovisNP --version Oar_v3.1
 	$(PYTHON_INTERPRETER) src/data/import_affymetrix.py --species_class sheep --manifest data/external/SHE/AFFYMETRIX/Axiom_BGovis2_Annotation.r1.csv.gz \
 		--chip_name AffymetrixAxiomBGovis2 --version Oar_v3.1
-	$(PYTHON_INTERPRETER) src/data/import_consortium.py --species_class sheep --datafile data/external/SHE/CONSORTIUM/OvineSNP50_B.csv_v3.1_pos_20190513.csv.gz \
-		--version Oar_v3.1
-	$(PYTHON_INTERPRETER) src/data/import_consortium.py --species_class sheep --datafile data/external/SHE/CONSORTIUM/SheepHD_AgResearch_Cons_15041608_A.csv_v3.1_pos_20190513.csv.gz \
-		--version Oar_v3.1
+	$(PYTHON_INTERPRETER) src/data/import_isgc.py --datafile data/external/SHE/CONSORTIUM/OvineSNP50_B.csv_v3.1_pos_20190513.csv.gz \
+		--version Oar_v3.1 --date 2019-07-02
+	$(PYTHON_INTERPRETER) src/data/import_isgc.py --datafile data/external/SHE/CONSORTIUM/SheepHD_AgResearch_Cons_15041608_A.csv_v3.1_pos_20190513.csv.gz \
+		--version Oar_v3.1 --date 2019-07-02
 
 	### Oar_v4
 	$(PYTHON_INTERPRETER) src/data/import_manifest.py --species_class sheep --manifest data/external/SHE/ILLUMINA/ovinesnp50-genome-assembly-oar-v4-0.csv.gz \
@@ -57,15 +57,19 @@ initialize: requirements
 	$(PYTHON_INTERPRETER) src/data/import_snpchimp.py --species_class sheep --snpchimp data/external/SHE/SNPCHIMP/SNPchimp_SHE_SNPHDv1_oar4.0.csv.gz --version Oar_v4.0
 	$(PYTHON_INTERPRETER) src/data/import_affymetrix.py --species_class sheep --manifest data/external/SHE/AFFYMETRIX/Axiom_Ovi_Can.na35.r3.a3.annot.csv.gz \
 		--chip_name AffymetrixAxiomOviCan --version Oar_v4.0
-	$(PYTHON_INTERPRETER) src/data/import_consortium.py --species_class sheep --datafile data/external/SHE/CONSORTIUM/OvineSNP50_B.csvv4.0_pos_20190513.csv.gz \
-		--version Oar_v4.0
-	$(PYTHON_INTERPRETER) src/data/import_consortium.py --species_class sheep --datafile data/external/SHE/CONSORTIUM/SheepHD_AgResearch_Cons_15041608_A.csvv4.0_pos_20190513.csv.gz \
-		--version Oar_v4.0
+	$(PYTHON_INTERPRETER) src/data/import_isgc.py --datafile data/external/SHE/CONSORTIUM/OvineSNP50_B.csvv4.0_pos_20190513.csv.gz \
+		--version Oar_v4.0 --date 2019-07-02
+	$(PYTHON_INTERPRETER) src/data/import_isgc.py --datafile data/external/SHE/CONSORTIUM/SheepHD_AgResearch_Cons_15041608_A.csvv4.0_pos_20190513.csv.gz \
+		--version Oar_v4.0 --date 2019-07-02
 
 	## import data for goat
 	$(PYTHON_INTERPRETER) src/data/import_manifest.py --species_class goat --manifest data/external/GOA/ILLUMINA/Goat_IGGC_65K_v2_15069617X365016_A2.csv.gz \
 		--chip_name IlluminaGoatSNP50 --version ARS1 --sender IGGC
 	$(PYTHON_INTERPRETER) src/data/import_snpchimp.py --species_class goat --snpchimp data/external/GOA/SNPCHIMP/SNPchimp_GOAT_SNP50_chi1.0.csv.gz --version CHI1.0
+	$(PYTHON_INTERPRETER) src/data/import_iggc.py --datafile data/external/GOA/CONSORTIUM/capri4dbsnp-base-CHI-ARS-OAR-UMD.csv.gz \
+		--version ARS1 --date "06 Mar 2018" --chrom_column ars1_chr --pos_column ars1_pos --strand_column ars1_strand
+	$(PYTHON_INTERPRETER) src/data/import_iggc.py --datafile data/external/GOA/CONSORTIUM/capri4dbsnp-base-CHI-ARS-OAR-UMD.csv.gz \
+		--version CHI1.0 --date "06 Mar 2018" --chrom_column chi_1_0_chr --pos_column chi_1_0_pos --strand_column chi_1_0_strand
 
 	## TODO: donwload data from EVA and EnsEMBL
 
