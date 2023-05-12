@@ -4,97 +4,229 @@
 Created on Wed Mar  3 18:07:13 2021
 
 @author: Paolo Cozzi <paolo.cozzi@ibba.cnr.it>
+
+Load data from dbSNP dump files and update illumina SNPs
 """
 
-import os
+import click
 import logging
 
-from pathlib import Path
+from typing import Union
 from functools import partial
 
-from dotenv import find_dotenv, load_dotenv
-from mongoengine import MultipleObjectsReturned
-from pymongo import MongoClient
-
-from src.features.smarterdb import global_connection, VariantSheep, SMARTERDB
+from src.features.smarterdb import (
+    global_connection, SupportedChip, Location, VariantSheep, VariantGoat)
 from src.features.dbsnp import read_dbSNP, search_chip_snps
+from src.features.illumina import IlluSNP
+from src.data.common import (
+    get_variant_species, AssemblyConf, update_location, update_rs_id)
 
-search_agr_bs = partial(search_chip_snps, handle='AGR_BS')
+
+def search_variant(
+        sss: dict,
+        rs_id: str,
+        locSnpIds: set[str],
+        VariantSpecie: Union[VariantSheep, VariantGoat]) -> list[
+            Union[VariantSheep, VariantGoat]]:
+    """
+    Return VariantSheep or VariantGoat instance for the provided SS
+    evidences
+
+    Parameters
+    ----------
+    sss : dict
+        A dictionary with all the dbSNP SS hits for illuminas.
+    rs_id : str
+        The rsId identifier of such SNP.
+    locSnpIds : set[str]
+        A list of Illumina probe names.
+    VariantSpecie : Union[VariantSheep, VariantGoat]
+        The specie class (VariantSheep or VariantGoat) to be used when
+        searching in SMARTER database
+
+    Returns
+    -------
+    list[Union[VariantSheep, VariantGoat]]
+        A list of variants (Sheep Or Goat).
+    """
+
+    if len(sss) > 1:
+        logger.debug(f"More than 1 ss found for '{rs_id}'")
+        variants = VariantSpecie.objects.filter(name__in=list(locSnpIds))
+
+    elif len(sss) == 1:
+        ss = sss[0]
+
+        # ok get a variant from database and return it
+        variants = VariantSpecie.objects.filter(name=ss['locSnpId'])
+
+    if len(variants) > 1:
+        logger.warning(
+            f"Got {len(variants)} Variants for '{rs_id}'")
+
+    return variants
 
 
-def main():
-    logger = logging.getLogger(__name__)
+def process_variant(
+        snp: dict,
+        variant: Union[VariantSheep, VariantGoat],
+        supported_chips: list,
+        assembly: AssemblyConf) -> Location:
+    """
+    Process a SNP read from dbSNP XML file and return a new Location object
 
-    # not used in this stub but often useful for finding various files
-    project_dir = Path(__file__).resolve().parents[2]
+    Parameters
+    ----------
+    snp : dict
+        A dictionary with all data from a dbSNP rsId.
+    variant : Union[VariantSheep, VariantGoat]
+        A SMARTER variant object.
+    supported_chips : list
+        A list of supported chips as string.
+    assembly : AssemblyConf
+        The assembly source and imported from parameters.
 
-    dbsnp_file = (
-        "data/external/SHE/dbSNP/ds_ch24.xml.gz")
-    dbsnp_path = project_dir / dbsnp_file
+    Returns
+    -------
+    Location
+        A SMARTER Location object for the read SNP.
 
-    # connect to database
-    global_connection()
+    """
+    # get the SS relying on ss[locSnpId']
+    ss = next(filter(lambda ss: ss['locSnpId'] == variant.name, snp['ss']))
+    assembly = snp.get('assembly')
 
-    # connect to database
-    conn = MongoClient(
-        'mongodb://localhost:27017/',
-        username=os.getenv("MONGODB_SMARTER_USER"),
-        password=os.getenv("MONGODB_SMARTER_PASS")
+    for chip_name in supported_chips:
+        if chip_name in variant.sequence:
+            sequence = variant.sequence[chip_name]
+            break
+
+    illu_snp = IlluSNP(sequence=sequence, max_iter=25)
+
+    chromosome = "0"
+    position = 0
+
+    if (assembly and
+            'chromosome' in assembly['component'] and
+            assembly['snpstat']['mapWeight'] == 'unique-in-contig'):
+
+        # read chromosome and position
+        chromosome = assembly['component']['chromosome']
+        position = int(assembly['component']['maploc']['physMapInt'])+1
+
+    # create a new location object
+    return Location(
+        ss_id=f"ss{ss['ssId']}",
+        version=assembly.version,
+        imported_from=assembly.imported_from,
+        chrom=chromosome,
+        position=position,
+        alleles=ss['observed'],
+        illumina_strand=ss.get('strand', illu_snp.strand),
+        strand=ss.get('orient'),
+        illumina=illu_snp.illumina
     )
 
-    # get my snp names from database
-    pipeline = [
-        {"$project": {"_id": 0, "name": 1}},
-        {"$group": {
-            "_id": None,
-            "total": {"$sum": 1},
-            "items": {"$push": "$name"}
-        }}
-    ]
 
-    logger.info("Search all names in database")
+@click.command()
+@click.option(
+    '--species_class',
+    type=str,
+    required=True,
+    help="The generic species of dbSNP data (Sheep or Goat)"
+    )
+@click.option(
+    '--input',
+    'input_file',
+    type=click.Path(exists=True),
+    required=True,
+    help="The dbSNP input (XML) file"
+    )
+@click.option(
+    '--sender',
+    type=str,
+    required=True,
+    help="The SNP sender (ex. AGR_BS, IGGC)"
+    )
+@click.option(
+    '--version',
+    type=str,
+    required=True,
+    help="The assembly version"
+    )
+@click.option(
+    '--imported_from',
+    type=str,
+    default="dbSNP152",
+    help="The source of this data"
+    )
+def main(species_class, input_file, sender, version, imported_from):
+    # determine assembly configuration
+    dbSNP = AssemblyConf(version=version, imported_from=imported_from)
 
-    # execute the aggregation pipeline with pymongo client and get all
-    # snp names from database
-    result = next(conn[SMARTERDB]["variantSheep"].aggregate(pipeline))
+    # determining the proper VariantSpecies class
+    VariantSpecie = get_variant_species(species_class)
 
-    # get all names in a set
-    all_snp_names = set(result["items"])
+    logger.info("Search all snp names in database")
 
-    logger.info(f"Reading from {dbsnp_path}")
+    # determine the supported chips names
+    supported_chips = SupportedChip.objects.filter(
+        manifacturer="illumina",
+        species=species_class.capitalize(),
+    )
+    supported_chips = [chip.name for chip in supported_chips]
+
+    all_snp_names = set([
+        variant.name for variant in VariantSpecie.objects.filter(
+            chip_name__in=supported_chips).fields(name=1)
+    ])
+
+    logger.info(f"Reading from {input_file}")
+
+    handle_filter = partial(search_chip_snps, handle=sender)
 
     # cicle amoung dbsnp object
-    for snp in filter(search_agr_bs, read_dbSNP(dbsnp_path)):
-        found = False
+    for i, snp in enumerate(filter(handle_filter, read_dbSNP(input_file))):
+        # determine rs_id once
+        rs_id = f"rs{snp['rsId']}"
 
-        for i, ss in enumerate(snp["ss"]):
-            if ss['locSnpId'] in all_snp_names:
-                found = True
-                break
+        # now get only the SS objects with the required handle
+        sss = list(filter(lambda ss: ss['handle'] == sender, snp['ss']))
 
-        if found is False:
-            logger.debug(f"Skipping rsId {snp['rsId']}")
+        # test for locSnpId in my database
+        locSnpIds = set([ss['locSnpId'] for ss in sss])
+
+        # Skip variants not in database
+        if not locSnpIds.intersection(all_snp_names):
             continue
 
-        snp['ss'] = snp['ss'][i]
+        variants = search_variant(sss, rs_id, locSnpIds, VariantSpecie)
 
-        # get the locSnpId to search (ex. OAR24_20639954
-        name = snp['ss']['locSnpId']
+        for variant in variants:
+            location = process_variant(snp, variant, supported_chips, dbSNP)
 
-        # regex is super slow
-        qs = VariantSheep.objects(name=name)
+            # Should I update a location or not?
+            update_variant = False
 
-        if qs.count() > 0:
-            # get variant
-            try:
-                variant = qs.get()
-                logger.info(f"{variant}: {snp}")
+            variant, updated = update_location(location, variant)
 
-            except MultipleObjectsReturned:
-                logger.error(qs.all())
+            if updated:
+                update_variant = True
 
-            # debug
-            break
+            variant, updated = update_rs_id(
+                # create a fake variant with rs_id to use this method
+                VariantSpecie(rs_id=[rs_id]),
+                variant)
+
+            if updated:
+                update_variant = True
+
+            if update_variant:
+                # update variant with snpchimp data
+                variant.save()
+
+        if (i+1) % 5000 == 0:
+            logger.info(f"{i+1} variants processed")
 
     logger.info("Completed")
 
@@ -103,9 +235,9 @@ if __name__ == '__main__':
     log_fmt = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     logging.basicConfig(level=logging.INFO, format=log_fmt)
     logging.getLogger('src.features.dbsnp').setLevel(logging.INFO)
+    logger = logging.getLogger(__name__)
 
-    # find .env automagically by walking up directories until it's found, then
-    # load up the .env entries as environment variables
-    load_dotenv(find_dotenv())
+    # connect to database
+    global_connection()
 
     main()
