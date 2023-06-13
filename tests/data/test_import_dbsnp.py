@@ -6,6 +6,7 @@ Created on Thu May 11 11:56:29 2023
 @author: Paolo Cozzi <paolo.cozzi@ibba.cnr.it>
 """
 
+import json
 import logging
 import unittest
 import pathlib
@@ -16,7 +17,7 @@ from mongoengine import QuerySet
 from src.data.import_dbsnp import (
     main as import_dbsnp, search_variant, process_variant)
 
-from src.features.smarterdb import VariantSheep
+from src.features.smarterdb import VariantSheep, Location
 from src.features.dbsnp import read_dbSNP
 
 from ..common import MongoMockMixin, VariantSheepMixin, SupportedChipMixin
@@ -24,7 +25,7 @@ from ..common import MongoMockMixin, VariantSheepMixin, SupportedChipMixin
 import src.data.import_dbsnp
 
 DATA_DIR = pathlib.Path(__file__).parents[1] / "features/data"
-src.data.import_dbsnp.logger.setLevel(logging.DEBUG)
+src.data.import_dbsnp.logger.setLevel(logging.INFO)
 
 
 class DBSNPTestMixin(VariantSheepMixin, SupportedChipMixin, MongoMockMixin):
@@ -63,6 +64,30 @@ class VariantTest(DBSNPTestMixin, unittest.TestCase):
         test = variants[0]
         self.assertEqual(test, self.variant)
 
+    def test_process_variant(self):
+        location = process_variant(
+            self.snp,
+            self.variant,
+            supported_chips=[self.chip_name]
+        )
+
+        self.assertIsInstance(location, Location)
+
+        reference = {
+            'ss_id': 'ss836318739',
+            'version': 'Oar_v4.0',
+            'chrom': '24',
+            'position': 33913078,
+            'alleles': 'G/T',
+            'illumina': 'T/G',
+            'illumina_strand': 'bottom',
+            'strand': 'forward',
+            'imported_from': 'dbSNP151'
+        }
+
+        test = json.loads(location.to_json())
+        self.assertEqual(reference, test)
+
 
 class ImportDBSNPTest(DBSNPTestMixin, unittest.TestCase):
 
@@ -94,8 +119,6 @@ class ImportDBSNPTest(DBSNPTestMixin, unittest.TestCase):
                 "Sheep",
                 "--input",
                 str(dbsnp_file),
-                "--version",
-                self.version,
                 "--sender",
                 self.sender,
             ]
@@ -107,13 +130,11 @@ class ImportDBSNPTest(DBSNPTestMixin, unittest.TestCase):
         self.variant.reload()
         location = self.variant.get_location(
             version=self.version,
-            imported_from='dbSNP152')
+            imported_from='dbSNP151')
 
         self.assertEqual(location.chrom, "24")
-        self.assertEqual(location.position, 41976826)
+        self.assertEqual(location.position, 33913078)
         self.assertEqual(location.illumina_top, "A/C")
-
-        self.fail(location)
 
 
 if __name__ == '__main__':

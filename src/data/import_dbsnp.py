@@ -19,7 +19,7 @@ from src.features.smarterdb import (
 from src.features.dbsnp import read_dbSNP, search_chip_snps
 from src.features.illumina import IlluSNP
 from src.data.common import (
-    get_variant_species, AssemblyConf, update_location, update_rs_id)
+    get_variant_species, update_location, update_rs_id)
 
 logger = logging.getLogger(__name__)
 
@@ -72,8 +72,7 @@ def search_variant(
 def process_variant(
         snp: dict,
         variant: Union[VariantSheep, VariantGoat],
-        supported_chips: list,
-        assembly: AssemblyConf) -> Location:
+        supported_chips: list) -> Location:
     """
     Process a SNP read from dbSNP XML file and return a new Location object
 
@@ -85,8 +84,6 @@ def process_variant(
         A SMARTER variant object.
     supported_chips : list
         A list of supported chips as string.
-    assembly : AssemblyConf
-        The assembly source and imported from parameters.
 
     Returns
     -------
@@ -127,8 +124,8 @@ def process_variant(
     # create a new location object
     return Location(
         ss_id=f"ss{ss['ssId']}",
-        version=assembly.version,
-        imported_from=assembly.imported_from,
+        version=assembly['groupLabel'],
+        imported_from=f"dbSNP{assembly['dbSnpBuild']}",
         chrom=chromosome,
         position=position,
         alleles=ss['observed'],
@@ -158,22 +155,7 @@ def process_variant(
     required=True,
     help="The SNP sender (ex. AGR_BS, IGGC)"
     )
-@click.option(
-    '--version',
-    type=str,
-    required=True,
-    help="The assembly version"
-    )
-@click.option(
-    '--imported_from',
-    type=str,
-    default="dbSNP152",
-    help="The source of this data"
-    )
-def main(species_class, input_file, sender, version, imported_from):
-    # determine assembly configuration
-    dbSNP = AssemblyConf(version=version, imported_from=imported_from)
-
+def main(species_class, input_file, sender):
     # determining the proper VariantSpecies class
     VariantSpecie = get_variant_species(species_class)
 
@@ -216,7 +198,7 @@ def main(species_class, input_file, sender, version, imported_from):
         variants = search_variant(sss, rs_id, locSnpIds, VariantSpecie)
 
         for variant in variants:
-            location = process_variant(snp, variant, supported_chips, dbSNP)
+            location = process_variant(snp, variant, supported_chips)
 
             # Should I update a location or not?
             update_variant = False
