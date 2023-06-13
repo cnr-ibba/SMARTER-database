@@ -21,6 +21,8 @@ from src.features.illumina import IlluSNP
 from src.data.common import (
     get_variant_species, AssemblyConf, update_location, update_rs_id)
 
+logger = logging.getLogger(__name__)
+
 
 def search_variant(
         sss: dict,
@@ -51,7 +53,7 @@ def search_variant(
     """
 
     if len(sss) > 1:
-        logger.debug(f"More than 1 ss found for '{rs_id}'")
+        logger.warning(f"More than 1 ss found for '{rs_id}'")
         variants = VariantSpecie.objects.filter(name__in=list(locSnpIds))
 
     elif len(sss) == 1:
@@ -92,10 +94,18 @@ def process_variant(
         A SMARTER Location object for the read SNP.
 
     """
+    logger.debug(f"Processing '{variant.name}'")
+
     # get the SS relying on ss[locSnpId']
     ss = next(filter(lambda ss: ss['locSnpId'] == variant.name, snp['ss']))
+
+    logger.debug(f"Got {ss} as ss data")
+
     assembly = snp.get('assembly')
 
+    logger.debug(f"Got {assembly} as assembly")
+
+    # next: I need to determine the illumina top for this SNP
     for chip_name in supported_chips:
         if chip_name in variant.sequence:
             sequence = variant.sequence[chip_name]
@@ -176,6 +186,8 @@ def main(species_class, input_file, sender, version, imported_from):
     )
     supported_chips = [chip.name for chip in supported_chips]
 
+    logger.debug(f"Considering '{supported_chips}' chips")
+
     all_snp_names = set([
         variant.name for variant in VariantSpecie.objects.filter(
             chip_name__in=supported_chips).fields(name=1)
@@ -198,6 +210,7 @@ def main(species_class, input_file, sender, version, imported_from):
 
         # Skip variants not in database
         if not locSnpIds.intersection(all_snp_names):
+            logger.debug(f"Skipping '{locSnpIds}': not in database")
             continue
 
         variants = search_variant(sss, rs_id, locSnpIds, VariantSpecie)
