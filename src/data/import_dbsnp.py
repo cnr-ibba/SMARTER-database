@@ -165,12 +165,15 @@ def process_dbsnp_file(
 
     global VariantSpecie
 
-    logger.info(f"Reading from {input_file}")
+    logger.info(f"Reading from '{input_file}'")
 
     handle_filter = partial(search_chip_snps, handle=sender)
 
     # cicle amoung dbsnp object
     for i, snp in enumerate(filter(handle_filter, read_dbSNP(input_file))):
+        if (i+1) % 5000 == 0:
+            logger.info(f"{i+1} variants processed for '{input_file}'")
+
         # determine rs_id once
         rs_id = f"rs{snp['rsId']}"
 
@@ -210,8 +213,7 @@ def process_dbsnp_file(
                 # update variant with snpchimp data
                 variant.save()
 
-        if (i+1) % 5000 == 0:
-            logger.info(f"{i+1} variants processed for {input_file}")
+    logger.info(f"{i+1} variants processed for '{input_file}'")
 
 
 @click.command()
@@ -262,6 +264,8 @@ def main(species_class, input_dir, pattern, sender):
         variant.name for variant in VariantSpecie.objects.filter(
             chip_name__in=supported_chips).fields(name=1)
     ])
+
+    logger.info(f"Got {len(all_snp_names)} SNPs for 'illumina' manufacturer")
 
     for input_file in pathlib.Path(input_dir).glob(pattern):
         process_dbsnp_file(input_file, sender, all_snp_names, supported_chips)
