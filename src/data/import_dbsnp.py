@@ -10,6 +10,7 @@ Load data from dbSNP dump files and update illumina SNPs
 
 import click
 import logging
+import pathlib
 
 from typing import Union
 from functools import partial
@@ -22,6 +23,8 @@ from src.data.common import (
     get_variant_species, update_location, update_rs_id)
 
 logger = logging.getLogger(__name__)
+
+VariantSpecie = None
 
 
 def search_variant(
@@ -53,7 +56,7 @@ def search_variant(
     """
 
     if len(sss) > 1:
-        logger.warning(f"More than 1 ss found for '{rs_id}'")
+        logger.debug(f"Got {len(sss)} ss for '{rs_id}'")
         variants = VariantSpecie.objects.filter(name__in=list(locSnpIds))
 
     elif len(sss) == 1:
@@ -135,45 +138,32 @@ def process_variant(
     )
 
 
-@click.command()
-@click.option(
-    '--species_class',
-    type=str,
-    required=True,
-    help="The generic species of dbSNP data (Sheep or Goat)"
-    )
-@click.option(
-    '--input',
-    'input_file',
-    type=click.Path(exists=True),
-    required=True,
-    help="The dbSNP input (XML) file"
-    )
-@click.option(
-    '--sender',
-    type=str,
-    required=True,
-    help="The SNP sender (ex. AGR_BS, IGGC)"
-    )
-def main(species_class, input_file, sender):
-    # determining the proper VariantSpecies class
-    VariantSpecie = get_variant_species(species_class)
+def process_dbsnp_file(
+        input_file: pathlib.Path,
+        sender: str,
+        all_snp_names: set[str],
+        supported_chips: list[str]):
+    """
+    Process a single dbSNP file and put data into database
 
-    logger.info("Search all snp names in database")
+    Parameters
+    ----------
+    input_file : pathlib.Path
+        The dbSNP input file
+    sender : str
+        The SNP sender (ex. AGR_BS, IGGC).
+    all_snp_names : set[str]
+        A set containing all the SNP names than need to be updated.
+    supported_chips : list[str]
+        A list of supported chips (required to collect the original sequence).
 
-    # determine the supported chips names
-    supported_chips = SupportedChip.objects.filter(
-        manifacturer="illumina",
-        species=species_class.capitalize(),
-    )
-    supported_chips = [chip.name for chip in supported_chips]
+    Returns
+    -------
+    None.
 
-    logger.debug(f"Considering '{supported_chips}' chips")
+    """
 
-    all_snp_names = set([
-        variant.name for variant in VariantSpecie.objects.filter(
-            chip_name__in=supported_chips).fields(name=1)
-    ])
+    global VariantSpecie
 
     logger.info(f"Reading from {input_file}")
 
@@ -221,7 +211,60 @@ def main(species_class, input_file, sender):
                 variant.save()
 
         if (i+1) % 5000 == 0:
-            logger.info(f"{i+1} variants processed")
+            logger.info(f"{i+1} variants processed for {input_file}")
+
+
+@click.command()
+@click.option(
+    '--species_class',
+    type=str,
+    required=True,
+    help="The generic species of dbSNP data (Sheep or Goat)"
+)
+@click.option(
+    '--input_dir',
+    'input_dir',
+    type=click.Path(exists=True),
+    required=True,
+    help="The directory with dbSNP input (XML) files"
+)
+@click.option(
+    '--pattern',
+    type=str,
+    default="*.gz",
+    help="The directory with dbSNP input (XML) files",
+    show_default=True
+)
+@click.option(
+    '--sender',
+    type=str,
+    required=True,
+    help="The SNP sender (ex. AGR_BS, IGGC)"
+)
+def main(species_class, input_dir, pattern, sender):
+    global VariantSpecie
+
+    # determining the proper VariantSpecies class
+    VariantSpecie = get_variant_species(species_class)
+
+    logger.info("Search all snp names in database")
+
+    # determine the supported chips names
+    supported_chips = SupportedChip.objects.filter(
+        manifacturer="illumina",
+        species=species_class.capitalize(),
+    )
+    supported_chips = [chip.name for chip in supported_chips]
+
+    logger.debug(f"Considering '{supported_chips}' chips")
+
+    all_snp_names = set([
+        variant.name for variant in VariantSpecie.objects.filter(
+            chip_name__in=supported_chips).fields(name=1)
+    ])
+
+    for input_file in pathlib.Path(input_dir).glob(pattern):
+        process_dbsnp_file(input_file, sender, all_snp_names, supported_chips)
 
     logger.info("Completed")
 

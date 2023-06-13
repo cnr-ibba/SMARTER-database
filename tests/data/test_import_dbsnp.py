@@ -110,15 +110,17 @@ class ImportDBSNPTest(DBSNPTestMixin, unittest.TestCase):
         self.assertIn('Usage: main', result.output)
 
     def test_import_dbsnp(self):
-        dbsnp_file = DATA_DIR / "ds_test.xml"
+        dbsnp_dir = DATA_DIR
 
         result = self.runner.invoke(
             self.main_function,
             [
                 "--species_class",
                 "Sheep",
-                "--input",
-                str(dbsnp_file),
+                "--input_dir",
+                str(dbsnp_dir),
+                "--pattern",
+                "*.xml",
                 "--sender",
                 self.sender,
             ]
