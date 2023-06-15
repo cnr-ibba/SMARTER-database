@@ -13,9 +13,11 @@ import pathlib
 
 from click.testing import CliRunner
 from mongoengine import QuerySet
+from unittest.mock import patch
 
 from src.data.import_dbsnp import (
     main as import_dbsnp, search_variant, process_variant)
+from src.data.common import AssemblyConf
 
 from src.features.smarterdb import VariantSheep, Location
 from src.features.dbsnp import read_dbSNP
@@ -35,6 +37,9 @@ class DBSNPTestMixin(VariantSheepMixin, SupportedChipMixin, MongoMockMixin):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
+
+        cls.version = "Oar_v4.0"
+        cls.imported_from = 'dbSNP152'
 
         # collect the first SNP using helper libraries
         dbsnp_file = DATA_DIR / "ds_test.xml"
@@ -64,7 +69,11 @@ class VariantTest(DBSNPTestMixin, unittest.TestCase):
         test = variants[0]
         self.assertEqual(test, self.variant)
 
-    def test_process_variant(self):
+    @patch('src.data.import_dbsnp.assembly_conf')
+    def test_process_variant(self, my_assembly_conf):
+        my_assembly_conf.version = self.version
+        my_assembly_conf.imported_from = self.imported_from
+
         location = process_variant(
             self.snp,
             self.variant,
@@ -75,14 +84,14 @@ class VariantTest(DBSNPTestMixin, unittest.TestCase):
 
         reference = {
             'ss_id': 'ss836318739',
-            'version': 'Oar_v4.0',
+            'version': my_assembly_conf.version,
             'chrom': '24',
             'position': 33913078,
             'alleles': 'G/T',
             'illumina': 'T/G',
             'illumina_strand': 'bottom',
             'strand': 'forward',
-            'imported_from': 'dbSNP151'
+            'imported_from': my_assembly_conf.imported_from
         }
 
         test = json.loads(location.to_json())
@@ -98,7 +107,6 @@ class ImportDBSNPTest(DBSNPTestMixin, unittest.TestCase):
         super().setUp()
 
         self.runner = CliRunner()
-        self.version = "Oar_v4.0"
         self.sender = "AGR_BS"
 
         self.variant = VariantSheep.objects.get(
@@ -123,6 +131,8 @@ class ImportDBSNPTest(DBSNPTestMixin, unittest.TestCase):
                 "*.xml",
                 "--sender",
                 self.sender,
+                "--version",
+                self.version,
             ]
         )
 
@@ -132,7 +142,7 @@ class ImportDBSNPTest(DBSNPTestMixin, unittest.TestCase):
         self.variant.reload()
         location = self.variant.get_location(
             version=self.version,
-            imported_from='dbSNP151')
+            imported_from='dbSNP152')
 
         self.assertEqual(location.chrom, "24")
         self.assertEqual(location.position, 33913078)

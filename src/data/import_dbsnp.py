@@ -20,11 +20,13 @@ from src.features.smarterdb import (
 from src.features.dbsnp import read_dbSNP, search_chip_snps
 from src.features.illumina import IlluSNP
 from src.data.common import (
-    get_variant_species, update_location, update_rs_id)
+    get_variant_species, update_location, update_rs_id, AssemblyConf)
 
 logger = logging.getLogger(__name__)
 
+# global variables (defined in main)
 VariantSpecie = None
+assembly_conf = None
 
 
 def search_variant(
@@ -94,6 +96,8 @@ def process_variant(
         A SMARTER Location object for the read SNP.
 
     """
+    global assembly_conf
+
     logger.debug(f"Processing '{variant.name}'")
 
     # get the SS relying on ss[locSnpId']
@@ -124,11 +128,11 @@ def process_variant(
         chromosome = assembly['component']['chromosome']
         position = int(assembly['component']['maploc']['physMapInt'])+1
 
-    # create a new location object
+    # Using assembly_conf when creating a Location
     return Location(
         ss_id=f"ss{ss['ssId']}",
-        version=assembly['groupLabel'],
-        imported_from=f"dbSNP{assembly['dbSnpBuild']}",
+        version=assembly_conf.version,
+        imported_from=assembly_conf.imported_from,
         chrom=chromosome,
         position=position,
         alleles=ss['observed'],
@@ -243,8 +247,24 @@ def process_dbsnp_file(
     required=True,
     help="The SNP sender (ex. AGR_BS, IGGC)"
 )
-def main(species_class, input_dir, pattern, sender):
+@click.option(
+    '--version',
+    type=str,
+    required=True,
+    help="The assembly version"
+)
+@click.option(
+    '--imported_from',
+    type=str,
+    default="dbSNP152",
+    help="The source of this data"
+)
+def main(species_class, input_dir, pattern, sender, version, imported_from):
     global VariantSpecie
+    global assembly_conf
+
+    # determine assembly configuration
+    assembly_conf = AssemblyConf(version=version, imported_from=imported_from)
 
     # determining the proper VariantSpecies class
     VariantSpecie = get_variant_species(species_class)
