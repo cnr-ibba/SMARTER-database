@@ -32,6 +32,12 @@ documentation sections.
     :prog: src/data/import_datasets.py
     :nested: full
 
+.. _import_dbsnp:
+
+.. click:: src.data.import_dbsnp:main
+    :prog: src/data/import_dbsnp.py
+    :nested: full
+
 .. _import_from_affymetrix:
 
 .. click:: src.data.import_from_affymetrix:main
@@ -108,4 +114,10 @@ documentation sections.
 
 .. click:: src.data.SNPconvert:main
     :prog: src/data/SNPconvert.py
+    :nested: full
+
+.. _update_db_status:
+
+.. click:: src.data.update_db_status:main
+    :prog: src/data/update_db_status.py
     :nested: full

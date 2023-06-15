@@ -9,7 +9,6 @@ TODO
   **non-autosomal** chromosomes for *Goat* and *Sheep*
 * Rename objects (use names in a consistent way, ex *TOP*, *BOT*)
 * Generate output files for *OARV4* and *CHIR1*
-* Check coordinates with *sheep* and *goat* genome projects
 * Release a *smarter* coordinate version with information on every variant defined
   in database (which will be used as reference)
 * Map affymetrix snps in *OARV3* coordinates
@@ -22,6 +21,7 @@ TODO
 0.4.8-dev2
 ----------
 
+* Import data from *dbSNP152* (`#15 <https://github.com/cnr-ibba/SMARTER-database/issues/15>`__)
 * Import data from *IGGC* (`#18 <https://github.com/cnr-ibba/SMARTER-database/issues/18>`__)
 * Split ``import_consortium.py`` in ``import_isgc.py`` and ``import_iggc.py``
   to import data from Sheep and Goat genome *consortia* respectively
