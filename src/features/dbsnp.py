@@ -60,7 +60,7 @@ class DBSNP():
             func(elem)
 
         else:
-            logger.warning(
+            logger.debug(
                 f"Ignoring '{path}': {elem.attrib}, {str(elem.text).strip()}")
 
     def record_create(self, elem):

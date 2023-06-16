@@ -61,6 +61,7 @@ initialize: requirements
 		--version Oar_v4.0 --date 2019-07-02
 	$(PYTHON_INTERPRETER) src/data/import_isgc.py --datafile data/external/SHE/CONSORTIUM/SheepHD_AgResearch_Cons_15041608_A.csvv4.0_pos_20190513.csv.gz \
 		--version Oar_v4.0 --date 2019-07-02
+	$(PYTHON_INTERPRETER) src/data/import_dbsnp.py --input_dir data/external/SHE/dbSNP --species_class Sheep --sender AGR_BS --version Oar_v4.0
 
 	## import data for goat
 	$(PYTHON_INTERPRETER) src/data/import_manifest.py --species_class goat --manifest data/external/GOA/ILLUMINA/Goat_IGGC_65K_v2_15069617X365016_A2.csv.gz \
@@ -70,6 +71,7 @@ initialize: requirements
 		--version ARS1 --date "06 Mar 2018" --chrom_column ars1_chr --pos_column ars1_pos --strand_column ars1_strand
 	$(PYTHON_INTERPRETER) src/data/import_iggc.py --datafile data/external/GOA/CONSORTIUM/capri4dbsnp-base-CHI-ARS-OAR-UMD.csv.gz \
 		--version CHI1.0 --date "06 Mar 2018" --chrom_column chi_1_0_chr --pos_column chi_1_0_pos --strand_column chi_1_0_strand
+	$(PYTHON_INTERPRETER) src/data/import_dbsnp.py --input_dir data/external/GOA/dbSNP --species_class Goat --sender IGGC --version CHI1.0
 
 	## TODO: donwload data from EVA and EnsEMBL
 
