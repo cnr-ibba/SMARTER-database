@@ -18,7 +18,7 @@ TODO
 * Remove ``--chip_name`` from import genotypes script (derive it from dataset)
 * Capitalize ``species_class`` parameter in ``src.data.import_breeds.py``
 
-0.4.8-dev2
+0.4.8-dev3
 ----------
 
 * Import data from *dbSNP152* (`#15 <https://github.com/cnr-ibba/SMARTER-database/issues/15>`__)
