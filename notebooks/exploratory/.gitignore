@@ -2,3 +2,6 @@
 *.pickle
 *.pkl
 .~lock*
+*.csv
+*.aln
+*.err
