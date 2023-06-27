@@ -1,4 +1,4 @@
-.PHONY: clean clean_interim data lint requirements
+.PHONY: clean clean_interim data lint requirements assemblies
 
 #################################################################################
 # GLOBALS                                                                       #
@@ -29,8 +29,6 @@ requirements: test_environment
 initialize: requirements
 	# import chip names
 	$(PYTHON_INTERPRETER) src/data/import_snpchips.py --chip_file data/raw/chip_names.json
-
-	## TODO: import manifest and SNPchimp for all assemblies
 
 	## import data for Sheep
 
@@ -670,6 +668,8 @@ data: requirements
 	## track database status
 	$(PYTHON_INTERPRETER) src/data/update_db_status.py
 
+## Make data for other assemblies
+include assemblies.mk
 
 ## pack results to be shared via sFTP
 publish:
@@ -763,6 +763,8 @@ help:
 		n; \
 		s/^## //; \
 		t doc" \
+		-e "s/^include //;" \
+		-e "s/.mk//;" \
 		-e "s/:.*//; \
 		G; \
 		s/\\n## /---/; \

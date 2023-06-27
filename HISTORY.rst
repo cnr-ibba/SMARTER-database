@@ -8,19 +8,17 @@ TODO
 * Check chromosomes in *Variants locations*: mind to **scaffold**, **null**, and
   **non-autosomal** chromosomes for *Goat* and *Sheep*
 * Rename objects (use names in a consistent way, ex *TOP*, *BOT*)
-* Generate output files for *OARV4* and *CHIR1*
 * Release a *smarter* coordinate version with information on every variant defined
   in database (which will be used as reference)
 * Map affymetrix snps in *OARV3* coordinates
-* Define a collection for all available *purpose* phenotypes
 * Check if ``rs_id`` is still valid or not (with EVA)
 * Manage python packages with `poetry <https://python-poetry.org/>`__
-* Remove ``--chip_name`` from import genotypes script (derive it from dataset)
 * Capitalize ``species_class`` parameter in ``src.data.import_breeds.py``
 
 0.4.8-dev3
 ----------
 
+* Generate output files for *OARV4* and *CHIR1* (`#87 <https://github.com/cnr-ibba/SMARTER-database/issues/87>`__)
 * Import data from *dbSNP152* (`#15 <https://github.com/cnr-ibba/SMARTER-database/issues/15>`__)
 * Import data from *IGGC* (`#18 <https://github.com/cnr-ibba/SMARTER-database/issues/18>`__)
 * Split ``import_consortium.py`` in ``import_isgc.py`` and ``import_iggc.py``
