@@ -17,7 +17,6 @@ from unittest.mock import patch
 
 from src.data.import_dbsnp import (
     main as import_dbsnp, search_variant, process_variant)
-from src.data.common import AssemblyConf
 
 from src.features.smarterdb import VariantSheep, Location
 from src.features.dbsnp import read_dbSNP
