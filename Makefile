@@ -742,7 +742,7 @@ test_environment:
 
 ## Test code
 test:
-	coverage run --source src -m py.test
+	coverage run --source src -m pytest
 	coverage html
 
 #################################################################################
