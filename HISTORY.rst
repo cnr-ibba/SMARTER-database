@@ -15,8 +15,8 @@ TODO
 * Manage python packages with `poetry <https://python-poetry.org/>`__
 * Rename ``manifacturer`` into ``manufacturer``
 
-0.4.8-dev3
-----------
+0.4.8 (2023-06-28)
+------------------
 
 * Capitalize ``species_class`` parameter in ``src.data.import_breeds.py``
 * Generate output files for *OARV4* and *CHIR1* (`#87 <https://github.com/cnr-ibba/SMARTER-database/issues/87>`__)
