@@ -687,12 +687,26 @@ publish:
 	cd ./data/processed/OAR3 && md5sum $(BASENAME).zip > $(BASENAME).md5
 	find ./data/processed/OAR3 -type f \( -name "*.bed" -or -name "*.bim" -or -name "*.fam" -or -name "*.hh" -or -name "*.log" -or -name "*.nosex" \) -delete
 
+	## SHEEP OAR4
+	$(eval BASENAME=SMARTER-OA-OAR4-top-$(CURRENT_VERSION))
+	cd ./data/processed/OAR4 && if [ -e $(BASENAME).zip ]; then rm $(BASENAME).zip; fi
+	cd ./data/processed/OAR4 && zip -rvT $(BASENAME).zip $(BASENAME).bed $(BASENAME).bim $(BASENAME).fam $(BASENAME).hh $(BASENAME).log $(BASENAME).nosex
+	cd ./data/processed/OAR4 && md5sum $(BASENAME).zip > $(BASENAME).md5
+	find ./data/processed/OAR4 -type f \( -name "*.bed" -or -name "*.bim" -or -name "*.fam" -or -name "*.hh" -or -name "*.log" -or -name "*.nosex" \) -delete
+
 	## GOAT ARS1
 	$(eval BASENAME=SMARTER-CH-ARS1-top-$(CURRENT_VERSION))
 	cd ./data/processed/ARS1 && if [ -e $(BASENAME).zip ]; then rm $(BASENAME).zip; fi
 	cd ./data/processed/ARS1 && zip -rvT $(BASENAME).zip $(BASENAME).bed $(BASENAME).bim $(BASENAME).fam $(BASENAME).hh $(BASENAME).log $(BASENAME).nosex
 	cd ./data/processed/ARS1 && md5sum $(BASENAME).zip > $(BASENAME).md5
 	find ./data/processed/ARS1 -type f \( -name "*.bed" -or -name "*.bim" -or -name "*.fam" -or -name "*.hh" -or -name "*.log" -or -name "*.nosex" \) -delete
+
+	## GOAT CHI1
+	$(eval BASENAME=SMARTER-CH-CHI1-top-$(CURRENT_VERSION))
+	cd ./data/processed/CHI1 && if [ -e $(BASENAME).zip ]; then rm $(BASENAME).zip; fi
+	cd ./data/processed/CHI1 && zip -rvT $(BASENAME).zip $(BASENAME).bed $(BASENAME).bim $(BASENAME).fam $(BASENAME).hh $(BASENAME).log $(BASENAME).nosex
+	cd ./data/processed/CHI1 && md5sum $(BASENAME).zip > $(BASENAME).md5
+	find ./data/processed/CHI1 -type f \( -name "*.bed" -or -name "*.bim" -or -name "*.fam" -or -name "*.hh" -or -name "*.log" -or -name "*.nosex" \) -delete
 
 ## Delete all compiled Python files
 clean:
