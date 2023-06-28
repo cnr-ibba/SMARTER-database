@@ -1,4 +1,4 @@
-.PHONY: clean clean_interim data lint requirements
+.PHONY: clean clean_interim data lint requirements assemblies
 
 #################################################################################
 # GLOBALS                                                                       #
@@ -10,6 +10,8 @@ PROFILE = default
 PROJECT_NAME = SMARTER-database
 PYTHON_INTERPRETER = python3
 CURRENT_VERSION = $(shell awk -F " = " '/current_version/ {print $$2}' .bumpversion.cfg | head -n1)
+SHEEP_ASSEMBLIES := OAR3 OAR4
+GOAT_ASSEMBLIES := ARS1 CHI1
 
 ifeq (,$(shell which conda))
 HAS_CONDA=False
@@ -30,8 +32,6 @@ initialize: requirements
 	# import chip names
 	$(PYTHON_INTERPRETER) src/data/import_snpchips.py --chip_file data/raw/chip_names.json
 
-	## TODO: import manifest and SNPchimp for all assemblies
-
 	## import data for Sheep
 
 	### Oar_v3
@@ -45,10 +45,10 @@ initialize: requirements
 		--chip_name AffymetrixAxiomBGovisNP --version Oar_v3.1
 	$(PYTHON_INTERPRETER) src/data/import_affymetrix.py --species_class sheep --manifest data/external/SHE/AFFYMETRIX/Axiom_BGovis2_Annotation.r1.csv.gz \
 		--chip_name AffymetrixAxiomBGovis2 --version Oar_v3.1
-	$(PYTHON_INTERPRETER) src/data/import_consortium.py --species_class sheep --datafile data/external/SHE/CONSORTIUM/OvineSNP50_B.csv_v3.1_pos_20190513.csv.gz \
-		--version Oar_v3.1
-	$(PYTHON_INTERPRETER) src/data/import_consortium.py --species_class sheep --datafile data/external/SHE/CONSORTIUM/SheepHD_AgResearch_Cons_15041608_A.csv_v3.1_pos_20190513.csv.gz \
-		--version Oar_v3.1
+	$(PYTHON_INTERPRETER) src/data/import_isgc.py --datafile data/external/SHE/CONSORTIUM/OvineSNP50_B.csv_v3.1_pos_20190513.csv.gz \
+		--version Oar_v3.1 --date 2019-07-02
+	$(PYTHON_INTERPRETER) src/data/import_isgc.py --datafile data/external/SHE/CONSORTIUM/SheepHD_AgResearch_Cons_15041608_A.csv_v3.1_pos_20190513.csv.gz \
+		--version Oar_v3.1 --date 2019-07-02
 
 	### Oar_v4
 	$(PYTHON_INTERPRETER) src/data/import_manifest.py --species_class sheep --manifest data/external/SHE/ILLUMINA/ovinesnp50-genome-assembly-oar-v4-0.csv.gz \
@@ -57,15 +57,21 @@ initialize: requirements
 	$(PYTHON_INTERPRETER) src/data/import_snpchimp.py --species_class sheep --snpchimp data/external/SHE/SNPCHIMP/SNPchimp_SHE_SNPHDv1_oar4.0.csv.gz --version Oar_v4.0
 	$(PYTHON_INTERPRETER) src/data/import_affymetrix.py --species_class sheep --manifest data/external/SHE/AFFYMETRIX/Axiom_Ovi_Can.na35.r3.a3.annot.csv.gz \
 		--chip_name AffymetrixAxiomOviCan --version Oar_v4.0
-	$(PYTHON_INTERPRETER) src/data/import_consortium.py --species_class sheep --datafile data/external/SHE/CONSORTIUM/OvineSNP50_B.csvv4.0_pos_20190513.csv.gz \
-		--version Oar_v4.0
-	$(PYTHON_INTERPRETER) src/data/import_consortium.py --species_class sheep --datafile data/external/SHE/CONSORTIUM/SheepHD_AgResearch_Cons_15041608_A.csvv4.0_pos_20190513.csv.gz \
-		--version Oar_v4.0
+	$(PYTHON_INTERPRETER) src/data/import_isgc.py --datafile data/external/SHE/CONSORTIUM/OvineSNP50_B.csvv4.0_pos_20190513.csv.gz \
+		--version Oar_v4.0 --date 2019-07-02
+	$(PYTHON_INTERPRETER) src/data/import_isgc.py --datafile data/external/SHE/CONSORTIUM/SheepHD_AgResearch_Cons_15041608_A.csvv4.0_pos_20190513.csv.gz \
+		--version Oar_v4.0 --date 2019-07-02
+	$(PYTHON_INTERPRETER) src/data/import_dbsnp.py --input_dir data/external/SHE/dbSNP --species_class Sheep --sender AGR_BS --version Oar_v4.0
 
 	## import data for goat
 	$(PYTHON_INTERPRETER) src/data/import_manifest.py --species_class goat --manifest data/external/GOA/ILLUMINA/Goat_IGGC_65K_v2_15069617X365016_A2.csv.gz \
 		--chip_name IlluminaGoatSNP50 --version ARS1 --sender IGGC
 	$(PYTHON_INTERPRETER) src/data/import_snpchimp.py --species_class goat --snpchimp data/external/GOA/SNPCHIMP/SNPchimp_GOAT_SNP50_chi1.0.csv.gz --version CHI1.0
+	$(PYTHON_INTERPRETER) src/data/import_iggc.py --datafile data/external/GOA/CONSORTIUM/capri4dbsnp-base-CHI-ARS-OAR-UMD.csv.gz \
+		--version ARS1 --date "06 Mar 2018" --chrom_column ars1_chr --pos_column ars1_pos --strand_column ars1_strand
+	$(PYTHON_INTERPRETER) src/data/import_iggc.py --datafile data/external/GOA/CONSORTIUM/capri4dbsnp-base-CHI-ARS-OAR-UMD.csv.gz \
+		--version CHI1.0 --date "06 Mar 2018" --chrom_column chi_1_0_chr --pos_column chi_1_0_pos --strand_column chi_1_0_strand
+	$(PYTHON_INTERPRETER) src/data/import_dbsnp.py --input_dir data/external/GOA/dbSNP --species_class Goat --sender IGGC --version CHI1.0
 
 	## TODO: donwload data from EVA and EnsEMBL
 
@@ -173,29 +179,43 @@ data: requirements
 	$(PYTHON_INTERPRETER) src/data/import_breeds.py --species_class Sheep --src_dataset gaouar_algerian_sheeps.zip \
 		--datafile AlgerianSheep/gaouar_2017_metadata_fix.xlsx --code_column code --breed_column Name \
 		--fid_column Fid --country_column Country
+	$(PYTHON_INTERPRETER) src/data/import_breeds.py --species_class Goat --src_dataset burren_et_al_2016.zip \
+		--datafile doi_10.5061_dryad.q1cv6__v1/burren_samples_fix.xlsx --breed_column breed --code_column code \
+		--country_column country
+	$(PYTHON_INTERPRETER) src/data/import_breeds.py --species_class Goat --src_dataset cortellari_et_al_2021.zip \
+		--datafile s41598-021-89900-2/cortellari_samples_fix.xlsx --breed_column breed --code_column code \
+		--fid_column fid
 
 	## create SHEEP samples from raw data files or from XLS (orders matter)
-	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --file TEXEL_UY --dataset TEXEL_INIA_UY.zip --chip_name IlluminaOvineSNP50 \
-		--assembly OAR3 --create_samples
-	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --file Frizarta54samples_ped_map_files/Frizarta54samples \
-		--dataset Frizarta54samples_ped_map_files.zip --coding forward --chip_name IlluminaOvineSNP50 --assembly OAR3 --create_samples
-	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --file MERINO_UY_96_21_12_17_OV54k \
-		--dataset MERINO_INIA_UY.zip --chip_name IlluminaOvineSNP50 --assembly OAR3 --create_samples
-	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --file CORRIEDALE_UY_60_INIA_Ovine_14sep2010 \
-		--dataset CORRIEDALE_INIA_UY.zip --chip_name IlluminaOvineSNP50 --assembly OAR3 --create_samples
-	$(PYTHON_INTERPRETER) src/data/import_from_illumina.py --report JCM2357_UGY_FinalReport1.txt --snpfile OvineHDSNPList.txt \
-		--dataset CREOLE_INIA_UY.zip --breed_code CRL --chip_name IlluminaOvineHDSNP --assembly OAR3 --create_samples
-	$(PYTHON_INTERPRETER) src/data/import_from_illumina.py --report JCM2357_UGY_FinalReport2.txt --snpfile OvineHDSNPList.txt \
-		--dataset CREOLE_INIA_UY.zip --breed_code CRL --chip_name IlluminaOvineHDSNP --assembly OAR3 --create_samples
-	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --bfile frenchsheep_HD \
-		--dataset "High density genotypes of French Sheep populations.zip" --chip_name IlluminaOvineHDSNP --assembly OAR3 --create_samples
-	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --file ovine_SNP50HapMap_data/SNP50_Breedv1/SNP50_Breedv1 \
-		--dataset ovine_SNP50HapMap_data.zip --chip_name IlluminaOvineSNP50 --assembly OAR3 --create_samples
+	$(foreach ASSEMBLY, $(SHEEP_ASSEMBLIES), $(PYTHON_INTERPRETER) src/data/import_from_plink.py --file TEXEL_UY \
+		--dataset TEXEL_INIA_UY.zip --chip_name IlluminaOvineSNP50 \
+		--assembly $(ASSEMBLY) --create_samples;)
+	$(foreach ASSEMBLY, $(SHEEP_ASSEMBLIES), $(PYTHON_INTERPRETER) src/data/import_from_plink.py --file Frizarta54samples_ped_map_files/Frizarta54samples \
+		--dataset Frizarta54samples_ped_map_files.zip --coding forward --chip_name IlluminaOvineSNP50 \
+		--assembly $(ASSEMBLY) --create_samples;)
+	$(foreach ASSEMBLY, $(SHEEP_ASSEMBLIES),  $(PYTHON_INTERPRETER) src/data/import_from_plink.py --file MERINO_UY_96_21_12_17_OV54k \
+		--dataset MERINO_INIA_UY.zip --chip_name IlluminaOvineSNP50 \
+		--assembly $(ASSEMBLY) --create_samples;)
+	$(foreach ASSEMBLY, $(SHEEP_ASSEMBLIES), $(PYTHON_INTERPRETER) src/data/import_from_plink.py --file CORRIEDALE_UY_60_INIA_Ovine_14sep2010 \
+		--dataset CORRIEDALE_INIA_UY.zip --chip_name IlluminaOvineSNP50 \
+		--assembly $(ASSEMBLY) --create_samples;)
+	$(foreach ASSEMBLY, $(SHEEP_ASSEMBLIES), $(PYTHON_INTERPRETER) src/data/import_from_illumina.py --report JCM2357_UGY_FinalReport1.txt \
+		--snpfile OvineHDSNPList.txt --dataset CREOLE_INIA_UY.zip --breed_code CRL \
+		--chip_name IlluminaOvineHDSNP --assembly $(ASSEMBLY) --create_samples;)
+	$(foreach ASSEMBLY, $(SHEEP_ASSEMBLIES), $(PYTHON_INTERPRETER) src/data/import_from_illumina.py --report JCM2357_UGY_FinalReport2.txt \
+		--snpfile OvineHDSNPList.txt --dataset CREOLE_INIA_UY.zip --breed_code CRL \
+		--chip_name IlluminaOvineHDSNP --assembly $(ASSEMBLY) --create_samples;)
+	$(foreach ASSEMBLY, $(SHEEP_ASSEMBLIES), $(PYTHON_INTERPRETER) src/data/import_from_plink.py --bfile frenchsheep_HD \
+		--dataset "High density genotypes of French Sheep populations.zip" \
+		--chip_name IlluminaOvineHDSNP --assembly $(ASSEMBLY) --create_samples;)
+	$(foreach ASSEMBLY, $(SHEEP_ASSEMBLIES), $(PYTHON_INTERPRETER) src/data/import_from_plink.py --file ovine_SNP50HapMap_data/SNP50_Breedv1/SNP50_Breedv1 \
+		--dataset ovine_SNP50HapMap_data.zip --chip_name IlluminaOvineSNP50 \
+		--assembly $(ASSEMBLY) --create_samples;)
 	$(PYTHON_INTERPRETER) src/data/import_samples.py --src_dataset Affymetrix_data_Plate_652_660.zip \
 		--datafile Affymetrix_data_Plate_652_660/Uruguay_Corriedale_ID_GenotypedAnimals_fix.xlsx --code_all CRR --id_column "Sample Name" \
 		--chip_name AffymetrixAxiomOviCan --country_all Uruguay --alias_column "Sample Filename"
-	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --bfile SMARTER_OVIS_FRANCE \
-		--dataset "SMARTER_OVIS_FRANCE.zip" --chip_name IlluminaOvineHDSNP --assembly OAR3 --create_samples
+	$(foreach ASSEMBLY, $(SHEEP_ASSEMBLIES), $(PYTHON_INTERPRETER) src/data/import_from_plink.py --bfile SMARTER_OVIS_FRANCE \
+		--dataset "SMARTER_OVIS_FRANCE.zip" --chip_name IlluminaOvineHDSNP --assembly $(ASSEMBLY) --create_samples;)
 	$(PYTHON_INTERPRETER) src/data/import_samples.py --src_dataset greece_foreground_sheep.zip --dst_dataset AUTH_OVN50KV2_CHIOS_FRIZARTA.zip \
 		--datafile greece_foreground_sheep/AUTH_OVN50KV2_CHIOS_FRIZARTA.xlsx --code_column breed_code --id_column sample_name \
 		--chip_name IlluminaOvineSNP50 --country_column Country
@@ -207,10 +227,10 @@ data: requirements
 		--dst_dataset AUTH_OVN50KV2_CHIOS_MYTILINI_BOUTSKO.zip \
 		--datafile greece_foreground_sheep/AUTH_OVN50KV2_CHIOS_MYTILINI_BOUTSKO.xlsx \
 		--code_column breed_code --id_column sample_name --chip_name IlluminaOvineSNP50 --country_column Country
-	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --bfile SWE_sheep \
-		--dataset "five_sweden_sheeps.zip" --chip_name IlluminaOvineHDSNP --assembly OAR3 --create_samples
-	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --file friz \
-		--dataset Frizarta_270.zip --coding ab --chip_name IlluminaOvineSNP50 --assembly OAR3 --create_samples
+	$(foreach ASSEMBLY, $(SHEEP_ASSEMBLIES), $(PYTHON_INTERPRETER) src/data/import_from_plink.py --bfile SWE_sheep \
+		--dataset "five_sweden_sheeps.zip" --chip_name IlluminaOvineHDSNP --assembly $(ASSEMBLY) --create_samples;)
+	$(foreach ASSEMBLY, $(SHEEP_ASSEMBLIES), $(PYTHON_INTERPRETER) src/data/import_from_plink.py --file friz \
+		--dataset Frizarta_270.zip --coding ab --chip_name IlluminaOvineSNP50 --assembly $(ASSEMBLY) --create_samples;)
 	$(PYTHON_INTERPRETER) src/data/import_samples.py --src_dataset greece_foreground_sheep.zip \
 		--dst_dataset AUTH_OVN50KV2_CHI_BOU_MYT_FRI.zip \
 		--datafile greece_foreground_sheep/AUTH_OVN50KV2_CHI_BOU_MYT_FRI.xlsx \
@@ -222,24 +242,24 @@ data: requirements
 	$(PYTHON_INTERPRETER) src/data/import_samples.py --src_dataset Nativesheep_Hu_metadata.zip \
 		--dst_dataset NativesheepBreeds_Hu.zip --datafile nativesheeps_hu_fixed.xlsx \
 		--code_column fid --id_column original_id --chip_name IlluminaOvineSNP50 --country_column country
-	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --file SMARTER-500-ASSAF --dataset SMARTER-500-ASSAF.zip \
-		--coding affymetrix --chip_name AffymetrixAxiomBGovisNP --assembly OAR3 --search_field probeset_id --create_samples \
-		--src_version Oar_v3.1 --src_imported_from affymetrix
-	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --file "Castellana/20220131 Ovine" --dataset Castellana.zip \
-		--coding affymetrix --chip_name AffymetrixAxiomBGovisNP --assembly OAR3 --search_field probeset_id --create_samples \
-		--src_version Oar_v3.1 --src_imported_from affymetrix
+	$(foreach ASSEMBLY, $(SHEEP_ASSEMBLIES), $(PYTHON_INTERPRETER) src/data/import_from_plink.py --file SMARTER-500-ASSAF \
+		--dataset SMARTER-500-ASSAF.zip --coding affymetrix --chip_name AffymetrixAxiomBGovisNP --assembly $(ASSEMBLY) \
+		--search_field probeset_id --create_samples --src_version Oar_v3.1 --src_imported_from affymetrix;)
+	$(foreach ASSEMBLY, $(SHEEP_ASSEMBLIES), $(PYTHON_INTERPRETER) src/data/import_from_plink.py --file "Castellana/20220131 Ovine" \
+		--dataset Castellana.zip --coding affymetrix --chip_name AffymetrixAxiomBGovisNP --assembly $(ASSEMBLY) \
+		--search_field probeset_id --create_samples --src_version Oar_v3.1 --src_imported_from affymetrix;)
 	$(PYTHON_INTERPRETER) src/data/import_samples.py --src_dataset Churra_metadata.zip \
 		--dst_dataset Churra.zip --datafile metadata/Churra.xlsx \
 		--code_column fid --id_column original_id --chip_name AffymetrixAxiomBGovisNP --country_column country
-	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --file "20220326_resultados_SNP/20220326_Ovine" --dataset 20220326_resultados_SNP.zip \
-		--coding affymetrix --chip_name AffymetrixAxiomBGovisNP --assembly OAR3 --search_field probeset_id --create_samples \
-		--src_version Oar_v3.1 --src_imported_from affymetrix
-	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --file "20220428_Smarter_Ovine/20220428_Smarter_Ovine" --dataset 20220428_Smarter_Ovine.zip \
-		--coding affymetrix --chip_name AffymetrixAxiomBGovisNP --assembly OAR3 --search_field probeset_id --create_samples \
-		--src_version Oar_v3.1 --src_imported_from affymetrix
-	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --file "20220503_Ovine/20220503_Ovine" --dataset 20220503_Ovine.zip \
-		--coding affymetrix --chip_name AffymetrixAxiomBGovisNP --assembly OAR3 --search_field probeset_id --create_samples \
-		--src_version Oar_v3.1 --src_imported_from affymetrix
+	$(foreach ASSEMBLY, $(SHEEP_ASSEMBLIES), $(PYTHON_INTERPRETER) src/data/import_from_plink.py --file "20220326_resultados_SNP/20220326_Ovine" \
+		--dataset 20220326_resultados_SNP.zip --coding affymetrix --chip_name AffymetrixAxiomBGovisNP --assembly $(ASSEMBLY) \
+		--search_field probeset_id --create_samples --src_version Oar_v3.1 --src_imported_from affymetrix;)
+	$(foreach ASSEMBLY, $(SHEEP_ASSEMBLIES), $(PYTHON_INTERPRETER) src/data/import_from_plink.py --file "20220428_Smarter_Ovine/20220428_Smarter_Ovine" \
+		--dataset 20220428_Smarter_Ovine.zip --coding affymetrix --chip_name AffymetrixAxiomBGovisNP --assembly $(ASSEMBLY) \
+		--search_field probeset_id --create_samples --src_version Oar_v3.1 --src_imported_from affymetrix;)
+	$(foreach ASSEMBLY, $(SHEEP_ASSEMBLIES), $(PYTHON_INTERPRETER) src/data/import_from_plink.py --file "20220503_Ovine/20220503_Ovine" \
+		--dataset 20220503_Ovine.zip --coding affymetrix --chip_name AffymetrixAxiomBGovisNP --assembly $(ASSEMBLY) \
+		--search_field probeset_id --create_samples --src_version Oar_v3.1 --src_imported_from affymetrix;)
 	$(PYTHON_INTERPRETER) src/data/import_samples.py --src_dataset 20220809_105_Creole_Samples_INIA_Uruguay.zip \
 		--dst_dataset Placa_Junio_recommended.zip --datafile placa_junio_metadata.xlsx \
 		--code_all CRL --id_column Lab_ID --chip_name AffymetrixAxiomOviCan --country_all Uruguay \
@@ -313,97 +333,107 @@ data: requirements
 		--chip_name IlluminaOvineSNP50 --country_column Country
 
 	## convert genotypes without creating samples in database (SHEEP)
-	$(PYTHON_INTERPRETER) src/data/import_from_affymetrix.py --prefix Affymetrix_data_Plate_652_660/Affymetrix_data_Plate_652/Affymetrix_data_Plate_652 \
-		--dataset Affymetrix_data_Plate_652_660.zip --breed_code CRR --chip_name AffymetrixAxiomOviCan --assembly OAR3 --sample_field alias \
-		--src_version Oar_v4.0 --src_imported_from affymetrix
-	$(PYTHON_INTERPRETER) src/data/import_from_affymetrix.py --prefix Affymetrix_data_Plate_652_660/Affymetrix_data_Plate_660/Affymetrix_data_Plate_660 \
-		--dataset Affymetrix_data_Plate_652_660.zip --breed_code CRR --chip_name AffymetrixAxiomOviCan --assembly OAR3 --sample_field alias \
-		--src_version Oar_v4.0 --src_imported_from affymetrix
-	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --bfile AUTH_OVN50KV2_CHIOS_FRIZARTA/AUTH_OVN50KV2_CHI_FRI \
-		--dataset AUTH_OVN50KV2_CHIOS_FRIZARTA.zip --coding forward --chip_name IlluminaOvineSNP50 --assembly OAR3
-	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --bfile AUTH_OVN50KV2_CHIOS_FRIZARTA_PELAGONIA/AUTH_OVN50KV2_CHIOS_FRIZARTA_PELAGONIA \
-		--dataset AUTH_OVN50KV2_CHIOS_FRIZARTA_PELAGONIA.zip --coding forward --chip_name IlluminaOvineSNP50 --assembly OAR3
-	$(PYTHON_INTERPRETER) src/data/import_from_illumina.py --report AUTH_OVN50KV2_CHIOS_MYTILINI_BOUTSKO/Aristotle_University_OVN50KV02_20210720_FinalReport.txt \
+	$(foreach ASSEMBLY, $(SHEEP_ASSEMBLIES), $(PYTHON_INTERPRETER) src/data/import_from_affymetrix.py --prefix Affymetrix_data_Plate_652_660/Affymetrix_data_Plate_652/Affymetrix_data_Plate_652 \
+		--dataset Affymetrix_data_Plate_652_660.zip --breed_code CRR --chip_name AffymetrixAxiomOviCan --assembly $(ASSEMBLY) --sample_field alias \
+		--src_version Oar_v4.0 --src_imported_from affymetrix;)
+	$(foreach ASSEMBLY, $(SHEEP_ASSEMBLIES), $(PYTHON_INTERPRETER) src/data/import_from_affymetrix.py --prefix Affymetrix_data_Plate_652_660/Affymetrix_data_Plate_660/Affymetrix_data_Plate_660 \
+		--dataset Affymetrix_data_Plate_652_660.zip --breed_code CRR --chip_name AffymetrixAxiomOviCan --assembly $(ASSEMBLY) --sample_field alias \
+		--src_version Oar_v4.0 --src_imported_from affymetrix;)
+	$(foreach ASSEMBLY, $(SHEEP_ASSEMBLIES), $(PYTHON_INTERPRETER) src/data/import_from_plink.py --bfile AUTH_OVN50KV2_CHIOS_FRIZARTA/AUTH_OVN50KV2_CHI_FRI \
+		--dataset AUTH_OVN50KV2_CHIOS_FRIZARTA.zip --coding forward --chip_name IlluminaOvineSNP50 --assembly $(ASSEMBLY);)
+	$(foreach ASSEMBLY, $(SHEEP_ASSEMBLIES), $(PYTHON_INTERPRETER) src/data/import_from_plink.py --bfile AUTH_OVN50KV2_CHIOS_FRIZARTA_PELAGONIA/AUTH_OVN50KV2_CHIOS_FRIZARTA_PELAGONIA \
+		--dataset AUTH_OVN50KV2_CHIOS_FRIZARTA_PELAGONIA.zip --coding forward --chip_name IlluminaOvineSNP50 --assembly $(ASSEMBLY);)
+	$(foreach ASSEMBLY, $(SHEEP_ASSEMBLIES), $(PYTHON_INTERPRETER) src/data/import_from_illumina.py --report AUTH_OVN50KV2_CHIOS_MYTILINI_BOUTSKO/Aristotle_University_OVN50KV02_20210720_FinalReport.txt \
 		--snpfile AUTH_OVN50KV2_CHIOS_MYTILINI_BOUTSKO/SNP_Map.txt --dataset AUTH_OVN50KV2_CHIOS_MYTILINI_BOUTSKO.zip \
-		--chip_name IlluminaOvineSNP50 --assembly OAR3
-	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --bfile AUTH_OVN50KV2_CHI_BOU_MYT_FRI/Aristotle_University_OVN50KV02_20211108 \
-		--dataset AUTH_OVN50KV2_CHI_BOU_MYT_FRI.zip --chip_name IlluminaOvineSNP50 --assembly OAR3
-	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --bfile AUTH_OVN50K2_CHI_FRZ/Aristotle_University_OVN50KV02_20211124 \
-		--dataset AUTH_OVN50KV2_CHI_FRZ.zip --chip_name IlluminaOvineSNP50 --assembly OAR3
-	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --file NativesheepBreeds_Hu/NativeSheepGenotypes \
-		--dataset NativesheepBreeds_Hu.zip --coding forward --chip_name IlluminaOvineSNP50 --assembly OAR3
-	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --file Churra/churra_fixed \
-		--dataset Churra.zip --coding affymetrix --chip_name AffymetrixAxiomBGovis2 --assembly OAR3 \
-		--src_version Oar_v3.1 --src_imported_from affymetrix
-	$(PYTHON_INTERPRETER) src/data/import_from_affymetrix.py --report Placa_Junio_recommended.txt \
-		--dataset Placa_Junio_recommended.zip --coding ab --chip_name AffymetrixAxiomOviCan --assembly OAR3 --sample_field alias \
-		--src_version Oar_v4.0 --src_imported_from affymetrix
-	$(PYTHON_INTERPRETER) src/data/import_from_affymetrix.py --report "OP829-924 INIA Abril.txt" \
-		--dataset OP829-924_INIA_Abril.zip --coding ab --chip_name AffymetrixAxiomOviCan --assembly OAR3 --sample_field alias \
-		--src_version Oar_v4.0 --src_imported_from affymetrix
-	$(PYTHON_INTERPRETER) src/data/import_from_affymetrix.py --report Placas1_4_genotyping.txt \
-		--dataset Placas1_4_genotyping.zip --coding ab --chip_name AffymetrixAxiomOviCan --assembly OAR3 --sample_field alias \
-		--src_version Oar_v4.0 --src_imported_from affymetrix
-	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --bfile 50K-all \
-		--dataset isheep_50K.zip --coding top --chip_name IlluminaOvineSNP50 --assembly OAR3 \
-		--search_field rs_id
-	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --bfile 600K-all \
-		--dataset isheep_600K.zip --coding top --chip_name IlluminaOvineHDSNP --assembly OAR3 --sample_field alias \
-		--search_field rs_id
-	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --bfile WGS-all.smarter \
-		--dataset isheep_WGS.zip --coding forward --chip_name WholeGenomeSequencing --assembly OAR3 --sample_field alias \
-		--search_by_positions --src_version Oar_v4.0 --src_imported_from "SNPchiMp v.3" --ignore_coding_errors
-	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --file ovine_SNP50HapMap_data/SNP50_Breedv2/SNP50_Breedv2 \
-		--dataset ovine_SNP50HapMap_data.zip --coding top --chip_name IlluminaOvineSNP50 --assembly OAR3 --sample_field original_id
-	$(PYTHON_INTERPRETER) src/data/import_from_affymetrix.py --report Inia_junio_2021_Texel_46_20210409_SMARTER.txt \
-		--dataset Inia_junio_2021_Texel_46_20210409_SMARTER.zip --coding ab --chip_name AffymetrixAxiomOviCan --assembly OAR3 \
-		--sample_field alias --src_version Oar_v4.0 --src_imported_from affymetrix --max_samples 38
-	$(PYTHON_INTERPRETER) src/data/import_from_affymetrix.py --report "OP635-818 genotyping_soloTexel_20211110_SMARTER.txt" \
-		--dataset "OP635-818 genotyping_soloTexel_20211110_SMARTER.zip" --coding ab --chip_name AffymetrixAxiomOviCan --assembly OAR3 \
-		--sample_field alias --src_version Oar_v4.0 --src_imported_from affymetrix --max_samples 59
-	$(PYTHON_INTERPRETER) src/data/import_from_affymetrix.py --report Placas1_4_genotyping_Corr_Tex_20210824_SMARTER.txt \
-		--dataset Placas1_4_genotyping_Corr_Tex_20210824_SMARTER.zip --coding ab --chip_name AffymetrixAxiomOviCan --assembly OAR3 \
-		--sample_field alias --src_version Oar_v4.0 --src_imported_from affymetrix --max_samples 332
-	$(PYTHON_INTERPRETER) src/data/import_from_affymetrix.py --report "OP829-924 INIA Abril_20220301_Texel_SMARTER.txt" \
-		--dataset "OP829-924 INIA Abril_20220301_Texel_SMARTER.zip" --coding ab --chip_name AffymetrixAxiomOviCan --assembly OAR3 \
-		--sample_field alias --src_version Oar_v4.0 --src_imported_from affymetrix --max_samples 43
-	$(PYTHON_INTERPRETER) src/data/import_from_affymetrix.py --report "OP925-969 1046-1085 1010-1020_20220323_texel_SMARTER.txt" \
-		--dataset "OP925-969 1046-1085 1010-1020_20220323_texel_SMARTER.zip" --coding ab --chip_name AffymetrixAxiomOviCan --assembly OAR3 \
-		--sample_field alias --src_version Oar_v4.0 --src_imported_from affymetrix --max_samples 25
-	$(PYTHON_INTERPRETER) src/data/import_from_affymetrix.py --report "OP1586-1666 OP1087-1106 Placa6 Corr_Tex_Genotyping_20220810_SMARTER.txt" \
-		--dataset "OP1586-1666 OP1087-1106 Placa6 Corr_Tex_Genotyping_20220810_SMARTER.zip" --coding ab --chip_name AffymetrixAxiomOviCan --assembly OAR3 \
-		--sample_field alias --src_version Oar_v4.0 --src_imported_from affymetrix --max_samples 35 --skip_coordinate_check
-	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --file "genotyping data/WelshSheepBreeds2015" \
-		--dataset Welsh_sheep_genotyping.zip --coding top --chip_name IlluminaOvineSNP50 --assembly OAR3 --sample_field original_id
-	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --bfile 41598_2017_7382_MOESM2_ESM/Barbato_2016 \
-		--dataset 41598_2017_7382_MOESM2_ESM.zip --coding top --chip_name IlluminaOvineSNP50 --assembly OAR3 --sample_field original_id
-	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --bfile 8947346/OaSNP1477x44430-1807 \
-		--dataset Ciani_2020.zip --coding top --chip_name IlluminaOvineSNP50 --assembly OAR3 --sample_field original_id
-	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --file northwest_africa_sheep/AlgerianSheepSidaounHamra \
-		--dataset northwest_africa_sheep.zip --coding top --chip_name IlluminaOvineSNP50 --assembly OAR3 --sample_field original_id
-	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --file AlgerianSheep/AlgerianSheep \
-		--dataset gaouar_algerian_sheeps.zip --coding illumina --chip_name IlluminaOvineSNP50 --assembly OAR3 --sample_field original_id \
-		--src_version Oar_v4.0 --src_imported_from manifest
+		--chip_name IlluminaOvineSNP50 --assembly $(ASSEMBLY);)
+	$(foreach ASSEMBLY, $(SHEEP_ASSEMBLIES), $(PYTHON_INTERPRETER) src/data/import_from_plink.py --bfile AUTH_OVN50KV2_CHI_BOU_MYT_FRI/Aristotle_University_OVN50KV02_20211108 \
+		--dataset AUTH_OVN50KV2_CHI_BOU_MYT_FRI.zip --chip_name IlluminaOvineSNP50 --assembly $(ASSEMBLY);)
+	$(foreach ASSEMBLY, $(SHEEP_ASSEMBLIES), $(PYTHON_INTERPRETER) src/data/import_from_plink.py --bfile AUTH_OVN50K2_CHI_FRZ/Aristotle_University_OVN50KV02_20211124 \
+		--dataset AUTH_OVN50KV2_CHI_FRZ.zip --chip_name IlluminaOvineSNP50 --assembly $(ASSEMBLY);)
+	$(foreach ASSEMBLY, $(SHEEP_ASSEMBLIES), $(PYTHON_INTERPRETER) src/data/import_from_plink.py --file NativesheepBreeds_Hu/NativeSheepGenotypes \
+		--dataset NativesheepBreeds_Hu.zip --coding forward --chip_name IlluminaOvineSNP50 --assembly $(ASSEMBLY);)
+	$(foreach ASSEMBLY, $(SHEEP_ASSEMBLIES), $(PYTHON_INTERPRETER) src/data/import_from_plink.py --file Churra/churra_fixed \
+		--dataset Churra.zip --coding affymetrix --chip_name AffymetrixAxiomBGovis2 --assembly $(ASSEMBLY) \
+		--src_version Oar_v3.1 --src_imported_from affymetrix;)
+	$(foreach ASSEMBLY, $(SHEEP_ASSEMBLIES), $(PYTHON_INTERPRETER) src/data/import_from_affymetrix.py --report Placa_Junio_recommended.txt \
+		--dataset Placa_Junio_recommended.zip --coding ab --chip_name AffymetrixAxiomOviCan --assembly $(ASSEMBLY) --sample_field alias \
+		--src_version Oar_v4.0 --src_imported_from affymetrix;)
+	$(foreach ASSEMBLY, $(SHEEP_ASSEMBLIES), $(PYTHON_INTERPRETER) src/data/import_from_affymetrix.py --report "OP829-924 INIA Abril.txt" \
+		--dataset OP829-924_INIA_Abril.zip --coding ab --chip_name AffymetrixAxiomOviCan --assembly $(ASSEMBLY) --sample_field alias \
+		--src_version Oar_v4.0 --src_imported_from affymetrix;)
+	$(foreach ASSEMBLY, $(SHEEP_ASSEMBLIES), $(PYTHON_INTERPRETER) src/data/import_from_affymetrix.py --report Placas1_4_genotyping.txt \
+		--dataset Placas1_4_genotyping.zip --coding ab --chip_name AffymetrixAxiomOviCan --assembly $(ASSEMBLY) --sample_field alias \
+		--src_version Oar_v4.0 --src_imported_from affymetrix;)
+	$(foreach ASSEMBLY, $(SHEEP_ASSEMBLIES), $(PYTHON_INTERPRETER) src/data/import_from_plink.py --bfile 50K-all \
+		--dataset isheep_50K.zip --coding top --chip_name IlluminaOvineSNP50 --assembly $(ASSEMBLY) \
+		--search_field rs_id;)
+	$(foreach ASSEMBLY, $(SHEEP_ASSEMBLIES), $(PYTHON_INTERPRETER) src/data/import_from_plink.py --bfile 600K-all \
+		--dataset isheep_600K.zip --coding top --chip_name IlluminaOvineHDSNP --assembly $(ASSEMBLY) --sample_field alias \
+		--search_field rs_id;)
+	$(foreach ASSEMBLY, $(SHEEP_ASSEMBLIES), $(PYTHON_INTERPRETER) src/data/import_from_plink.py --bfile WGS-all.smarter \
+		--dataset isheep_WGS.zip --coding forward --chip_name WholeGenomeSequencing --assembly $(ASSEMBLY) --sample_field alias \
+		--search_by_positions --src_version Oar_v4.0 --src_imported_from "SNPchiMp v.3" --ignore_coding_errors;)
+	$(foreach ASSEMBLY, $(SHEEP_ASSEMBLIES), $(PYTHON_INTERPRETER) src/data/import_from_plink.py --file ovine_SNP50HapMap_data/SNP50_Breedv2/SNP50_Breedv2 \
+		--dataset ovine_SNP50HapMap_data.zip --coding top --chip_name IlluminaOvineSNP50 --assembly $(ASSEMBLY) --sample_field original_id;)
+	$(foreach ASSEMBLY, $(SHEEP_ASSEMBLIES), $(PYTHON_INTERPRETER) src/data/import_from_affymetrix.py --report Inia_junio_2021_Texel_46_20210409_SMARTER.txt \
+		--dataset Inia_junio_2021_Texel_46_20210409_SMARTER.zip --coding ab --chip_name AffymetrixAxiomOviCan --assembly $(ASSEMBLY) \
+		--sample_field alias --src_version Oar_v4.0 --src_imported_from affymetrix --max_samples 38;)
+	$(foreach ASSEMBLY, $(SHEEP_ASSEMBLIES), $(PYTHON_INTERPRETER) src/data/import_from_affymetrix.py --report "OP635-818 genotyping_soloTexel_20211110_SMARTER.txt" \
+		--dataset "OP635-818 genotyping_soloTexel_20211110_SMARTER.zip" --coding ab --chip_name AffymetrixAxiomOviCan --assembly $(ASSEMBLY) \
+		--sample_field alias --src_version Oar_v4.0 --src_imported_from affymetrix --max_samples 59;)
+	$(foreach ASSEMBLY, $(SHEEP_ASSEMBLIES), $(PYTHON_INTERPRETER) src/data/import_from_affymetrix.py --report Placas1_4_genotyping_Corr_Tex_20210824_SMARTER.txt \
+		--dataset Placas1_4_genotyping_Corr_Tex_20210824_SMARTER.zip --coding ab --chip_name AffymetrixAxiomOviCan --assembly $(ASSEMBLY) \
+		--sample_field alias --src_version Oar_v4.0 --src_imported_from affymetrix --max_samples 332;)
+	$(foreach ASSEMBLY, $(SHEEP_ASSEMBLIES), $(PYTHON_INTERPRETER) src/data/import_from_affymetrix.py --report "OP829-924 INIA Abril_20220301_Texel_SMARTER.txt" \
+		--dataset "OP829-924 INIA Abril_20220301_Texel_SMARTER.zip" --coding ab --chip_name AffymetrixAxiomOviCan --assembly $(ASSEMBLY) \
+		--sample_field alias --src_version Oar_v4.0 --src_imported_from affymetrix --max_samples 43;)
+	$(foreach ASSEMBLY, $(SHEEP_ASSEMBLIES), $(PYTHON_INTERPRETER) src/data/import_from_affymetrix.py --report "OP925-969 1046-1085 1010-1020_20220323_texel_SMARTER.txt" \
+		--dataset "OP925-969 1046-1085 1010-1020_20220323_texel_SMARTER.zip" --coding ab --chip_name AffymetrixAxiomOviCan --assembly $(ASSEMBLY) \
+		--sample_field alias --src_version Oar_v4.0 --src_imported_from affymetrix --max_samples 25;)
+	$(foreach ASSEMBLY, $(SHEEP_ASSEMBLIES), $(PYTHON_INTERPRETER) src/data/import_from_affymetrix.py --report "OP1586-1666 OP1087-1106 Placa6 Corr_Tex_Genotyping_20220810_SMARTER.txt" \
+		--dataset "OP1586-1666 OP1087-1106 Placa6 Corr_Tex_Genotyping_20220810_SMARTER.zip" --coding ab --chip_name AffymetrixAxiomOviCan --assembly $(ASSEMBLY) \
+		--sample_field alias --src_version Oar_v4.0 --src_imported_from affymetrix --max_samples 35 --skip_coordinate_check;)
+	$(foreach ASSEMBLY, $(SHEEP_ASSEMBLIES), $(PYTHON_INTERPRETER) src/data/import_from_plink.py --file "genotyping data/WelshSheepBreeds2015" \
+		--dataset Welsh_sheep_genotyping.zip --coding top --chip_name IlluminaOvineSNP50 --assembly $(ASSEMBLY) --sample_field original_id;)
+	$(foreach ASSEMBLY, $(SHEEP_ASSEMBLIES), $(PYTHON_INTERPRETER) src/data/import_from_plink.py --bfile 41598_2017_7382_MOESM2_ESM/Barbato_2016 \
+		--dataset 41598_2017_7382_MOESM2_ESM.zip --coding top --chip_name IlluminaOvineSNP50 --assembly $(ASSEMBLY) --sample_field original_id;)
+	$(foreach ASSEMBLY, $(SHEEP_ASSEMBLIES), $(PYTHON_INTERPRETER) src/data/import_from_plink.py --bfile 8947346/OaSNP1477x44430-1807 \
+		--dataset Ciani_2020.zip --coding top --chip_name IlluminaOvineSNP50 --assembly $(ASSEMBLY) --sample_field original_id;)
+	$(foreach ASSEMBLY, $(SHEEP_ASSEMBLIES), $(PYTHON_INTERPRETER) src/data/import_from_plink.py --file northwest_africa_sheep/AlgerianSheepSidaounHamra \
+		--dataset northwest_africa_sheep.zip --coding top --chip_name IlluminaOvineSNP50 --assembly $(ASSEMBLY) --sample_field original_id;)
+	$(foreach ASSEMBLY, $(SHEEP_ASSEMBLIES), $(PYTHON_INTERPRETER) src/data/import_from_plink.py --file AlgerianSheep/AlgerianSheep \
+		--dataset gaouar_algerian_sheeps.zip --coding illumina --chip_name IlluminaOvineSNP50 --assembly $(ASSEMBLY) --sample_field original_id \
+		--src_version Oar_v4.0 --src_imported_from manifest;)
 
 	## create samples from custom files or genotypes for GOAT
 	$(PYTHON_INTERPRETER) src/data/import_samples.py --src_dataset ADAPTmap_phenotype_20161201.zip --dst_dataset ADAPTmap_genotypeTOP_20161201.zip \
 		--datafile ADAPTmap_phenotype_20161201/ADAPTmap_InfoSample_20161201_fix.xlsx --code_column Breed_code --id_column ADAPTmap_code \
 		--chip_name IlluminaGoatSNP50 --country_column Sampling_Country --sex_column SEX --species_column Species
-	$(PYTHON_INTERPRETER) src/data/import_from_illumina.py --snpfile Swedish_Univ_Eriksson_GOAT53KV1_20200722/SNP_Map.txt \
+	$(foreach ASSEMBLY, $(GOAT_ASSEMBLIES), $(PYTHON_INTERPRETER) src/data/import_from_illumina.py --snpfile Swedish_Univ_Eriksson_GOAT53KV1_20200722/SNP_Map.txt \
 		--report Swedish_Univ_Eriksson_GOAT53KV1_20200722/Swedish_Univ_Eriksson_GOAT53KV1_20200722_FinalReport.txt \
-		--dataset Swedish_Univ_Eriksson_GOAT53KV1_20200722.zip --breed_code LNR --chip_name IlluminaGoatSNP50 --assembly ARS1 --create_samples
+		--dataset Swedish_Univ_Eriksson_GOAT53KV1_20200722.zip --breed_code LNR --chip_name IlluminaGoatSNP50 --assembly $(ASSEMBLY) --create_samples;)
 	$(PYTHON_INTERPRETER) src/data/import_samples.py --src_dataset greece_foreground_goat.zip --dst_dataset AUTH_GOAT53KV1_EGHORIA_SKOPELOS.zip \
 		--datafile greece_foreground_goat/AUTH_GOAT53KV1_EGHORIA_SKOPELOS.xlsx \
 		--code_column breed_code --id_column sample_name --chip_name IlluminaGoatSNP50 --country_column Country
-	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --bfile SMARTER_CHFR \
-		--dataset SMARTER_CHFR.zip --chip_name IlluminaGoatSNP50 --assembly ARS1 --create_samples
+	$(foreach ASSEMBLY, $(GOAT_ASSEMBLIES), $(PYTHON_INTERPRETER) src/data/import_from_plink.py --bfile SMARTER_CHFR \
+		--dataset SMARTER_CHFR.zip --chip_name IlluminaGoatSNP50 --assembly $(ASSEMBLY) --create_samples;)
+	$(PYTHON_INTERPRETER) src/data/import_samples.py --src_dataset burren_et_al_2016.zip \
+		--datafile doi_10.5061_dryad.q1cv6__v1/burren_samples_fix.xlsx --code_column code --id_column original_id \
+		--chip_name IlluminaGoatSNP50 --country_all Switzerland --species_all Goat --alias_column alias
+	$(PYTHON_INTERPRETER) src/data/import_samples.py --src_dataset cortellari_et_al_2021.zip \
+		--datafile s41598-021-89900-2/cortellari_samples_fix.xlsx --code_column fid --id_column original_id \
+		--chip_name IlluminaGoatSNP50 --country_all Italy --species_all Goat
 
 	## convert genotypes without creating samples in database (GOAT)
-	$(PYTHON_INTERPRETER) src/data/import_from_plink.py --bfile ADAPTmap_genotypeTOP_20161201/binary_fileset/ADAPTmap_genotypeTOP_20161201 \
-		--dataset "ADAPTmap_genotypeTOP_20161201.zip" --chip_name IlluminaGoatSNP50 --assembly ARS1
-	$(PYTHON_INTERPRETER) src/data/import_from_illumina.py --report AUTH_GOAT53KV1_EGHORIA_SKOPELOS/Aristotle_University_GOAT53KV1_20200728_FinalReport.txt \
+	$(foreach ASSEMBLY, $(GOAT_ASSEMBLIES), $(PYTHON_INTERPRETER) src/data/import_from_plink.py --bfile ADAPTmap_genotypeTOP_20161201/binary_fileset/ADAPTmap_genotypeTOP_20161201 \
+		--dataset "ADAPTmap_genotypeTOP_20161201.zip" --chip_name IlluminaGoatSNP50 --assembly $(ASSEMBLY);)
+	$(foreach ASSEMBLY, $(GOAT_ASSEMBLIES), $(PYTHON_INTERPRETER) src/data/import_from_illumina.py --report AUTH_GOAT53KV1_EGHORIA_SKOPELOS/Aristotle_University_GOAT53KV1_20200728_FinalReport.txt \
 		--snpfile AUTH_GOAT53KV1_EGHORIA_SKOPELOS/SNP_Map.txt --dataset AUTH_GOAT53KV1_EGHORIA_SKOPELOS.zip \
-		--chip_name IlluminaGoatSNP50 --assembly ARS1
+		--chip_name IlluminaGoatSNP50 --assembly $(ASSEMBLY);)
+	$(foreach ASSEMBLY, $(GOAT_ASSEMBLIES), $(PYTHON_INTERPRETER) src/data/import_from_plink.py --file doi_10.5061_dryad.q1cv6__v1/goat_data2_dryad_fix \
+		--dataset burren_et_al_2016.zip --chip_name IlluminaGoatSNP50 --assembly $(ASSEMBLY) --sample_field alias;)
+	$(foreach ASSEMBLY, $(GOAT_ASSEMBLIES), $(PYTHON_INTERPRETER) src/data/import_from_plink.py --bfile s41598-021-89900-2/Cortellari2021 \
+		--dataset cortellari_et_al_2021.zip --chip_name IlluminaGoatSNP50 --assembly $(ASSEMBLY);)
 
 	## add additional metadata to samples
 	$(PYTHON_INTERPRETER) src/data/import_metadata.py --src_dataset "High density genotypes of French Sheep populations.zip" \
@@ -418,7 +448,7 @@ data: requirements
 		--dst_dataset ADAPTmap_genotypeTOP_20161201.zip \
 		--datafile ADAPTmap_phenotype_20161201/ADAPTmap_InfoSample_20161201_fix.xlsx --id_column ADAPTmap_code \
 		--latitude_column GPS_Latitude --longitude_column GPS_Longitude --metadata_column Sampling_info \
-		--metadata_column DOB --metadata_column Notes --na_values NA
+		--metadata_column DOB --notes_column Notes --na_values NA
 	$(PYTHON_INTERPRETER) src/data/import_metadata.py --src_dataset greece_foreground_sheep.zip \
 		--dst_dataset AUTH_OVN50KV2_CHIOS_FRIZARTA.zip \
 		--datafile greece_foreground_sheep/AUTH_OVN50KV2_CHIOS_FRIZARTA.xlsx --id_column sample_name \
@@ -438,12 +468,12 @@ data: requirements
 		--dst_dataset AUTH_OVN50KV2_CHIOS_MYTILINI_BOUTSKO.zip \
 		--datafile greece_foreground_sheep/AUTH_OVN50KV2_CHIOS_MYTILINI_BOUTSKO.xlsx --id_column sample_name \
 		--latitude_column Latitude --longitude_column Longitude --metadata_column Region \
-		--metadata_column "Farm Coding" --metadata_column Note
+		--metadata_column "Farm Coding" --notes_column Note
 	$(PYTHON_INTERPRETER) src/data/import_metadata.py --src_dataset greece_foreground_sheep.zip \
 		--dst_dataset AUTH_OVN50KV2_CHI_BOU_MYT_FRI.zip \
 		--datafile greece_foreground_sheep/AUTH_OVN50KV2_CHI_BOU_MYT_FRI.xlsx --id_column sample_name \
 		--latitude_column Latitude --longitude_column Longitude --metadata_column Region \
-		--metadata_column "Farm Coding" --metadata_column Note
+		--metadata_column "Farm Coding" --notes_column Note
 	$(PYTHON_INTERPRETER) src/data/import_metadata.py --src_dataset "Sweden_goat_metadata.zip" \
 		--dst_dataset "Swedish_Univ_Eriksson_GOAT53KV1_20200722.zip" \
 		--datafile SMARTER-metadata-SLU.xlsx --sheet_name samples --id_column original_id \
@@ -452,7 +482,7 @@ data: requirements
 		--dst_dataset AUTH_OVN50KV2_CHI_FRZ.zip \
 		--datafile greece_foreground_sheep/AUTH_OVN50KV2_CHI_FRZ.xlsx --id_column sample_name \
 		--latitude_column Latitude --longitude_column Longitude --metadata_column Region \
-		--metadata_column "Farm Coding" --metadata_column Note
+		--metadata_column "Farm Coding" --notes_column Note
 	$(PYTHON_INTERPRETER) src/data/import_metadata.py --src_dataset Nativesheep_Hu_metadata.zip \
 		--dst_dataset NativesheepBreeds_Hu.zip --datafile nativesheeps_hu_fixed.xlsx --id_column original_id \
 		--latitude_column latitude --longitude_column longitude
@@ -565,7 +595,10 @@ data: requirements
 	$(PYTHON_INTERPRETER) src/data/import_metadata.py --src_dataset gaouar_algerian_sheeps.zip \
 		--datafile AlgerianSheep/gaouar_2017_metadata_fix.xlsx --id_column original_id \
 		--latitude_column latitude --longitude_column longitude --metadata_column Site \
-		--metadata_column Note
+		--notes_column Note
+	$(PYTHON_INTERPRETER) src/data/import_metadata.py --src_dataset burren_et_al_2016.zip \
+		--datafile doi_10.5061_dryad.q1cv6__v1/burren_phenotypes_fix.xlsx --breed_column breed \
+		--metadata_column rare --notes_column note
 
 	## add phenotypes to samples
 	$(PYTHON_INTERPRETER) src/data/import_phenotypes.py --src_dataset ADAPTmap_phenotype_20161201.zip \
@@ -633,14 +666,17 @@ data: requirements
 		--dst_dataset AUTH_OVN50KV2_CHI_FRZ.zip \
 		--datafile greece_foreground_sheep/AUTH_OVN50KV2_CHI_FRZ.xlsx --id_column sample_name \
 		--purpose_column Purpose
+	$(PYTHON_INTERPRETER) src/data/import_phenotypes.py --src_dataset burren_et_al_2016.zip \
+		--datafile doi_10.5061_dryad.q1cv6__v1/burren_phenotypes_fix.xlsx --breed_column breed \
+		--additional_column coat_color --additional_column hair --additional_column horns \
+		--additional_column size_male --additional_column size_female --additional_column performance
 
 	## merge SNPs into 1 file
-	$(PYTHON_INTERPRETER) src/data/merge_datasets.py --species_class sheep --assembly OAR3
-	$(PYTHON_INTERPRETER) src/data/merge_datasets.py --species_class goat --assembly ARS1
+	$(foreach ASSEMBLY, $(SHEEP_ASSEMBLIES), $(PYTHON_INTERPRETER) src/data/merge_datasets.py --species_class sheep --assembly $(ASSEMBLY);)
+	$(foreach ASSEMBLY, $(GOAT_ASSEMBLIES), $(PYTHON_INTERPRETER) src/data/merge_datasets.py --species_class goat --assembly $(ASSEMBLY);)
 
 	## track database status
 	$(PYTHON_INTERPRETER) src/data/update_db_status.py
-
 
 ## pack results to be shared via sFTP
 publish:
@@ -651,12 +687,26 @@ publish:
 	cd ./data/processed/OAR3 && md5sum $(BASENAME).zip > $(BASENAME).md5
 	find ./data/processed/OAR3 -type f \( -name "*.bed" -or -name "*.bim" -or -name "*.fam" -or -name "*.hh" -or -name "*.log" -or -name "*.nosex" \) -delete
 
+	## SHEEP OAR4
+	$(eval BASENAME=SMARTER-OA-OAR4-top-$(CURRENT_VERSION))
+	cd ./data/processed/OAR4 && if [ -e $(BASENAME).zip ]; then rm $(BASENAME).zip; fi
+	cd ./data/processed/OAR4 && zip -rvT $(BASENAME).zip $(BASENAME).bed $(BASENAME).bim $(BASENAME).fam $(BASENAME).hh $(BASENAME).log $(BASENAME).nosex
+	cd ./data/processed/OAR4 && md5sum $(BASENAME).zip > $(BASENAME).md5
+	find ./data/processed/OAR4 -type f \( -name "*.bed" -or -name "*.bim" -or -name "*.fam" -or -name "*.hh" -or -name "*.log" -or -name "*.nosex" \) -delete
+
 	## GOAT ARS1
 	$(eval BASENAME=SMARTER-CH-ARS1-top-$(CURRENT_VERSION))
 	cd ./data/processed/ARS1 && if [ -e $(BASENAME).zip ]; then rm $(BASENAME).zip; fi
 	cd ./data/processed/ARS1 && zip -rvT $(BASENAME).zip $(BASENAME).bed $(BASENAME).bim $(BASENAME).fam $(BASENAME).hh $(BASENAME).log $(BASENAME).nosex
 	cd ./data/processed/ARS1 && md5sum $(BASENAME).zip > $(BASENAME).md5
 	find ./data/processed/ARS1 -type f \( -name "*.bed" -or -name "*.bim" -or -name "*.fam" -or -name "*.hh" -or -name "*.log" -or -name "*.nosex" \) -delete
+
+	## GOAT CHI1
+	$(eval BASENAME=SMARTER-CH-CHI1-top-$(CURRENT_VERSION))
+	cd ./data/processed/CHI1 && if [ -e $(BASENAME).zip ]; then rm $(BASENAME).zip; fi
+	cd ./data/processed/CHI1 && zip -rvT $(BASENAME).zip $(BASENAME).bed $(BASENAME).bim $(BASENAME).fam $(BASENAME).hh $(BASENAME).log $(BASENAME).nosex
+	cd ./data/processed/CHI1 && md5sum $(BASENAME).zip > $(BASENAME).md5
+	find ./data/processed/CHI1 -type f \( -name "*.bed" -or -name "*.bim" -or -name "*.fam" -or -name "*.hh" -or -name "*.log" -or -name "*.nosex" \) -delete
 
 ## Delete all compiled Python files
 clean:

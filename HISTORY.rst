@@ -7,17 +7,33 @@ TODO
 
 * Check chromosomes in *Variants locations*: mind to **scaffold**, **null**, and
   **non-autosomal** chromosomes for *Goat* and *Sheep*
-* Rename objects (use names in a consistent way)
-* Generate output files for *OARV4* and *CHIR1*
-* Check coordinates with *sheep* and *goat* genome projects
+* Rename objects (use names in a consistent way, ex *TOP*, *BOT*)
 * Release a *smarter* coordinate version with information on every variant defined
   in database (which will be used as reference)
 * Map affymetrix snps in *OARV3* coordinates
-* Define a collection for all available *purpose* phenotypes
 * Check if ``rs_id`` is still valid or not (with EVA)
 * Manage python packages with `poetry <https://python-poetry.org/>`__
-* Remove ``--chip_name`` from import genotypes script (derive it from dataset)
+* Rename ``manifacturer`` into ``manufacturer``
+
+0.4.8-dev3
+----------
+
 * Capitalize ``species_class`` parameter in ``src.data.import_breeds.py``
+* Generate output files for *OARV4* and *CHIR1* (`#87 <https://github.com/cnr-ibba/SMARTER-database/issues/87>`__)
+* Import data from *dbSNP152* (`#15 <https://github.com/cnr-ibba/SMARTER-database/issues/15>`__)
+* Import data from *IGGC* (`#18 <https://github.com/cnr-ibba/SMARTER-database/issues/18>`__)
+* Split ``import_consortium.py`` in ``import_isgc.py`` and ``import_iggc.py``
+  to import data from Sheep and Goat genome *consortia* respectively
+* Force data update when importing from consortium
+* Track date when importing from consortium
+* Determine ``illumina_top`` data directly from variant for Sheep when importing
+  from *consortium* data
+* Uniform *note* metadata field (add a *note* parameters in import metadata)
+* Import data from *Cortellari et al 2021* (https://doi.org/10.1038/s41598-021-89900-2)
+* Import data from *Burren et al 2016* (https://doi.org/10.1111/age.12476)
+* Revise illumina A/B genotype tracking
+* Import from Illumina report with only 3 columns in SNP list file
+* Update dependencies
 
 0.4.7 (2022-12-23)
 ------------------

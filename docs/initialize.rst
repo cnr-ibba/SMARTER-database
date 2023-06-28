@@ -177,8 +177,13 @@ following:
 
 .. code-block:: bash
 
-    python src/data/import_consortium.py --species_class sheep \
+    python src/data/import_isgc.py \
         --datafile data/external/SHE/CONSORTIUM/OvineSNP50_B.csv_v3.1_pos_20190513.csv.gz \
         --version Oar_v3.1
+    python src/data/import_iggc.py \
+        --datafile data/external/GOA/CONSORTIUM/capri4dbsnp-base-CHI-ARS-OAR-UMD.csv.gz \
+		--version ARS1 --date "06 Mar 2018" --chrom_column ars1_chr --pos_column ars1_pos \
+        --strand_column ars1_strand
 
-please, refer to :ref:`import_consortium.py <import_consortium>` manual page for additional information.
+please, refer to :ref:`import_isgc.py <import_isgc>` and :ref:`import_iggc.py <import_iggc>`
+manual pages for additional information.

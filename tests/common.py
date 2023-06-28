@@ -17,7 +17,7 @@ from mongoengine import connect, disconnect, connection
 import src.features.smarterdb
 from src.features.smarterdb import (
     DB_ALIAS, Breed, BreedAlias, Counter, Dataset, SampleSheep, VariantSheep,
-    SupportedChip)
+    VariantGoat, SupportedChip)
 
 FIXTURES_DIR = pathlib.Path(__file__).parent / "fixtures"
 
@@ -59,6 +59,7 @@ class SmarterIDMixin():
                 "plinktest.bim",
                 "plinktest.bed",
                 "snplist.txt",
+                "snplist_3cols.txt",
                 "finalreport.txt",
                 "affytest.map",
                 "affytest.ped",
@@ -173,9 +174,9 @@ def sanitize_list(record: list):
     return record
 
 
-class VariantsMixin():
-    # This will be the default fixture loaded by this class
-    variant_fixture = "variants.json"
+class VariantSpecieMixin():
+    variant_fixture = None
+    variant_species = None
 
     @classmethod
     def setUpClass(cls):
@@ -192,24 +193,40 @@ class VariantsMixin():
             # remove unsupported keys
             item = sanitize_dict(item)
 
-            variant = VariantSheep(**item)
+            variant = cls.variant_species(**item)
             variant.save()
 
     @classmethod
     def tearDownClass(cls):
-        VariantSheep.objects.delete()
+        cls.variant_species.objects.delete()
 
         super().tearDownClass()
 
 
+class VariantSheepMixin(VariantSpecieMixin):
+    # This will be the default fixture loaded by this class
+    variant_fixture = "sheep_variants.json"
+    variant_species = VariantSheep
+
+
+class VariantGoatMixin(VariantSpecieMixin):
+    # This will be the default fixture loaded by this class
+    variant_fixture = "goat_variants.json"
+    variant_species = VariantGoat
+
+
 class SupportedChipMixin():
     chip_name = "IlluminaOvineSNP50"
+    manifacturer = "illumina"
 
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
 
-        cls.chip = SupportedChip(name=cls.chip_name, species="Sheep")
+        cls.chip = SupportedChip(
+            name=cls.chip_name,
+            manifacturer=cls.manifacturer,
+            species="Sheep")
         cls.chip.save()
 
     @classmethod

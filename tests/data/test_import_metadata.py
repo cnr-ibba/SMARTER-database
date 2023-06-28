@@ -54,6 +54,7 @@ class MetaDataMixin(SmarterIDMixin, SupportedChipMixin, MongoMockMixin):
         cls.sheet.cell(row=1, column=8, value="Id")
         cls.sheet.cell(row=1, column=9, value="Alias")
         cls.sheet.cell(row=1, column=10, value="Species")
+        cls.sheet.cell(row=1, column=11, value="Note")
 
         # adding values
         cls.sheet.cell(row=2, column=1, value="TEX")
@@ -66,6 +67,7 @@ class MetaDataMixin(SmarterIDMixin, SupportedChipMixin, MongoMockMixin):
         cls.sheet.cell(row=2, column=8, value="test-1")
         cls.sheet.cell(row=2, column=9, value="test-one")
         cls.sheet.cell(row=2, column=10, value="Ovis aries")
+        cls.sheet.cell(row=2, column=11, value="A simple note")
 
         cls.sheet.cell(row=3, column=1, value="MER")
         cls.sheet.cell(row=3, column=2, value="Merino")
@@ -77,6 +79,7 @@ class MetaDataMixin(SmarterIDMixin, SupportedChipMixin, MongoMockMixin):
         cls.sheet.cell(row=3, column=8, value="test-2")
         cls.sheet.cell(row=3, column=9, value="test-two")
         cls.sheet.cell(row=3, column=10, value="Ovis orientalis")
+        # theres no column 11 for row 3!
 
     @classmethod
     def tearDownClass(cls):
@@ -146,7 +149,8 @@ class MetaDataMixin(SmarterIDMixin, SupportedChipMixin, MongoMockMixin):
             self.sample1.metadata,
             {
                 'col1': 'Val1',
-                'col_2': 'Val2'
+                'col_2': 'Val2',
+                'notes': "A simple note"
             }
         )
 
@@ -272,7 +276,9 @@ class TestImportMetadataByBreeds(MetaDataMixin, unittest.TestCase):
                     "--metadata_column",
                     "Col1",
                     "--metadata_column",
-                    "Col 2"
+                    "Col 2",
+                    "--notes_column",
+                    "Note",
                 ]
             )
 
@@ -386,7 +392,9 @@ class TestImportMetadataBySamples(MetaDataMixin, unittest.TestCase):
                     "--metadata_column",
                     "Col1",
                     "--metadata_column",
-                    "Col 2"
+                    "Col 2",
+                    "--notes_column",
+                    "Note",
                 ]
             )
 
@@ -556,7 +564,9 @@ class TestImportMetadataByAlias(MetaDataMixin, unittest.TestCase):
                     "--metadata_column",
                     "Col1",
                     "--metadata_column",
-                    "Col 2"
+                    "Col 2",
+                    "--notes_column",
+                    "Note",
                 ]
             )
 

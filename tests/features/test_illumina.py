@@ -123,6 +123,16 @@ class ReadSnpListTest(IlluminaMixin, unittest.TestCase):
         return read_snpList(*args, **kwargs)
 
 
+class ReadSnpList3colsTest(IlluminaMixin, unittest.TestCase):
+    """Test reading a SNPlist file with only 3 columns"""
+    data_path = FEATURE_DATA_DIR / "snplist_3cols.txt"
+    snp_name = "250506CS3900140500001_312.1"
+    delimiter = "\t"
+
+    def read_func(self, *args, **kwargs):
+        return read_snpList(*args, **kwargs)
+
+
 class ReadIlluminaRowTest(unittest.TestCase):
     data_path = FEATURE_DATA_DIR / "finalreport.txt"
     snp_name = "250506CS3900140500001_312.1"
@@ -307,7 +317,7 @@ class testIlluSNP(unittest.TestCase):
 
     def test_toTop(self):
         # Trasnlate a BOT snp in TOP
-        illu_snp = IlluSNP(sequence="AGGAGGCTAG[G/T]CTCGCAGAGC")
+        illu_snp = IlluSNP(sequence="AGGAGGCTAG[T/G]CTCGCAGAGC")
         test = illu_snp.toTop()
         ref = IlluSNP(sequence="GCTCTGCGAG[A/C]CTAGCCTCCT")
 
@@ -320,6 +330,9 @@ class testIlluSNP(unittest.TestCase):
         self.assertEqual(test, illu_snp)
 
     def test_toTop_flank_not_equal(self):
+        """Test illumina SNP where flanking sequences are not equal in
+        length"""
+
         # Trasnlate a BOT snp in TOP
         illu_snp = IlluSNP(
             "TCCTTTGTGGGTGGAGAGGCTGACCCATTTGCAAG[C/T]"
