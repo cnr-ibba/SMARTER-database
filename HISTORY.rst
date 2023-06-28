@@ -13,11 +13,12 @@ TODO
 * Map affymetrix snps in *OARV3* coordinates
 * Check if ``rs_id`` is still valid or not (with EVA)
 * Manage python packages with `poetry <https://python-poetry.org/>`__
-* Capitalize ``species_class`` parameter in ``src.data.import_breeds.py``
+* Rename ``manifacturer`` into ``manufacturer``
 
 0.4.8-dev3
 ----------
 
+* Capitalize ``species_class`` parameter in ``src.data.import_breeds.py``
 * Generate output files for *OARV4* and *CHIR1* (`#87 <https://github.com/cnr-ibba/SMARTER-database/issues/87>`__)
 * Import data from *dbSNP152* (`#15 <https://github.com/cnr-ibba/SMARTER-database/issues/15>`__)
 * Import data from *IGGC* (`#18 <https://github.com/cnr-ibba/SMARTER-database/issues/18>`__)

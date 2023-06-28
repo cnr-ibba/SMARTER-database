@@ -22,7 +22,9 @@ logger = logging.getLogger(__name__)
 @click.command()
 @click.option(
     '--species_class',
-    type=str,
+    type=click.Choice(
+        ['Sheep', 'Goat'],
+        case_sensitive=False),
     required=True,
     help="The generic species of this breed (Sheep or Goat)")
 @click.option(

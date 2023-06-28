@@ -25,7 +25,9 @@ logger = logging.getLogger(__name__)
 @click.command()
 @click.option(
     '--species_class',
-    type=str,
+    type=click.Choice(
+        ['Sheep', 'Goat'],
+        case_sensitive=False),
     required=True,
     help="The generic species of this breed (Sheep or Goat)"
     )
@@ -102,7 +104,7 @@ def main(species_class, src_dataset, dst_dataset, datafile, code_column,
 
         try:
             breed, modified = get_or_create_breed(
-                species_class=species_class,
+                species_class=species_class.capitalize(),
                 name=name,
                 code=code,
                 aliases=[alias])
