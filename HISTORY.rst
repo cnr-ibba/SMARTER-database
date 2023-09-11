@@ -15,6 +15,11 @@ TODO
 * Manage python packages with `poetry <https://python-poetry.org/>`__
 * Rename ``manifacturer`` into ``manufacturer``
 
+0.4.8.post1
+-----------
+
+* Update *datasets* metadata
+
 0.4.8 (2023-06-28)
 ------------------
 
