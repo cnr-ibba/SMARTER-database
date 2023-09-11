@@ -53,9 +53,12 @@ class PhenotypeMixin(SmarterIDMixin, SupportedChipMixin, MongoMockMixin):
         cls.sheet.cell(row=2, column=1, value="test-1")
         cls.sheet.cell(row=2, column=2, value=123)
         cls.sheet.cell(row=2, column=3, value=11.5)
-        cls.sheet.cell(row=2, column=1, value="test-1")
-        cls.sheet.cell(row=2, column=2, value=456)
-        cls.sheet.cell(row=2, column=3, value=23.0)
+        cls.sheet.cell(row=3, column=1, value="test-1")
+        cls.sheet.cell(row=3, column=2, value=456)
+        cls.sheet.cell(row=3, column=3, value=23.0)
+        cls.sheet.cell(row=4, column=1, value="test-2")
+        cls.sheet.cell(row=4, column=2, value=123)
+        cls.sheet.cell(row=4, column=3, value=11.5)
 
     @classmethod
     def tearDownClass(cls):
@@ -97,7 +100,7 @@ class TestImportPhenotypeCLI(PhenotypeMixin, unittest.TestCase):
 class TestImportPhenotypeBySamples(PhenotypeMixin, unittest.TestCase):
     @patch('src.features.smarterdb.Dataset.working_dir',
            new_callable=PropertyMock)
-    def test_import_phenotype(self, my_working_dir):
+    def test_import_multiple_phenotype(self, my_working_dir):
         # create a temporary directory using the context manager
         with tempfile.TemporaryDirectory() as tmpdirname:
             working_dir = pathlib.Path(tmpdirname)
