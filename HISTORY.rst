@@ -18,6 +18,8 @@ TODO
 0.4.8.post1
 -----------
 
+* Load multiple phenotypes for *Boutsko foreground* sheeps
+* Add multiple phenotypes as a list (`103 <https://github.com/cnr-ibba/SMARTER-database/issues/103>`__)
 * Update *datasets* metadata
 
 0.4.8 (2023-06-28)
