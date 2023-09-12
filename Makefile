@@ -670,6 +670,18 @@ data: requirements
 		--datafile doi_10.5061_dryad.q1cv6__v1/burren_phenotypes_fix.xlsx --breed_column breed \
 		--additional_column coat_color --additional_column hair --additional_column horns \
 		--additional_column size_male --additional_column size_female --additional_column performance
+	$(PYTHON_INTERPRETER) src/data/import_multiple_phenotypes.py \
+		--src_dataset "Smarter - Grazing behaviour phenotypes - Boutsko sheep.zip" \
+		--dst_dataset AUTH_OVN50KV2_CHIOS_MYTILINI_BOUTSKO.zip \
+		--datafile "Smarter - Grazing behaviour phenotypes - Boutsko sheep.xlsx" --id_column id \
+		--column daily_activity_min --column daily_distance_km --column mean_speed_moving_m \
+		--column altitude_difference_m --column elevation_gain_m --column energy_expenditure_MJ
+	$(PYTHON_INTERPRETER) src/data/import_multiple_phenotypes.py \
+		--src_dataset "Smarter - Grazing behaviour phenotypes - Boutsko sheep.zip" \
+		--dst_dataset AUTH_OVN50KV2_CHI_BOU_MYT_FRI.zip \
+		--datafile "Smarter - Grazing behaviour phenotypes - Boutsko sheep.xlsx" --id_column id \
+		--column daily_activity_min --column daily_distance_km --column mean_speed_moving_m \
+		--column altitude_difference_m --column elevation_gain_m --column energy_expenditure_MJ
 
 	## merge SNPs into 1 file
 	$(foreach ASSEMBLY, $(SHEEP_ASSEMBLIES), $(PYTHON_INTERPRETER) src/data/merge_datasets.py --species_class sheep --assembly $(ASSEMBLY);)

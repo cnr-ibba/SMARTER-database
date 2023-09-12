@@ -80,6 +80,12 @@ documentation sections.
     :prog: src/data/import_metadata.py
     :nested: full
 
+.. _import_multiple_phenotypes:
+
+.. click:: src.data.import_multiple_phenotypes:main
+    :prog: src/data/import_multiple_phenotypes.py
+    :nested: full
+
 .. _import_phenotypes:
 
 .. click:: src.data.import_phenotypes:main
