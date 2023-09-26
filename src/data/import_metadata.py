@@ -18,9 +18,10 @@ from click_option_group import optgroup, RequiredMutuallyExclusiveOptionGroup
 from pathlib import Path
 import pandas as pd
 
-from src.features.smarterdb import global_connection, Dataset
+from src.features.smarterdb import global_connection, Dataset, SEX
 from src.data.common import (
-    deal_with_datasets, pandas_open, get_sample_species)
+    deal_with_datasets, pandas_open, get_sample_species,
+    deal_with_sex_and_alias)
 from src.features.utils import sanitize
 
 logger = logging.getLogger(__name__)
@@ -128,9 +129,14 @@ def add_metadata_by_sample(
         if columns["species_column"]:
             species = row.get(columns["species_column"])
 
+        sex = None
+
+        if columns["sex_column"]:
+            sex, _ = deal_with_sex_and_alias(columns["sex_column"], None, row)
+
         logger.debug(
             f"Got {id_field}: '{sample_id}', locations: {locations}, "
-            f"metadata: {metadata}"
+            f"sex: {sex}, metadata: {metadata}"
         )
 
         # prepare query kwargs
@@ -140,7 +146,7 @@ def add_metadata_by_sample(
         elif id_field == 'alias_column':
             query = {'alias': sample_id}
 
-        update_samples(dst_dataset, query, species, locations, metadata)
+        update_samples(dst_dataset, query, species, locations, metadata, sex)
 
 
 def update_samples(
@@ -148,7 +154,8 @@ def update_samples(
         query: dict,
         species: str,
         locations: list,
-        metadata: dict):
+        metadata: dict,
+        sex: SEX = None):
 
     # mind dataset species
     SampleSpecie = get_sample_species(dst_dataset.species)
@@ -169,10 +176,14 @@ def update_samples(
         if species:
             sample.species = species
 
-        if any([locations, metadata, species]):
+        # set sex if received
+        if sex:
+            sample.sex = sex
+
+        if any([locations, metadata, species, sex]):
             logger.info(
                 f"Updating '{sample}' with species: '{sample.species}', "
-                f"locations: '{locations}' "
+                f"locations: '{locations}', sex: '{sex}' "
                 f"and metadata: '{metadata}'")
 
             # update sample
@@ -203,6 +214,10 @@ def update_samples(
 @optgroup.option('--alias_column', type=str, help="The alias column")
 @click.option('--latitude_column', type=str)
 @click.option('--longitude_column', type=str)
+@click.option(
+    '--sex_column',
+    type=str,
+    help="Sex column in src datafile")
 @click.option('--notes_column', type=str, help="The notes field in metadata")
 @click.option('--metadata_column', multiple=True, help=(
     "Metadata column to track. Could be specified multiple times"))
@@ -215,7 +230,7 @@ def update_samples(
 def main(
         src_dataset, dst_dataset, datafile, sheet_name, breed_column,
         id_column, alias_column, latitude_column, longitude_column,
-        notes_column, metadata_column, species_column, na_values):
+        sex_column, notes_column, metadata_column, species_column, na_values):
     """Read data from metadata file and add it to SMARTER-database samples"""
 
     logger.info(f"{Path(__file__).name} started")
@@ -225,6 +240,9 @@ def main(
 
     if notes_column:
         logger.info(f"Got {notes_column} as notes")
+
+    if sex_column:
+        logger.info(f"Got {sex_column} as sex")
 
     src_dataset, dst_dataset, datapath = deal_with_datasets(
         src_dataset, dst_dataset, datafile)
@@ -245,6 +263,7 @@ def main(
         'notes_column': notes_column,
         'alias_column': alias_column,
         'species_column': species_column,
+        'sex_column': sex_column,
     }
 
     if breed_column:

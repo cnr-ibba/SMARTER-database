@@ -20,7 +20,7 @@ import pandas as pd
 
 from src.features.smarterdb import (
     Dataset, VariantGoat, VariantSheep, SampleSheep, SampleGoat, Location,
-    Probeset, SmarterDBException)
+    Probeset, SmarterDBException, SEX)
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -510,3 +510,48 @@ def update_rs_id(
             logger.debug(f"Ignoring '{variant.rs_id[0]}: ({record})'")
 
     return record, updated
+
+
+def deal_with_sex_and_alias(
+        sex_column: str, alias_column: str, row: pd.Series):
+    """
+    Deal with sex and alias parameters
+
+    Parameters
+    ----------
+    sex_column : str
+        The sex column label.
+    alias_column : str
+        The alias column label.
+    row : Series
+        A row of metadata file.
+
+    Returns
+    -------
+    sex : SEX
+        A SEX instance.
+    alias : str
+        The alias read from metadata table could be None.
+
+    """
+
+    # Have I sex? search for a sex column if provided
+    sex = None
+
+    if sex_column:
+        sex = str(row.get(sex_column)).strip()
+        sex = SEX.from_string(sex)
+
+        # drop sex column if unknown
+        if sex == SEX.UNKNOWN:
+            sex = None
+
+    alias = None
+
+    if alias_column:
+        value = row.get(alias_column)
+
+        if pd.notnull(value) and pd.notna(value):
+            alias = value
+
+    return sex, alias

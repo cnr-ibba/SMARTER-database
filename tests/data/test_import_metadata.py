@@ -15,7 +15,7 @@ from click.testing import CliRunner
 from unittest.mock import patch, PropertyMock
 
 from src.data.import_metadata import main as import_metadata
-from src.features.smarterdb import Dataset, SampleSheep
+from src.features.smarterdb import Dataset, SampleSheep, SEX
 
 from ..common import MongoMockMixin, SmarterIDMixin, SupportedChipMixin
 
@@ -55,6 +55,7 @@ class MetaDataMixin(SmarterIDMixin, SupportedChipMixin, MongoMockMixin):
         cls.sheet.cell(row=1, column=9, value="Alias")
         cls.sheet.cell(row=1, column=10, value="Species")
         cls.sheet.cell(row=1, column=11, value="Note")
+        cls.sheet.cell(row=1, column=12, value="Sex")
 
         # adding values
         cls.sheet.cell(row=2, column=1, value="TEX")
@@ -68,6 +69,7 @@ class MetaDataMixin(SmarterIDMixin, SupportedChipMixin, MongoMockMixin):
         cls.sheet.cell(row=2, column=9, value="test-one")
         cls.sheet.cell(row=2, column=10, value="Ovis aries")
         cls.sheet.cell(row=2, column=11, value="A simple note")
+        cls.sheet.cell(row=2, column=12, value="M")
 
         cls.sheet.cell(row=3, column=1, value="MER")
         cls.sheet.cell(row=3, column=2, value="Merino")
@@ -80,6 +82,7 @@ class MetaDataMixin(SmarterIDMixin, SupportedChipMixin, MongoMockMixin):
         cls.sheet.cell(row=3, column=9, value="test-two")
         cls.sheet.cell(row=3, column=10, value="Ovis orientalis")
         # theres no column 11 for row 3!
+        cls.sheet.cell(row=3, column=12, value="F")
 
     @classmethod
     def tearDownClass(cls):
@@ -171,6 +174,14 @@ class MetaDataMixin(SmarterIDMixin, SupportedChipMixin, MongoMockMixin):
     def check_sample2_species(self):
         self.sample2.reload()
         self.assertEqual(self.sample2.species, "Ovis orientalis")
+
+    def check_sample1_sex(self):
+        self.sample1.reload()
+        self.assertEqual(self.sample1.sex, SEX.MALE)
+
+    def check_sample2_sex(self):
+        self.sample2.reload()
+        self.assertEqual(self.sample2.sex, SEX.FEMALE)
 
 
 class TestImportMetadataCLI(MetaDataMixin, unittest.TestCase):
@@ -439,6 +450,41 @@ class TestImportMetadataBySamples(MetaDataMixin, unittest.TestCase):
             # check species
             self.check_sample1_species()
             self.check_sample2_species()
+
+    @patch('src.features.smarterdb.Dataset.working_dir',
+           new_callable=PropertyMock)
+    def test_import_with_sex(self, my_working_dir):
+        # create a temporary directory using the context manager
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            working_dir = pathlib.Path(tmpdirname)
+            my_working_dir.return_value = working_dir
+
+            # save worksheet in temporary folder
+            self.workbook.save(f"{working_dir}/metadata.xlsx")
+
+            # test two records in database
+            self.assertEqual(SampleSheep.objects.count(), 2)
+
+            result = self.runner.invoke(
+                import_metadata,
+                [
+                    "--src_dataset",
+                    "test2.zip",
+                    "--dst_dataset",
+                    "test.zip",
+                    "--datafile",
+                    "metadata.xlsx",
+                    "--id_column",
+                    "Id",
+                    "--sex_column",
+                    "Sex"
+                ]
+            )
+
+            self.assertEqual(0, result.exit_code, msg=result.exception)
+
+            self.check_sample1_sex()
+            self.check_sample2_sex()
 
 
 class TestImportMetadataBySamplesNA(MetaDataMixin, unittest.TestCase):
