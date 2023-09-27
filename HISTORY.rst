@@ -15,8 +15,8 @@ TODO
 * Manage python packages with `poetry <https://python-poetry.org/>`__
 * Rename ``manifacturer`` into ``manufacturer``
 
-0.4.8.post1
------------
+0.4.9 (2023-09-27)
+------------------
 
 * Load phenotypes for *Fosses, Provencale* goat breeds
 * Add sex for *Fosses, Provencale* goat breeds
