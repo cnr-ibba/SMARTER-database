@@ -18,6 +18,9 @@ TODO
 0.4.8.post1
 -----------
 
+* Load phenotypes for *Fosses, Provencale* goat breeds
+* Add sex for *Fosses, Provencale* goat breeds
+* Add *sex* while importing metadata
 * Load multiple phenotypes for *Boutsko foreground* sheeps
 * Add multiple phenotypes as a list (`103 <https://github.com/cnr-ibba/SMARTER-database/issues/103>`__)
 * Update *datasets* metadata
