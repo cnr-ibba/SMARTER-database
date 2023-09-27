@@ -599,6 +599,10 @@ data: requirements
 	$(PYTHON_INTERPRETER) src/data/import_metadata.py --src_dataset burren_et_al_2016.zip \
 		--datafile doi_10.5061_dryad.q1cv6__v1/burren_phenotypes_fix.xlsx --breed_column breed \
 		--metadata_column rare --notes_column note
+	$(PYTHON_INTERPRETER) src/data/import_metadata.py --src_dataset SMARTER_CHFR_phenotypes.zip \
+		--dst_dataset SMARTER_CHFR.zip --datafile SMARTER_CHFR_phenotypes/pierre_animals.xlsx \
+		--id_column original_id --metadata_column animal_id --metadata_column lab_id \
+		--metadata_column owner --metadata_column milk_recording --sex_column sex
 
 	## add phenotypes to samples
 	$(PYTHON_INTERPRETER) src/data/import_phenotypes.py --src_dataset ADAPTmap_phenotype_20161201.zip \
@@ -670,6 +674,36 @@ data: requirements
 		--datafile doi_10.5061_dryad.q1cv6__v1/burren_phenotypes_fix.xlsx --breed_column breed \
 		--additional_column coat_color --additional_column hair --additional_column horns \
 		--additional_column size_male --additional_column size_female --additional_column performance
+	$(PYTHON_INTERPRETER) src/data/import_multiple_phenotypes.py \
+		--src_dataset "Smarter - Grazing behaviour phenotypes - Boutsko sheep.zip" \
+		--dst_dataset AUTH_OVN50KV2_CHIOS_MYTILINI_BOUTSKO.zip \
+		--datafile "Smarter - Grazing behaviour phenotypes - Boutsko sheep.xlsx" --id_column id \
+		--column daily_activity_min --column daily_distance_km --column mean_speed_moving_m \
+		--column altitude_difference_m --column elevation_gain_m --column energy_expenditure_MJ
+	$(PYTHON_INTERPRETER) src/data/import_multiple_phenotypes.py \
+		--src_dataset "Smarter - Grazing behaviour phenotypes - Boutsko sheep.zip" \
+		--dst_dataset AUTH_OVN50KV2_CHI_BOU_MYT_FRI.zip \
+		--datafile "Smarter - Grazing behaviour phenotypes - Boutsko sheep.xlsx" --id_column id \
+		--column daily_activity_min --column daily_distance_km --column mean_speed_moving_m \
+		--column altitude_difference_m --column elevation_gain_m --column energy_expenditure_MJ
+	$(PYTHON_INTERPRETER) src/data/import_phenotypes.py --src_dataset SMARTER_CHFR_phenotypes.zip \
+		--dst_dataset SMARTER_CHFR.zip --datafile SMARTER_CHFR_phenotypes/pierre_animals.xlsx \
+		--id_column original_id --chest_girth_column chest_size --height_column withers_height \
+		--length_column body_length --additional_column pool_width --additional_column ear_length \
+		--additional_column cannon_tower --additional_column teat_length --additional_column foot_opening \
+		--additional_column jaw --additional_column horns --additional_column tassels \
+		--additional_column front_udder_attachment --additional_column udder_profile \
+		--additional_column udder_florr_position --additional_column teat_form \
+		--additional_column teat_tilt --additional_column teat_orientation \
+		--additional_column back_shape_udder --additional_column rear_udder_attachment
+	$(PYTHON_INTERPRETER) src/data/import_multiple_phenotypes.py --src_dataset SMARTER_CHFR_phenotypes.zip \
+		--dst_dataset SMARTER_CHFR.zip --datafile SMARTER_CHFR_phenotypes/milk_recording.xlsx \
+		--id_column original_id --column date_of_control --column livestock_number \
+		--column lactation_number --column milk_day --column milk_morning \
+		--column average_somatics_cells --column somatics_cells_morning \
+		--column average_fat_contents --column fat_contents_morning \
+		--column proteic_contents_average --column proteic_contents_morning \
+		--column urea_average --column urea_morning
 
 	## merge SNPs into 1 file
 	$(foreach ASSEMBLY, $(SHEEP_ASSEMBLIES), $(PYTHON_INTERPRETER) src/data/merge_datasets.py --species_class sheep --assembly $(ASSEMBLY);)

@@ -23,13 +23,13 @@ from click_option_group import (
 from mongoengine.errors import DoesNotExist
 
 import pycountry
-import pandas as pd
 from pandas.core.series import Series
 
 from src.data.common import (
-    deal_with_datasets, pandas_open, get_sample_species)
+    deal_with_datasets, pandas_open, get_sample_species,
+    deal_with_sex_and_alias)
 from src.features.smarterdb import (
-    global_connection, Breed, get_or_create_sample, SEX, get_sample_type,
+    global_connection, Breed, get_or_create_sample, get_sample_type,
     SmarterDBException)
 from src.features.utils import UnknownCountry
 
@@ -144,51 +144,6 @@ def deal_with_countries(country: str, country_column: str, row: Series):
     # HINT: this function caches results relying arguments using lru_cache
     # see find country implementation for more informations
     return find_country(country)
-
-
-def deal_with_additional_fields(
-        sex_column: str, alias_column: str, row: Series):
-    """
-    Deal with sex and alias parameters
-
-    Parameters
-    ----------
-    sex_column : str
-        The sex column label.
-    alias_column : str
-        The alias column label.
-    row : Series
-        A row of metadata file.
-
-    Returns
-    -------
-    sex : SEX
-        A SEX instance.
-    alias : str
-        The alias read from metadata table could be None.
-
-    """
-
-    # Have I sex? search for a sex column if provided
-    sex = None
-
-    if sex_column:
-        sex = str(row.get(sex_column)).strip()
-        sex = SEX.from_string(sex)
-
-        # drop sex column if unknown
-        if sex == SEX.UNKNOWN:
-            sex = None
-
-    alias = None
-
-    if alias_column:
-        value = row.get(alias_column)
-
-        if pd.notnull(value) and pd.notna(value):
-            alias = value
-
-    return sex, alias
 
 
 @click.command()
@@ -310,7 +265,7 @@ def main(
         else:
             species = species_all
 
-        sex, alias = deal_with_additional_fields(
+        sex, alias = deal_with_sex_and_alias(
             sex_column, alias_column, row)
 
         logger.debug(
