@@ -12,6 +12,7 @@ individual
 import click
 import logging
 
+import numpy as np
 from click_option_group import optgroup, RequiredMutuallyExclusiveOptionGroup
 from pathlib import Path
 
@@ -105,7 +106,8 @@ def main(src_dataset, dst_dataset, datafile, sheet_name, breed_column,
         phenotype = {}
 
         for column in columns:
-            phenotype[sanitize(column)] = subset[column].to_list()
+            phenotype[sanitize(column)] = subset[column] \
+                .replace({np.nan: None}).to_list()
 
         original_id = str(id_)
 
