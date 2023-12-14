@@ -339,6 +339,19 @@ class LocationTestCase(VariantMixin, MongoMockMixin, unittest.TestCase):
             ["A", "T"]
         )
 
+    def test_top2forward(self):
+        """Test top to forward conversion"""
+
+        forwards = ["T/C", "T/T", "C/T", "C/C", "0/0"]
+        tops = ["A/G", "A/A", "G/A", "G/G", "0/0"]
+
+        for i, genotype in enumerate(tops):
+            reference = forwards[i].split("/")
+            genotype = genotype.split("/")
+
+            test = self.location.top2forward(genotype)
+            self.assertEqual(reference, test)
+
     def test_is_ab(self):
         for genotype in ["A/A", "A/B", "B/A", "B/B", "-/-"]:
             genotype = genotype.split("/")
