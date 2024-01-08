@@ -177,6 +177,14 @@ def deal_with_illumina(
     help="Illumina source coding format"
 )
 @click.option(
+    '--dst_coding',
+    type=click.Choice(
+        ['top', 'forward'],
+        case_sensitive=False),
+    default="top", show_default=True,
+    help="Illumina destination coding format"
+)
+@click.option(
     '--assembly',
     type=str,
     required=True,
@@ -224,9 +232,9 @@ def deal_with_illumina(
         'set SNP as missing when there are coding errors '
         '(no more CodingException)'))
 def main(
-        file_, bfile, report, snpfile, src_coding, assembly, species,
-        chip_name, results_dir, search_field, search_by_positions, src_version,
-        src_imported_from, ignore_coding_errors):
+        file_, bfile, report, snpfile, src_coding, dst_coding, assembly,
+        species, chip_name, results_dir, search_field, search_by_positions,
+        src_version, src_imported_from, ignore_coding_errors):
     """
     Convert a PLINK/Illumina report file in a SMARTER-like output file, without
     inserting data in SMARTER-database. Useful to convert data relying on
@@ -302,7 +310,7 @@ def main(
         src_coding=src_coding,
         create_samples=False,
         ignore_coding_errors=ignore_coding_errors,
-        dst_coding="top"
+        dst_coding=dst_coding
     )
 
     # ok time to convert data in plink binary format
