@@ -924,11 +924,7 @@ class SmarterMixin():
         new_line = self._process_relationship(new_line, sample)
 
         # check and fix genotypes if necessary
-        if dst_coding == 'top':
-            new_line = self._process_genotypes(
-                new_line, src_coding, ignore_coding_errors)
-
-        elif dst_coding == 'forward':
+        if dst_coding in ['top', 'forward']:
             new_line = self._process_genotypes(
                 new_line, src_coding, ignore_coding_errors, dst_coding)
 
@@ -955,10 +951,11 @@ class SmarterMixin():
             self,
             outputfile: str,
             dataset: Dataset,
-            coding: str,
+            src_coding: str,
             create_samples: bool = False,
             sample_field: str = "original_id",
             ignore_coding_errors: bool = False,
+            dst_coding: str = "top",
             *args,
             **kwargs):
         """
@@ -968,13 +965,16 @@ class SmarterMixin():
         Args:
             outputfile (str): write ped to this path (overwrite if exists)
             dataset (Dataset): the dataset we are converting
-            coding (str): the source coding (could be 'top', 'ab', 'forward')
+            src_coding (str): the source coding (could be 'top', 'ab',
+                'forward')
             create_samples (bool): create samples if not exist (useful to
                 create samples directly from ped file)
             sample_field (str): search samples using this attribute (def.
                 'original_id')
             ignore_coding_errors (bool): ignore coding related errors (no
                 more exceptions when genotypes don't match)
+            dst_coding (str): the destination coding (could be 'top' or
+                'forward')
         """
 
         if ignore_coding_errors:
@@ -997,10 +997,11 @@ class SmarterMixin():
                 new_line = self._process_pedline(
                     line,
                     dataset,
-                    coding,
+                    src_coding,
                     create_samples,
                     sample_field,
-                    ignore_coding_errors)
+                    ignore_coding_errors,
+                    dst_coding)
 
                 if new_line:
                     # write updated line into updated ped file

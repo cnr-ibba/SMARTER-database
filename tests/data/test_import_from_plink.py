@@ -316,7 +316,7 @@ class TestImportFromPlink(
                     "--assembly",
                     "OAR3",
                     "--create_samples",
-                    "--coding",
+                    "--src_coding",
                     "forward",
                     "--ignore_coding_errors"
                 ]

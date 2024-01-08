@@ -137,12 +137,12 @@ def deal_with_binary_plink(bfile: str, dataset: Dataset, assembly: str):
     help="The raw dataset file name (zip archive)"
 )
 @click.option(
-    '--coding',
+    '--src_coding',
     type=click.Choice(
         ['top', 'forward', 'ab', 'affymetrix', 'illumina'],
         case_sensitive=False),
     default="top", show_default=True,
-    help="Genotype coding format"
+    help="Genotype source coding format"
 )
 @click.option(
     '--chip_name',
@@ -192,12 +192,12 @@ def deal_with_binary_plink(bfile: str, dataset: Dataset, assembly: str):
     help=(
         'set SNP as missing when there are coding errors '
         '(no more CodingException)'))
-def main(file_, bfile, dataset, coding, chip_name, assembly, create_samples,
+def main(file_, bfile, dataset, src_coding, chip_name, assembly, create_samples,
          sample_field, search_field, search_by_positions, src_version,
          src_imported_from, ignore_coding_errors):
     """
     Read genotype data from a PLINK file (text or binary) and convert it
-    to the desidered assembly version using Illumina TOP coding
+    to the desired assembly version using Illumina TOP coding
     """
 
     logger.info(f"{Path(__file__).name} started")
@@ -279,7 +279,7 @@ def main(file_, bfile, dataset, coding, chip_name, assembly, create_samples,
     plinkio.update_pedfile(
         outputfile=output_ped,
         dataset=dataset,
-        coding=coding,
+        src_coding=src_coding,
         create_samples=create_samples,
         sample_field=sample_field,
         ignore_coding_errors=ignore_coding_errors
