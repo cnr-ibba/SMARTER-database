@@ -337,6 +337,41 @@ class TextPlinkIOPed(
         reference = self.lines[0]
         self.assertEqual(reference, test)
 
+    def test_process_genotypes_forward_dst_forward(self):
+        # read a file in forward coding
+        self.plinkio.pedfile = str(DATA_DIR / "plinktest_forward.ped")
+        lines = list(self.plinkio.read_pedfile())
+        reference = lines[0]
+
+        # searching top coding throws exception
+        self.assertRaisesRegex(
+            CodingException,
+            "not in illumina top format",
+            self.plinkio._process_genotypes,
+            reference,
+            src_coding="top",
+            dst_coding='forward'
+        )
+
+        # passing data not in forward coding throws exception
+        self.assertRaisesRegex(
+            CodingException,
+            "is not in illumina forward format",
+            self.plinkio._process_genotypes,
+            self.lines[0],
+            src_coding="forward",
+            dst_coding='forward'
+        )
+
+        # test forward to forward
+        test = self.plinkio._process_genotypes(
+            reference,
+            src_coding='forward',
+            dst_coding='forward')
+
+        # no changes in this case
+        self.assertEqual(reference, test)
+
     def test_process_genotypes_ab(self):
         # read a file in forward coding
         self.plinkio.pedfile = str(DATA_DIR / "plinktest_ab.ped")
@@ -406,20 +441,25 @@ class TextPlinkIOPed(
         reference = self.lines[0]
         self.assertEqual(reference, test)
 
+    def test_process_genotypes_dst_code_forward(self):
+        # read a file in forward coding
+        self.plinkio.pedfile = str(DATA_DIR / "plinktest_forward.ped")
+        lines = list(self.plinkio.read_pedfile())
+        reference = lines[0]
+
+        # now get data in top coding
+        line = self.lines[0]
+        test = self.plinkio._process_genotypes(
+            line,
+            src_coding='top',
+            dst_coding='forward')
+
+        # a genotype in forward coding isn't modified
+        self.assertEqual(reference, test)
+
     def test_process_genotypes_dst_code_not_supported(self):
         # first record is in top coding
         line = self.lines[0]
-
-        # destination forward coding throws exception
-        self.assertRaisesRegex(
-            NotImplementedError,
-            "Destination coding 'forward' not supported",
-            self.plinkio._process_genotypes,
-            line,
-            "top",
-            False,
-            "forward"
-        )
 
         # destination ab coding throws exception
         self.assertRaisesRegex(
@@ -707,21 +747,32 @@ class TextPlinkIOPed(
 
         self.assertEqual(reference, test)
 
+    def test_process_pedline_dst_code_forward(self):
+        # read a file in forward coding
+        self.plinkio.pedfile = str(DATA_DIR / "plinktest_forward.ped")
+        lines = list(self.plinkio.read_pedfile())
+
+        # define reference and override sample and breed
+        reference = lines[0]
+        reference[0], reference[1] = ['TEX', 'ITOA-TEX-000000001']
+
+        # get a sample line
+        line = self.lines[0]
+        test = self.plinkio._process_pedline(
+            line,
+            self.dataset,
+            src_coding='top',
+            create_sample=True,
+            dst_coding='forward')
+
+        # trow away the last snps (not found in database)
+        del(reference[-2:])
+
+        self.assertEqual(reference, test)
+
     def test_process_pedline_dst_code_not_supported(self):
         # get a sample line
         line = self.lines[0]
-
-        # destination forward coding throws exception
-        self.assertRaisesRegex(
-            NotImplementedError,
-            "Destination coding 'forward' not supported",
-            self.plinkio._process_pedline,
-            line,
-            self.dataset,
-            "top",
-            True,
-            dst_coding="forward"
-        )
 
         # destination ab coding throws exception
         self.assertRaisesRegex(

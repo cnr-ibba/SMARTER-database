@@ -680,7 +680,93 @@ class SmarterMixin():
 
         return top_genotype
 
-    def _process_genotypes(self, line: list, coding: str, ignore_errors=False):
+    def _to_forward(
+            self, index: int, genotype: list, coding: str,
+            location: Location) -> list:
+        """
+        Check genotype with coding and returns illumina_forward alleles
+
+        Parameters
+        ----------
+        index: int
+            The i-th SNP received
+        genotype : list
+            The genotype as a list (ex: ['A', 'G'])
+        coding : str
+            The coding input type ('top', 'forward', ...)
+        location : Location
+            A smarterdb location used to check input genotype and coding and
+            to return the corresponding illumina forward genotype (ex
+            ['T', 'C'])
+
+        Raises
+        ------
+        CodingException
+            Raised when input genotype hasn't a match in the smarter database
+            with the provided coding
+        NotImplementedError
+            A coding format not yet supported (implemented)
+
+        Returns
+        -------
+        list
+            The illumina forward genotype as a list (ex ['T', 'C'])
+        """
+
+        # for simplicity
+        a1, a2 = genotype
+
+        # the returned value
+        forward_genotype = []
+
+        # define a dictionary with useful data
+        config = {
+            'top': {
+                'check': 'is_top',
+                'convert': 'top2forward',
+                'message': (
+                    f"Error for SNP {index}: '{self.mapdata[index].name}': "
+                    f"{a1}/{a2} <> {location.illumina_top}"
+                ),
+                'exception': (
+                    f"SNP '{self.mapdata[index].name}' is "
+                    "not in illumina top format"
+                )
+            }
+        }
+
+        if coding == 'forward':
+            if not location.is_forward(genotype):
+                logger.debug(
+                    f"Error for SNP {index}: '{self.mapdata[index].name}': "
+                    f"{a1}/{a2} <> {location.illumina_forward}"
+                )
+                raise CodingException(
+                    f"SNP '{self.mapdata[index].name}' is "
+                    "not in illumina forward format")
+
+            # allele coding is the same received as input
+            forward_genotype = genotype
+
+        elif coding in config:
+            # get the proper method to check genotype
+            check = getattr(location, config[coding]['check'])
+
+            if not check(genotype):
+                logger.debug(config[coding]['message'])
+                raise CodingException(config[coding]['exception'])
+
+            # get the proper method to convert genotype
+            convert = getattr(location, config[coding]['convert'])
+
+            # change the allele coding
+            forward_genotype = convert(genotype)
+
+        else:
+            raise NotImplementedError(f"Coding '{coding}' not supported")
+
+        return forward_genotype
+
     def _process_genotypes(
             self,
             line: list,
@@ -728,6 +814,13 @@ class SmarterMixin():
 
                     # replace alleles in ped line with top genotype
                     new_line[6+i*2], new_line[6+i*2+1] = top_genotype
+
+                elif dst_coding == 'forward':
+                    forward_genotype = self._to_forward(
+                        i, genotype, src_coding, location)
+
+                    # replace alleles in ped line with forward genotype
+                    new_line[6+i*2], new_line[6+i*2+1] = forward_genotype
 
                 else:
                     raise NotImplementedError(
@@ -834,6 +927,11 @@ class SmarterMixin():
         if dst_coding == 'top':
             new_line = self._process_genotypes(
                 new_line, src_coding, ignore_coding_errors)
+
+        elif dst_coding == 'forward':
+            new_line = self._process_genotypes(
+                new_line, src_coding, ignore_coding_errors, dst_coding)
+
         else:
             raise NotImplementedError(
                 f"Destination coding '{dst_coding}' not supported")
