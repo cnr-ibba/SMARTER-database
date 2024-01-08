@@ -574,7 +574,7 @@ class SmarterMixin():
             The coding input type ('top', 'forward', ...)
         location : Location
             A smarterdb location used to check input genotype and coding and
-            to return the corresponing illumina top genotype (ex ['A', 'G'])
+            to return the corresponding illumina top genotype (ex ['A', 'G'])
 
         Raises
         ------
@@ -590,7 +590,7 @@ class SmarterMixin():
             The illumina top genotype as a list (ex ['A', 'G'])
         """
 
-        # for semplicity
+        # for simplicity
         a1, a2 = genotype
 
         # the returned value
@@ -681,6 +681,14 @@ class SmarterMixin():
         return top_genotype
 
     def _process_genotypes(self, line: list, coding: str, ignore_errors=False):
+    def _process_genotypes(
+            self,
+            line: list,
+            src_coding: str,
+            ignore_errors=False,
+            dst_coding: str = "top"):
+        """Process a single genotype record"""
+
         new_line = line.copy()
 
         # ok now is time to update genotypes
@@ -715,10 +723,15 @@ class SmarterMixin():
 
             # check and return illumina top genotype
             try:
-                top_genotype = self._to_top(i, genotype, coding, location)
+                if dst_coding == 'top':
+                    top_genotype = self._to_top(i, genotype, src_coding, location)
 
-                # replace alleles in ped line with top genotype
-                new_line[6+i*2], new_line[6+i*2+1] = top_genotype
+                    # replace alleles in ped line with top genotype
+                    new_line[6+i*2], new_line[6+i*2+1] = top_genotype
+
+                else:
+                    raise NotImplementedError(
+                        f"Destination coding '{dst_coding}' not supported")
 
             except CodingException as e:
                 if ignore_errors:
@@ -775,10 +788,11 @@ class SmarterMixin():
             self,
             line: list,
             dataset: Dataset,
-            coding: str,
+            src_coding: str,
             create_sample: bool = False,
             sample_field: str = "original_id",
-            ignore_coding_errors: bool = False):
+            ignore_coding_errors: bool = False,
+            dst_coding: str = "top"):
 
         self._check_file_sizes(line)
 
@@ -817,10 +831,14 @@ class SmarterMixin():
         new_line = self._process_relationship(new_line, sample)
 
         # check and fix genotypes if necessary
-        new_line = self._process_genotypes(
-            new_line, coding, ignore_coding_errors)
+        if dst_coding == 'top':
+            new_line = self._process_genotypes(
+                new_line, src_coding, ignore_coding_errors)
+        else:
+            raise NotImplementedError(
+                f"Destination coding '{dst_coding}' not supported")
 
-        # update ped line with sex accordingly to db informations
+        # update ped line with sex accordingly to db information
         if sample.sex and int(new_line[4]) != sample.sex.value:
             logger.warning(
                 f"Update sex for sample '{sample} {new_line[4]} -> "

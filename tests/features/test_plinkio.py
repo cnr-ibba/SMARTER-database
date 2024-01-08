@@ -406,6 +406,43 @@ class TextPlinkIOPed(
         reference = self.lines[0]
         self.assertEqual(reference, test)
 
+    def test_process_genotypes_dst_code_not_supported(self):
+        # first record is in top coding
+        line = self.lines[0]
+
+        # destination forward coding throws exception
+        self.assertRaisesRegex(
+            NotImplementedError,
+            "Destination coding 'forward' not supported",
+            self.plinkio._process_genotypes,
+            line,
+            "top",
+            False,
+            "forward"
+        )
+
+        # destination ab coding throws exception
+        self.assertRaisesRegex(
+            NotImplementedError,
+            "Destination coding 'ab' not supported",
+            self.plinkio._process_genotypes,
+            line,
+            "top",
+            False,
+            "ab"
+        )
+
+        # destination illumina coding throws exception
+        self.assertRaisesRegex(
+            NotImplementedError,
+            "Destination coding 'illumina' not supported",
+            self.plinkio._process_genotypes,
+            line,
+            "top",
+            False,
+            "illumina"
+        )
+
     def test_get_or_create_sample(self):
         # get a sample line
         line = self.lines[0]
@@ -630,7 +667,7 @@ class TextPlinkIOPed(
 
         self.assertEqual(reference, test)
 
-    def test_process_pedline_ignore_coding(self):
+    def test_process_pedline_ignore_coding_errors(self):
         # get a sample line
         line = self.lines[0]
 
@@ -669,6 +706,46 @@ class TextPlinkIOPed(
         del(reference[-2:])
 
         self.assertEqual(reference, test)
+
+    def test_process_pedline_dst_code_not_supported(self):
+        # get a sample line
+        line = self.lines[0]
+
+        # destination forward coding throws exception
+        self.assertRaisesRegex(
+            NotImplementedError,
+            "Destination coding 'forward' not supported",
+            self.plinkio._process_pedline,
+            line,
+            self.dataset,
+            "top",
+            True,
+            dst_coding="forward"
+        )
+
+        # destination ab coding throws exception
+        self.assertRaisesRegex(
+            NotImplementedError,
+            "Destination coding 'ab' not supported",
+            self.plinkio._process_pedline,
+            line,
+            self.dataset,
+            "top",
+            True,
+            dst_coding="ab"
+        )
+
+        # destination illumina coding throws exception
+        self.assertRaisesRegex(
+            NotImplementedError,
+            "Destination coding 'illumina' not supported",
+            self.plinkio._process_pedline,
+            line,
+            self.dataset,
+            "top",
+            True,
+            dst_coding="illumina"
+        )
 
     def get_relationships(self):
         """Helper function to define fake relationships"""
