@@ -171,7 +171,7 @@ def deal_with_illumina(
 @click.option(
     '--src_coding',
     type=click.Choice(
-        ['top', 'forward', 'ab'],
+        ['top', 'forward', 'ab', 'affymetrix'],
         case_sensitive=False),
     default="top", show_default=True,
     help="Illumina source coding format"
