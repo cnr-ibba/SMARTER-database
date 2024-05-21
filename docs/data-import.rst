@@ -268,7 +268,7 @@ So why convert genotypes into illumina TOP? Because illumina TOP SNPs are identi
 in different genome assemblies, and this means that if you have a new genome
 version you don't need to convert the genotype,
 you will need only to update the genomic positions of the SNPs.
-For such reason, each genotype importing script has a ``--coding`` option with
+For such reason, each genotype importing script has a ``--src_coding`` option with
 let you to specify the genotype coding of the source file. Source coding will be
 checked against SMARTER-database :py:class:`variant <src.features.smarterdb.VariantSpecies>`
 information in order to be converted in Illumina TOP coding.
@@ -292,12 +292,12 @@ script, like in the following example:
 .. code-block:: bash
 
     python src/data/import_from_plink.py --bfile AUTH_OVN50KV2_CHIOS_FRIZARTA/AUTH_OVN50KV2_CHI_FRI \
-        --dataset AUTH_OVN50KV2_CHIOS_FRIZARTA.zip --coding forward \
+        --dataset AUTH_OVN50KV2_CHIOS_FRIZARTA.zip --src_coding forward \
         --chip_name IlluminaOvineSNP50 --assembly OAR3
 
 The ``--bfile/--file`` options (mutually exclusive) let you to specify a file prefix
 (like PLINK does) for a binary/text file respectively. The ``--dataset`` option
-lets to specify which dataset contains the genotype file; ``--coding`` option lets
+lets to specify which dataset contains the genotype file; ``--src_coding`` option lets
 to specify the source coding (if the provided coding does not match with database data,
 the import process will fail). The ``--assembly`` parameter will be the destination
 assembly version of the converted genotypes. There are also other parameter, for

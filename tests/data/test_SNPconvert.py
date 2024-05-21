@@ -101,6 +101,44 @@ class SNPconvertTest(
             self.assertEqual(len(sample_list), 2)
             self.assertEqual(len(locus_list), 3)
 
+    def test_import_from_text_plink_dst_forward(self):
+        # create a temporary directory using the context manager
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            working_dir = pathlib.Path(tmpdirname)
+            results_dir = working_dir / "results"
+
+            # copy test data files
+            self.link_files(working_dir)
+
+            result = self.runner.invoke(
+                self.main_function,
+                [
+                    "--file",
+                    str(working_dir / "plinktest"),
+                    "--assembly",
+                    "OAR3",
+                    "--species",
+                    "Sheep",
+                    "--results_dir",
+                    results_dir,
+                    "--chip_name",
+                    self.chip_name,
+                    "--dst_coding",
+                    "forward",
+                ]
+            )
+
+            self.assertEqual(0, result.exit_code, msg=result.exception)
+
+            plink_path = results_dir / "plinktest_updated"
+            plink_file = plinkfile.open(str(plink_path))
+
+            sample_list = plink_file.get_samples()
+            locus_list = plink_file.get_loci()
+
+            self.assertEqual(len(sample_list), 2)
+            self.assertEqual(len(locus_list), 3)
+
     def test_import_from_text_plink_search_positions(self):
         # create a temporary directory using the context manager
         with tempfile.TemporaryDirectory() as tmpdirname:
@@ -225,7 +263,7 @@ class SNPconvertTest(
                     str(working_dir / "finalreport.txt"),
                     "--snpfile",
                     str(working_dir / "snplist.txt"),
-                    "--coding",
+                    "--src_coding",
                     "ab",
                     "--assembly",
                     "OAR3",
@@ -267,7 +305,7 @@ class SNPconvertTest(
                     str(working_dir / "finalreport.txt"),
                     "--snpfile",
                     str(working_dir / "snplist_3cols.txt"),
-                    "--coding",
+                    "--src_coding",
                     "ab",
                     "--assembly",
                     "OAR3",
@@ -305,7 +343,7 @@ class SNPconvertTest(
                 [
                     "--report",
                     str(working_dir / "finalreport.txt"),
-                    "--coding",
+                    "--src_coding",
                     "ab",
                     "--assembly",
                     "OAR3",

@@ -30,10 +30,11 @@ class CustomMixin():
             self,
             line: list,
             dataset: Dataset,
-            coding: str,
+            src_coding: str,
             create_sample: bool = False,
             sample_field: str = "original_id",
-            ignore_coding_errors: bool = False):
+            ignore_coding_errors: bool = False,
+            dst_coding: str = "top"):
 
         self._check_file_sizes(line)
 
@@ -45,8 +46,9 @@ class CustomMixin():
         # check and fix genotypes if necessary
         new_line = self._process_genotypes(
             new_line,
-            coding,
-            ignore_coding_errors)
+            src_coding,
+            ignore_coding_errors,
+            dst_coding)
 
         # need to remove filtered snps from ped line
         for index in sorted(self.filtered, reverse=True):
@@ -167,12 +169,20 @@ def deal_with_illumina(
     type=str,
     help="The illumina SNPlist file")
 @click.option(
-    '--coding',
+    '--src_coding',
     type=click.Choice(
-        ['top', 'forward', 'ab'],
+        ['top', 'forward', 'ab', 'affymetrix'],
         case_sensitive=False),
     default="top", show_default=True,
-    help="Illumina coding format"
+    help="Illumina source coding format"
+)
+@click.option(
+    '--dst_coding',
+    type=click.Choice(
+        ['top', 'forward'],
+        case_sensitive=False),
+    default="top", show_default=True,
+    help="Illumina destination coding format"
 )
 @click.option(
     '--assembly',
@@ -221,11 +231,12 @@ def deal_with_illumina(
     help=(
         'set SNP as missing when there are coding errors '
         '(no more CodingException)'))
-def main(file_, bfile, report, snpfile, coding, assembly, species, chip_name,
-         results_dir, search_field, search_by_positions, src_version,
-         src_imported_from, ignore_coding_errors):
+def main(
+        file_, bfile, report, snpfile, src_coding, dst_coding, assembly,
+        species, chip_name, results_dir, search_field, search_by_positions,
+        src_version, src_imported_from, ignore_coding_errors):
     """
-    Convert a PLINK/Illumina report file in a SMARTER-like ouput file, without
+    Convert a PLINK/Illumina report file in a SMARTER-like output file, without
     inserting data in SMARTER-database. Useful to convert data relying on
     SMARTER-database for private datasets (data which cannot be included in
     SMARTER-database)
@@ -296,9 +307,10 @@ def main(file_, bfile, report, snpfile, coding, assembly, species, chip_name,
     plinkio.update_pedfile(
         outputfile=output_ped,
         dataset=None,
-        coding=coding,
+        src_coding=src_coding,
         create_samples=False,
-        ignore_coding_errors=ignore_coding_errors
+        ignore_coding_errors=ignore_coding_errors,
+        dst_coding=dst_coding
     )
 
     # ok time to convert data in plink binary format

@@ -58,12 +58,12 @@ def get_output_files(reportpath: str, working_dir: Path, assembly: str):
     required=True,
     help="The illumina report file")
 @click.option(
-    '--coding',
+    '--src_coding',
     type=click.Choice(
         ['ab'],
         case_sensitive=False),
     default="ab", show_default=True,
-    help="Illumina coding format"
+    help="Illumina source coding format"
 )
 @click.option(
     '--breed_code',
@@ -84,11 +84,11 @@ def get_output_files(reportpath: str, working_dir: Path, assembly: str):
     is_flag=True,
     help="Create a new SampleSheep or SampleGoat object if doesn't exist")
 def main(
-        dataset, snpfile, report, coding, breed_code, chip_name, assembly,
+        dataset, snpfile, report, src_coding, breed_code, chip_name, assembly,
         create_samples):
     """
     Read genotype data from an Illumina report file and convert it
-    to the desidered assembly version using Illumina TOP coding
+    to the desired assembly version using Illumina TOP coding
     """
 
     logger.info(f"{Path(__file__).name} started")
@@ -153,7 +153,7 @@ def main(
     report.update_pedfile(
         output_ped,
         dataset,
-        coding,
+        src_coding,
         breed=breed_code,
         create_samples=create_samples
     )
