@@ -151,7 +151,7 @@ class UpdateManifestTest(
         # should have 4 variant in total, 2 illumina, 2 both, 1 affymetrix
         self.assertEqual(VariantSheep.objects.count(), 5)
 
-        # get the variation in common from two manifacturers
+        # get the variation in common from two manufacturers
         test = VariantSheep.objects.get(name="250506CS3900176800001_906.1")
 
         self.assertEqual(test.name, "250506CS3900176800001_906.1")

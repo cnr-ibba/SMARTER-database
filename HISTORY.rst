@@ -13,7 +13,13 @@ TODO
 * Map affymetrix snps in *OARV3* coordinates
 * Check if ``rs_id`` is still valid or not (with EVA)
 * Manage python packages with `poetry <https://python-poetry.org/>`__
+
+0.4.10.dev0
+-----------
+
 * Rename ``manifacturer`` into ``manufacturer``
+* Convert genotypes from *top* to *forward* (`111 <https://github.com/cnr-ibba/SMARTER-database/issues/111>`__)
+* Update dependencies
 
 0.4.9 (2023-09-27)
 ------------------

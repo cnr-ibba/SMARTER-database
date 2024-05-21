@@ -273,7 +273,7 @@ def main(species_class, input_dir, pattern, sender, version, imported_from):
 
     # determine the supported chips names
     supported_chips = SupportedChip.objects.filter(
-        manifacturer="illumina",
+        manufacturer="illumina",
         species=species_class.capitalize(),
     )
     supported_chips = [chip.name for chip in supported_chips]
