@@ -192,9 +192,11 @@ def deal_with_binary_plink(bfile: str, dataset: Dataset, assembly: str):
     help=(
         'set SNP as missing when there are coding errors '
         '(no more CodingException)'))
-def main(file_, bfile, dataset, src_coding, chip_name, assembly, create_samples,
-         sample_field, search_field, search_by_positions, src_version,
-         src_imported_from, ignore_coding_errors):
+def main(
+        file_, bfile, dataset, src_coding, chip_name, assembly,
+        create_samples,
+        sample_field, search_field, search_by_positions, src_version,
+        src_imported_from, ignore_coding_errors):
     """
     Read genotype data from a PLINK file (text or binary) and convert it
     to the desired assembly version using Illumina TOP coding

@@ -810,7 +810,8 @@ class SmarterMixin():
             # check and return illumina top genotype
             try:
                 if dst_coding == 'top':
-                    top_genotype = self._to_top(i, genotype, src_coding, location)
+                    top_genotype = self._to_top(
+                        i, genotype, src_coding, location)
 
                     # replace alleles in ped line with top genotype
                     new_line[6+i*2], new_line[6+i*2+1] = top_genotype
