@@ -12,15 +12,19 @@
         "Ensembl",
         "Frizarta",
         "INITDB",
+        "mapdata",
         "mongodump",
         "mongoexpress",
         "mongorestore",
         "pardir",
+        "pedfile",
         "plinkio",
+        "probeset",
         "SGID",
         "smarterdb",
         "SNPCHIMP",
         "tabix",
+        "tqdm",
         "vcftools"
     ]
 }

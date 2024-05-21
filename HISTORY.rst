@@ -17,8 +17,9 @@ TODO
 0.4.10.dev0
 -----------
 
+* Add data for Guisandesa goats (`#117 <https://github.com/cnr-ibba/SMARTER-database/issues/117>`)
 * Rename ``manifacturer`` into ``manufacturer``
-* Convert genotypes from *top* to *forward* (`111 <https://github.com/cnr-ibba/SMARTER-database/issues/111>`__)
+* Convert genotypes from *top* to *forward* (`#111 <https://github.com/cnr-ibba/SMARTER-database/issues/111>`__)
 * Update dependencies
 
 0.4.9 (2023-09-27)
@@ -28,7 +29,7 @@ TODO
 * Add sex for *Fosses, Provencale* goat breeds
 * Add *sex* while importing metadata
 * Load multiple phenotypes for *Boutsko foreground* sheeps
-* Add multiple phenotypes as a list (`103 <https://github.com/cnr-ibba/SMARTER-database/issues/103>`__)
+* Add multiple phenotypes as a list (`#103 <https://github.com/cnr-ibba/SMARTER-database/issues/103>`__)
 * Update *datasets* metadata
 * Update dependencies
 
