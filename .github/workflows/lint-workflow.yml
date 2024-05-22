@@ -32,11 +32,12 @@ jobs:
             hashFiles('environment.yml') }}
 
       - name: Setup conda
-        uses: conda-incubator/setup-miniconda@v2
+        uses: conda-incubator/setup-miniconda@v3
         with:
+          auto-update-conda: false
           activate-environment: SMARTER-database
           channel-priority: strict
-          environment-file: environment.yml
+          environment-file: conda-linux-64.lock
           use-only-tar-bz2: true # IMPORTANT: This needs to be set for caching to work properly!
 
       - name: Cache pip
