@@ -1152,6 +1152,37 @@ class Location(mongoengine.EmbeddedDocument):
 
         return result
 
+    def top2forward(self, genotype: list, missing: list = ["0", "-"]) -> list:
+        """Convert an illumina top SNP in a illumina forward snp
+
+        Args:
+            genotype (list): a list of two alleles (ex ['A','C'])
+            missing (list): a list of missing allele strings (def ["0", "-"])
+
+        Returns:
+            list: The genotype in forward format
+        """
+
+        # get illumina data as an array
+        forward = self.illumina_forward.split("/")
+        top = self.illumina_top.split("/")
+
+        result = []
+
+        for allele in genotype:
+            # mind to missing values
+            if allele in missing:
+                result.append("0")
+
+            elif allele not in top:
+                raise SmarterDBException(
+                    f"{genotype} is not in top coding")
+
+            else:
+                result.append(forward[top.index(allele)])
+
+        return result
+
     def ab2top(self, genotype: list, missing: list = ["0", "-"]) -> list:
         """Convert an illumina ab SNP in a illumina top snp
 

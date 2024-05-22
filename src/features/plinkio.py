@@ -574,7 +574,7 @@ class SmarterMixin():
             The coding input type ('top', 'forward', ...)
         location : Location
             A smarterdb location used to check input genotype and coding and
-            to return the corresponing illumina top genotype (ex ['A', 'G'])
+            to return the corresponding illumina top genotype (ex ['A', 'G'])
 
         Raises
         ------
@@ -590,7 +590,7 @@ class SmarterMixin():
             The illumina top genotype as a list (ex ['A', 'G'])
         """
 
-        # for semplicity
+        # for simplicity
         a1, a2 = genotype
 
         # the returned value
@@ -680,7 +680,101 @@ class SmarterMixin():
 
         return top_genotype
 
-    def _process_genotypes(self, line: list, coding: str, ignore_errors=False):
+    def _to_forward(
+            self, index: int, genotype: list, coding: str,
+            location: Location) -> list:
+        """
+        Check genotype with coding and returns illumina_forward alleles
+
+        Parameters
+        ----------
+        index: int
+            The i-th SNP received
+        genotype : list
+            The genotype as a list (ex: ['A', 'G'])
+        coding : str
+            The coding input type ('top', 'forward', ...)
+        location : Location
+            A smarterdb location used to check input genotype and coding and
+            to return the corresponding illumina forward genotype (ex
+            ['T', 'C'])
+
+        Raises
+        ------
+        CodingException
+            Raised when input genotype hasn't a match in the smarter database
+            with the provided coding
+        NotImplementedError
+            A coding format not yet supported (implemented)
+
+        Returns
+        -------
+        list
+            The illumina forward genotype as a list (ex ['T', 'C'])
+        """
+
+        # for simplicity
+        a1, a2 = genotype
+
+        # the returned value
+        forward_genotype = []
+
+        # define a dictionary with useful data
+        config = {
+            'top': {
+                'check': 'is_top',
+                'convert': 'top2forward',
+                'message': (
+                    f"Error for SNP {index}: '{self.mapdata[index].name}': "
+                    f"{a1}/{a2} <> {location.illumina_top}"
+                ),
+                'exception': (
+                    f"SNP '{self.mapdata[index].name}' is "
+                    "not in illumina top format"
+                )
+            }
+        }
+
+        if coding == 'forward':
+            if not location.is_forward(genotype):
+                logger.debug(
+                    f"Error for SNP {index}: '{self.mapdata[index].name}': "
+                    f"{a1}/{a2} <> {location.illumina_forward}"
+                )
+                raise CodingException(
+                    f"SNP '{self.mapdata[index].name}' is "
+                    "not in illumina forward format")
+
+            # allele coding is the same received as input
+            forward_genotype = genotype
+
+        elif coding in config:
+            # get the proper method to check genotype
+            check = getattr(location, config[coding]['check'])
+
+            if not check(genotype):
+                logger.debug(config[coding]['message'])
+                raise CodingException(config[coding]['exception'])
+
+            # get the proper method to convert genotype
+            convert = getattr(location, config[coding]['convert'])
+
+            # change the allele coding
+            forward_genotype = convert(genotype)
+
+        else:
+            raise NotImplementedError(f"Coding '{coding}' not supported")
+
+        return forward_genotype
+
+    def _process_genotypes(
+            self,
+            line: list,
+            src_coding: str,
+            ignore_errors=False,
+            dst_coding: str = "top"):
+        """Process a single genotype record"""
+
         new_line = line.copy()
 
         # ok now is time to update genotypes
@@ -691,16 +785,6 @@ class SmarterMixin():
 
             genotype = [a1, a2]
 
-            # xor condition: https://stackoverflow.com/a/433161/4385116
-            if (a1 in ["0", "-"]) != (a2 in ["0", "-"]):
-                logger.warning(
-                    f"Found half-missing SNP in {new_line[1]}: {i*2}: "
-                    f"[{a1}/{a2}]. Forcing SNP to be MISSING")
-
-                new_line[6+i*2], new_line[6+i*2+1] = ["0", "0"]
-
-                continue
-
             # is this snp filtered out
             if i in self.filtered:
                 logger.debug(
@@ -710,15 +794,38 @@ class SmarterMixin():
 
                 continue
 
+            # xor condition: https://stackoverflow.com/a/433161/4385116
+            if (a1 in ["0", "-"]) != (a2 in ["0", "-"]):
+                logger.warning(
+                    f"Found half-missing SNP in {new_line[1]}: {i}: "
+                    f"[{a1}/{a2}]. Forcing SNP to be MISSING")
+
+                new_line[6+i*2], new_line[6+i*2+1] = ["0", "0"]
+
+                continue
+
             # get the proper position
             location = self.src_locations[i]
 
             # check and return illumina top genotype
             try:
-                top_genotype = self._to_top(i, genotype, coding, location)
+                if dst_coding == 'top':
+                    top_genotype = self._to_top(
+                        i, genotype, src_coding, location)
 
-                # replace alleles in ped line with top genotype
-                new_line[6+i*2], new_line[6+i*2+1] = top_genotype
+                    # replace alleles in ped line with top genotype
+                    new_line[6+i*2], new_line[6+i*2+1] = top_genotype
+
+                elif dst_coding == 'forward':
+                    forward_genotype = self._to_forward(
+                        i, genotype, src_coding, location)
+
+                    # replace alleles in ped line with forward genotype
+                    new_line[6+i*2], new_line[6+i*2+1] = forward_genotype
+
+                else:
+                    raise NotImplementedError(
+                        f"Destination coding '{dst_coding}' not supported")
 
             except CodingException as e:
                 if ignore_errors:
@@ -775,10 +882,11 @@ class SmarterMixin():
             self,
             line: list,
             dataset: Dataset,
-            coding: str,
+            src_coding: str,
             create_sample: bool = False,
             sample_field: str = "original_id",
-            ignore_coding_errors: bool = False):
+            ignore_coding_errors: bool = False,
+            dst_coding: str = "top"):
 
         self._check_file_sizes(line)
 
@@ -817,10 +925,15 @@ class SmarterMixin():
         new_line = self._process_relationship(new_line, sample)
 
         # check and fix genotypes if necessary
-        new_line = self._process_genotypes(
-            new_line, coding, ignore_coding_errors)
+        if dst_coding in ['top', 'forward']:
+            new_line = self._process_genotypes(
+                new_line, src_coding, ignore_coding_errors, dst_coding)
 
-        # update ped line with sex accordingly to db informations
+        else:
+            raise NotImplementedError(
+                f"Destination coding '{dst_coding}' not supported")
+
+        # update ped line with sex accordingly to db information
         if sample.sex and int(new_line[4]) != sample.sex.value:
             logger.warning(
                 f"Update sex for sample '{sample} {new_line[4]} -> "
@@ -839,10 +952,11 @@ class SmarterMixin():
             self,
             outputfile: str,
             dataset: Dataset,
-            coding: str,
+            src_coding: str,
             create_samples: bool = False,
             sample_field: str = "original_id",
             ignore_coding_errors: bool = False,
+            dst_coding: str = "top",
             *args,
             **kwargs):
         """
@@ -852,13 +966,16 @@ class SmarterMixin():
         Args:
             outputfile (str): write ped to this path (overwrite if exists)
             dataset (Dataset): the dataset we are converting
-            coding (str): the source coding (could be 'top', 'ab', 'forward')
+            src_coding (str): the source coding (could be 'top', 'ab',
+                'forward')
             create_samples (bool): create samples if not exist (useful to
                 create samples directly from ped file)
             sample_field (str): search samples using this attribute (def.
                 'original_id')
             ignore_coding_errors (bool): ignore coding related errors (no
                 more exceptions when genotypes don't match)
+            dst_coding (str): the destination coding (could be 'top' or
+                'forward')
         """
 
         if ignore_coding_errors:
@@ -881,10 +998,11 @@ class SmarterMixin():
                 new_line = self._process_pedline(
                     line,
                     dataset,
-                    coding,
+                    src_coding,
                     create_samples,
                     sample_field,
-                    ignore_coding_errors)
+                    ignore_coding_errors,
+                    dst_coding)
 
                 if new_line:
                     # write updated line into updated ped file

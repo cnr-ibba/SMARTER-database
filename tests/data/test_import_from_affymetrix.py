@@ -242,7 +242,7 @@ class TestImportFromAffyReport(AffyTestMixin, unittest.TestCase):
                     "Oar_v4.0",
                     "--src_imported_from",
                     "affymetrix",
-                    "--coding",
+                    "--src_coding",
                     "ab"
                 ]
             )
@@ -302,7 +302,7 @@ class TestImportFromAffyReport(AffyTestMixin, unittest.TestCase):
                     "Oar_v4.0",
                     "--src_imported_from",
                     "affymetrix",
-                    "--coding",
+                    "--src_coding",
                     "ab",
                     "--max_samples",
                     "1"
@@ -363,7 +363,7 @@ class TestImportFromAffyReport(AffyTestMixin, unittest.TestCase):
                     "Oar_v4.0",
                     "--src_imported_from",
                     "affymetrix",
-                    "--coding",
+                    "--src_coding",
                     "ab",
                     "--skip_coordinate_check"
                 ]
