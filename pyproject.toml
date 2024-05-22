@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "smarter-database"
+name = "src"
 version = "0.4.10"
 description = "Smarter Database aims to deal with Smarter data"
 authors = ["Paolo Cozzi <bunop@libero.it>"]
