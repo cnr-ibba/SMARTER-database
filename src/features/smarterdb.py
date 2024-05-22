@@ -213,7 +213,7 @@ class SupportedChip(mongoengine.Document):
     species = mongoengine.StringField(required=True)
     """The species for which a chip is defined"""
 
-    manifacturer = mongoengine.StringField()
+    manufacturer = mongoengine.StringField()
     """Who created the chip"""
 
     n_of_snps = mongoengine.IntField()

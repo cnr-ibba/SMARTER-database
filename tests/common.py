@@ -217,7 +217,7 @@ class VariantGoatMixin(VariantSpecieMixin):
 
 class SupportedChipMixin():
     chip_name = "IlluminaOvineSNP50"
-    manifacturer = "illumina"
+    manufacturer = "illumina"
 
     @classmethod
     def setUpClass(cls):
@@ -225,7 +225,7 @@ class SupportedChipMixin():
 
         cls.chip = SupportedChip(
             name=cls.chip_name,
-            manifacturer=cls.manifacturer,
+            manufacturer=cls.manufacturer,
             species="Sheep")
         cls.chip.save()
 

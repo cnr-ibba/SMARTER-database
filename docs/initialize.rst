@@ -83,7 +83,7 @@ such JSON file:
         {
             "name": "IlluminaOvineSNP50",
             "species": "Sheep",
-            "manifacturer": "illumina",
+            "manufacturer": "illumina",
             "n_of_snps": 0
         },
         {

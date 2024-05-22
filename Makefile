@@ -72,6 +72,8 @@ initialize: requirements
 	$(PYTHON_INTERPRETER) src/data/import_iggc.py --datafile data/external/GOA/CONSORTIUM/capri4dbsnp-base-CHI-ARS-OAR-UMD.csv.gz \
 		--version CHI1.0 --date "06 Mar 2018" --chrom_column chi_1_0_chr --pos_column chi_1_0_pos --strand_column chi_1_0_strand
 	$(PYTHON_INTERPRETER) src/data/import_dbsnp.py --input_dir data/external/GOA/dbSNP --species_class Goat --sender IGGC --version CHI1.0
+	$(PYTHON_INTERPRETER) src/data/import_affymetrix.py --species_class goat --manifest data/external/GOA/AFFYMETRIX/Axiom_Goat_v2.r1.a1.annot.csv.gz \
+		--chip_name AffymetrixAxiomGoatv2 --version ARS1
 
 	## TODO: donwload data from EVA and EnsEMBL
 
@@ -141,6 +143,7 @@ data: requirements
 	$(PYTHON_INTERPRETER) src/data/add_breed.py --species_class sheep --name Texel --code TEX --alias TEX --dataset "OP925-969 1046-1085 1010-1020_20220323_texel_SMARTER.zip"
 	$(PYTHON_INTERPRETER) src/data/add_breed.py --species_class sheep --name Texel --code TEX --alias TEX --dataset "OP1586-1666 OP1087-1106 Placa6 Corr_Tex_Genotyping_20220810_SMARTER.zip"
 	$(PYTHON_INTERPRETER) src/data/add_breed.py --species_class sheep --name Corriedale --code CRR --alias CRR --dataset "OP1586-1666 OP1087-1106 Placa6 Corr_Tex_Genotyping_20220810_SMARTER.zip"
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species_class Goat --name Guisandesa --code GUI --alias Goat --dataset Guisandesa.zip
 
 	## load breeds into database relying on dataset
 	$(PYTHON_INTERPRETER) src/data/import_breeds.py --species_class Sheep --src_dataset="High density genotypes of French Sheep populations.zip" \
@@ -423,6 +426,9 @@ data: requirements
 	$(PYTHON_INTERPRETER) src/data/import_samples.py --src_dataset cortellari_et_al_2021.zip \
 		--datafile s41598-021-89900-2/cortellari_samples_fix.xlsx --code_column fid --id_column original_id \
 		--chip_name IlluminaGoatSNP50 --country_all Italy --species_all Goat
+	$(PYTHON_INTERPRETER) src/data/import_samples.py --src_dataset Guisandesa.zip \
+		--datafile Guisandesa/Guisandesa.xlsx --code_all GUI --id_column original_id \
+		--chip_name AffymetrixAxiomGoatv2 --country_all Spain --species_all Goat
 
 	## convert genotypes without creating samples in database (GOAT)
 	$(foreach ASSEMBLY, $(GOAT_ASSEMBLIES), $(PYTHON_INTERPRETER) src/data/import_from_plink.py --bfile ADAPTmap_genotypeTOP_20161201/binary_fileset/ADAPTmap_genotypeTOP_20161201 \
@@ -434,6 +440,9 @@ data: requirements
 		--dataset burren_et_al_2016.zip --chip_name IlluminaGoatSNP50 --assembly $(ASSEMBLY) --sample_field alias;)
 	$(foreach ASSEMBLY, $(GOAT_ASSEMBLIES), $(PYTHON_INTERPRETER) src/data/import_from_plink.py --bfile s41598-021-89900-2/Cortellari2021 \
 		--dataset cortellari_et_al_2021.zip --chip_name IlluminaGoatSNP50 --assembly $(ASSEMBLY);)
+	$(foreach ASSEMBLY, $(GOAT_ASSEMBLIES), $(PYTHON_INTERPRETER) src/data/import_from_plink.py --file "Guisandesa/Guisandesa Goat" \
+		--dataset Guisandesa.zip --src_coding affymetrix --chip_name AffymetrixAxiomGoatv2 --assembly $(ASSEMBLY) \
+		--search_field probeset_id --src_version ARS1 --src_imported_from affymetrix;)
 
 	## add additional metadata to samples
 	$(PYTHON_INTERPRETER) src/data/import_metadata.py --src_dataset "High density genotypes of French Sheep populations.zip" \
@@ -603,6 +612,9 @@ data: requirements
 		--dst_dataset SMARTER_CHFR.zip --datafile SMARTER_CHFR_phenotypes/pierre_animals.xlsx \
 		--id_column original_id --metadata_column animal_id --metadata_column lab_id \
 		--metadata_column owner --metadata_column milk_recording --sex_column sex
+	$(PYTHON_INTERPRETER) src/data/import_metadata.py --src_dataset Guisandesa.zip \
+		--datafile Guisandesa/Guisandesa.xlsx --id_column original_id \
+		--latitude_column latitude --longitude_column longitude
 
 	## add phenotypes to samples
 	$(PYTHON_INTERPRETER) src/data/import_phenotypes.py --src_dataset ADAPTmap_phenotype_20161201.zip \
