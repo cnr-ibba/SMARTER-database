@@ -47,7 +47,7 @@ def main(input_filepath, types):
         header = next(reader)
 
         # remove header id
-        del(header[0])
+        del header[0]
 
         # sanitize column
         header = [sanitize(col) for col in header]
@@ -59,7 +59,7 @@ def main(input_filepath, types):
 
         for line in reader:
             # remove id from record
-            del(line[0])
+            del line[0]
 
             # remove empty values
             line = [col if col != '' else None for col in line]

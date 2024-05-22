@@ -502,7 +502,7 @@ class IlluSNP():
 
         logger.debug("Found %s in position %s" % (snp, position))
 
-        return(snp, position)
+        return snp, position
 
     def isUnambiguous(self, snp):
         """Return True if snp is unambiguous"""

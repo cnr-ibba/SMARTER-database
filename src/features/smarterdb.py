@@ -13,7 +13,7 @@ import pycountry
 import mongoengine
 
 from enum import Enum
-from typing import Union
+from typing import List, Tuple, Union
 
 from pymongo import database, ReturnDocument, MongoClient
 from dotenv import find_dotenv, load_dotenv
@@ -179,7 +179,7 @@ class Country(mongoengine.Document):
     def __init__(self, name: str = None, *args, **kwargs):
         # fix species type if necessary
         if "species" in kwargs:
-            if type(kwargs["species"]) == str:
+            if isinstance(kwargs["species"], str):
                 kwargs["species"] = [kwargs["species"]]
 
         # initialize base object
@@ -295,8 +295,8 @@ class Breed(mongoengine.Document):
 
 
 def get_or_create_breed(
-        species_class: str, name: str, code: str, aliases: list = []) -> [
-            Breed, bool]:
+        species_class: str, name: str, code: str,
+        aliases: List[BreedAlias] = []) -> Tuple[Breed, bool]:
     """
     Get a Breed instance or create a new one (or update a breed adding a new
     :py:class:`BreedAlias`)
@@ -580,7 +580,7 @@ class SEX(bytes, Enum):
             SEX: A sex instance (MALE, FEMALE, UNKNOWN)
         """
 
-        if type(value) != str:
+        if not isinstance(value, str):
             raise SmarterDBException("Provided value should be a 'str' type")
 
         value = value.upper()
