@@ -1,0 +1,29 @@
+[tool.poetry]
+name = "smarter-database"
+version = "0.4.10"
+description = "Smarter Database aims to deal with Smarter data"
+authors = ["Paolo Cozzi <bunop@libero.it>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "~3.12"
+jupyterlab = "^4.2.0"
+coverage = "^7.5.1"
+pytest = "^8.2.1"
+click = "^8.1.7"
+pycountry = "^23.12.11"
+mongoengine = "^0.28.2"
+python-dotenv = "^1.0.1"
+tqdm = "^4.66.4"
+plinkio = {git = "https://github.com/bunop/libplinkio.git", rev = "bc1c13507cf5c2d60ffe20e12a1997021f37ceb4"}
+biopython = "^1.83"
+lxml = "^5.2.2"
+pandas = "^2.2.2"
+openpyxl = "^3.1.2"
+click-option-group = "^0.5.6"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
