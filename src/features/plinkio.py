@@ -890,7 +890,7 @@ class SmarterMixin():
 
         self._check_file_sizes(line)
 
-        logger.debug(f"Processing {line[:10]+ ['...']}")
+        logger.debug(f"Processing {line[:10] + ['...']}")
 
         # check for breed in database reling on fid.
         try:
@@ -1007,7 +1007,7 @@ class SmarterMixin():
                 if new_line:
                     # write updated line into updated ped file
                     logger.debug(
-                        f"Writing: {new_line[:10]+ ['...']} "
+                        f"Writing: {new_line[:10] + ['...']} "
                         f"({int((len(new_line)-6)/2)} SNPs)")
                     writer.writerow(new_line)
 
@@ -1015,7 +1015,7 @@ class SmarterMixin():
 
                 else:
                     logger.warning(
-                        f"Skipping: {line[:10]+ ['...']} "
+                        f"Skipping: {line[:10] + ['...']} "
                         f"({int((len(line)-6)/2)} SNPs)"
                     )
 
@@ -1719,7 +1719,7 @@ class AffyReportIO(FakePedMixin, SmarterMixin):
             # instantiate a new object in order to be modified
             line = line.copy()
 
-            logger.debug(f"Prepare {line[:10]+ ['...']} to add FID")
+            logger.debug(f"Prepare {line[:10] + ['...']} to add FID")
 
             if not breed:
                 try:

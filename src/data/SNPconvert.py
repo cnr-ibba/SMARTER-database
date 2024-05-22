@@ -38,7 +38,7 @@ class CustomMixin():
 
         self._check_file_sizes(line)
 
-        logger.debug(f"Processing {line[:10]+ ['...']}")
+        logger.debug(f"Processing {line[:10] + ['...']}")
 
         # a new line obj
         new_line = line.copy()

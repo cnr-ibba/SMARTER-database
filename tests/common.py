@@ -12,6 +12,7 @@ import logging
 
 from dateutil.parser import parse as parse_date
 
+import mongomock
 from mongoengine import connect, disconnect, connection
 
 import src.features.smarterdb
@@ -30,7 +31,8 @@ class MongoMockMixin():
     def setUpClass(cls):
         src.features.smarterdb.CLIENT = connect(
             'mongoenginetest',
-            host='mongomock://localhost',
+            host='mongodb://localhost',
+            mongo_client_class=mongomock.MongoClient,
             alias=DB_ALIAS)
 
         _ = connection.get_db(alias=DB_ALIAS)
