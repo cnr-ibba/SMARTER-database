@@ -316,14 +316,14 @@ class testIlluSNP(unittest.TestCase):
                              msg="Testing ambiguous %s" % (snp))
 
     def test_toTop(self):
-        # Trasnlate a BOT snp in TOP
+        # Translate a BOT snp in TOP
         illu_snp = IlluSNP(sequence="AGGAGGCTAG[T/G]CTCGCAGAGC")
         test = illu_snp.toTop()
         ref = IlluSNP(sequence="GCTCTGCGAG[A/C]CTAGCCTCCT")
 
         self.assertEqual(test, ref)
 
-        # get ifself if already in bot
+        # get itself if already in bot
         illu_snp = IlluSNP(sequence="GCTCTGCGAG[A/C]CTAGCCTCCT")
         test = illu_snp.toTop()
 

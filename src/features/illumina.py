@@ -539,11 +539,11 @@ class IlluSNP():
 
         # get reverse complement of the sequence
         reverse = Bio.Seq.MutableSeq(sequence)
-        reverse.reverse_complement()
+        reverse.reverse_complement(inplace=True)
 
         # mind to complement the SNP
         snp = Bio.Seq.MutableSeq(self.illumina)
-        snp.complement()
+        snp.complement(inplace=True)
         snp = "/".join(str(snp).split("/"))
 
         # insert SNP into sequence
