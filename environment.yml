@@ -1,29 +1,19 @@
 name: SMARTER-database
+
 channels:
   - bioconda
-  - defaults
+  - conda-forge
+  - nodefaults
+
 dependencies:
-  - _libgcc_mutex=0.1
-  - ca-certificates=2021.1.19
-  - certifi=2020.12.5
-  - ld_impl_linux-64=2.33.1
-  - libedit=3.1.20191231
-  - libffi=3.3
-  - libgcc-ng=9.1.0
-  - libstdcxx-ng=9.1.0
-  - ncurses=6.2
-  - openssl=1.1.1i
-  - pip=20.3.3
-  - plink=1.90b6.18
-  - python=3.9.1
-  - readline=8.1
-  - setuptools=52.0.0
-  - sqlite=3.33.0
-  - tabix=0.2.6
-  - tk=8.6.10
-  - tzdata=2020f
-  - vcftools=0.1.16
-  - wheel=0.36.2
-  - xz=5.2.5
-  - zlib=1.2.11
-prefix: /home/paolo/Softwares/anaconda3/envs/SMARTER-database
+  - python=3.12
+  - pip
+  - poetry=1.8
+  - plink
+  - tabix
+  - vcftools
+  - bcftools
+
+# Non-standard section listing target platforms for conda-lock:
+platforms:
+  - linux-64
