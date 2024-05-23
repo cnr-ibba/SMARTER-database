@@ -13,8 +13,14 @@ import logging
 import pathlib
 import collections
 
+from pycountry import countries
+
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
+
+# manage custom countries
+# english name for turkey
+countries.add_entry(alpha_2="TR", alpha_3="TUR", name="Turkey", numeric="792", official_name='Republic of Türkiye')
 
 
 def sanitize(

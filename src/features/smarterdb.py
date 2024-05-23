@@ -9,7 +9,6 @@ Created on Tue Feb 23 16:21:35 2021
 import os
 import logging
 import pathlib
-import pycountry
 import mongoengine
 
 from enum import Enum
@@ -18,7 +17,7 @@ from typing import List, Tuple, Union
 from pymongo import database, ReturnDocument, MongoClient
 from dotenv import find_dotenv, load_dotenv
 
-from .utils import get_project_dir, UnknownCountry
+from .utils import get_project_dir, UnknownCountry, countries
 
 SPECIES2CODE = {
     "Sheep": "OA",
@@ -192,7 +191,7 @@ class Country(mongoengine.Document):
             if name.lower() == "unknown":
                 country = UnknownCountry()
             else:
-                country = pycountry.countries.get(name=name)
+                country = countries.get(name=name)
 
             if country:
                 self.alpha_2 = country.alpha_2
@@ -530,7 +529,7 @@ def getSmarterId(
     if country.lower() == "unknown":
         country = UnknownCountry()
     else:
-        country = pycountry.countries.get(name=country)
+        country = countries.get(name=country)
 
     # get two letter code for country
     country_code = country.alpha_2
