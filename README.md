@@ -61,7 +61,7 @@ Project Organization
     ├── requirements.txt    <- The requirements file for reproducing the analysis environment, e.g.
     │                          generated with `pip freeze > requirements.txt`
     ├── setup.py            <- makes project pip installable (pip install -e .) so src can be imported
-    ├── test_environment.py <- Helper script to test if environment is properly set
+    └── test_environment.py <- Helper script to test if environment is properly set
     └── tox.ini             <- Tox file with settings for running tox; see tox.readthedocs.io
 
 --------
