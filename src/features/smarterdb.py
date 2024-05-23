@@ -166,7 +166,7 @@ class Country(mongoengine.Document):
     """The country numeric code"""
 
     official_name = mongoengine.StringField()
-    """Country ufficial name"""
+    """Country official name"""
 
     species = mongoengine.ListField(mongoengine.StringField())
     """The sample species find within this country"""
@@ -183,19 +183,21 @@ class Country(mongoengine.Document):
                 kwargs["species"] = [kwargs["species"]]
 
         # initialize base object
-        super(Country, self).__init__(*args, **kwargs)
+        super(Country, self).__init__(*args, name=name, **kwargs)
 
-        if name:
+        if not self.id and name:
+            logger.warning(f"Creating country object for '{name}'")
+
             # get a country object
             if name.lower() == "unknown":
                 country = UnknownCountry()
             else:
                 country = pycountry.countries.get(name=name)
 
-            self.alpha_2 = country.alpha_2
-            self.alpha_3 = country.alpha_3
-            self.name = name
-            self.numeric = country.numeric
+            if country:
+                self.alpha_2 = country.alpha_2
+                self.alpha_3 = country.alpha_3
+                self.numeric = country.numeric
 
             if hasattr(country, "official_name"):
                 self.official_name = country.official_name
