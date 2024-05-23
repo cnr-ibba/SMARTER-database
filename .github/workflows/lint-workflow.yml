@@ -18,10 +18,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - name: Cache conda
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         env:
           # Increase this value to reset cache if environment.yml has not changed
           CACHE_NUMBER: 0
@@ -40,15 +40,15 @@ jobs:
           environment-file: conda-linux-64.lock
           use-only-tar-bz2: true # IMPORTANT: This needs to be set for caching to work properly!
 
-      - name: Cache pip
-        uses: actions/cache@v3
+      - name: Cache poetry
+        uses: actions/cache@v4
         with:
           # This path is specific to Ubuntu
-          path: ~/.cache/pip
+          path: /.cache/pypoetry
           # Look to see if there is a cache hit for the corresponding requirements file
-          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+          key: ${{ runner.os }}-poetry-${{ hashFiles('poetry.lock') }}
           restore-keys: |
-            ${{ runner.os }}-pip-
+            ${{ runner.os }}-poetry-
             ${{ runner.os }}-
 
       - name: Conda info

@@ -102,6 +102,8 @@ def main(species_class, src_dataset, dst_dataset, datafile, code_column,
         # dealing with original file
         alias = BreedAlias(fid=fid, dataset=dst_dataset, country=country)
 
+        logger.debug(f"Got alias: {alias}")
+
         try:
             breed, modified = get_or_create_breed(
                 species_class=species_class.capitalize(),

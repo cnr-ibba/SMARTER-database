@@ -59,7 +59,7 @@ SMARTER-database requirements
 *SMARTER-database* is managed through a `conda <https://www.anaconda.com/products/distribution>`__
 environment, in which python executable
 and other non-python dependencies are specified. Moreover, python dependencies are
-managed through a ``requirements.txt`` file. Dependencies and environment set up
+managed using `poetry <https://python-poetry.org/>`__. Dependencies and environment set up
 is managed through the GNU linux ``make`` command. The MongoDB instance of this project is managed
 by `docker <https://www.docker.com/>`__ and `docker-compose <https://docs.docker.com/compose/>`__,
 however you can configure an environment variable to set up a connection with
