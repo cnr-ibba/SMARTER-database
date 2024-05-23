@@ -147,7 +147,7 @@ data: requirements
 
 	## load breeds into database relying on dataset
 	$(PYTHON_INTERPRETER) src/data/import_breeds.py --species_class Sheep --src_dataset="High density genotypes of French Sheep populations.zip" \
-		--datafile Populations_infos_fix.xlsx --code_column Code --breed_column "Population Name"
+		--datafile Populations_infos_fix.xlsx --code_column Code --breed_column "Population Name" --country_column Country
 	$(PYTHON_INTERPRETER) src/data/import_breeds.py --species_class Sheep --src_dataset=ovine_SNP50HapMap_data.zip \
 		--datafile ovine_SNP50HapMap_data/kijas2012_dataset_fix.xlsx --code_column code --breed_column Breed \
 		--fid_column Breed --country_column country
