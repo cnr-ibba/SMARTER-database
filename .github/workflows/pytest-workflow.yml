@@ -18,10 +18,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - name: Cache conda
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         env:
           # Increase this value to reset cache if environment.yml has not changed
           CACHE_NUMBER: 0
@@ -41,7 +41,7 @@ jobs:
           use-only-tar-bz2: true # IMPORTANT: This needs to be set for caching to work properly!
 
       - name: Cache poetry
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           # This path is specific to Ubuntu
           path: /.cache/pypoetry
