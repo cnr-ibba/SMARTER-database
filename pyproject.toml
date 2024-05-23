@@ -28,6 +28,9 @@ sphinx = "^7.3.7"
 sphinx-rtd-theme = "^2.0.0"
 sphinx-click = "^6.0.0"
 autodocsumm = "^0.2.12"
+matplotlib = "^3.9.0"
+shapely = "^2.0.4"
+geopandas = "^0.14.4"
 
 
 [build-system]
