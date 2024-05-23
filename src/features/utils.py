@@ -12,6 +12,7 @@ import gzip
 import logging
 import pathlib
 import collections
+from typing import Tuple, List
 
 from pycountry import countries
 
@@ -20,7 +21,9 @@ logger = logging.getLogger(__name__)
 
 # manage custom countries
 # english name for turkey
-countries.add_entry(alpha_2="TR", alpha_3="TUR", name="Turkey", numeric="792", official_name='Republic of Türkiye')
+countries.add_entry(
+    alpha_2="TR", alpha_3="TUR", name="Turkey", numeric="792",
+    official_name='Republic of Türkiye')
 
 
 def sanitize(
@@ -177,7 +180,8 @@ def find_duplicates(header: list) -> list:
     return to_remove
 
 
-def skip_comments(handle: io.TextIOWrapper, comment_char="#") -> (int, list):
+def skip_comments(
+        handle: io.TextIOWrapper, comment_char="#") -> Tuple[int, List[str]]:
     """
     Ignore comments lines from a open file handle. Return the stream position
     immediately after the comments and all the comment lines in a list.
@@ -191,7 +195,7 @@ def skip_comments(handle: io.TextIOWrapper, comment_char="#") -> (int, list):
 
     Returns
     -------
-    (int, list)
+    Tuple[int, List[str]]
         The stream position after the comments and the ignored lines as a list.
     """
 
