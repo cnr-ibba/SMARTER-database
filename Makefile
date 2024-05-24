@@ -92,6 +92,7 @@ data: requirements
 	$(PYTHON_INTERPRETER) src/data/add_breed.py --species_class sheep --name Texel --code TEX --alias TEXEL_UY --dataset TEXEL_INIA_UY.zip
 	$(PYTHON_INTERPRETER) src/data/add_breed.py --species_class sheep --name Frizarta --code FRZ --alias 0 --dataset Frizarta54samples_ped_map_files.zip
 	$(PYTHON_INTERPRETER) src/data/add_breed.py --species_class sheep --name Merino --code MER --alias MERINO_UY --dataset MERINO_INIA_UY.zip
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species_class sheep --name Merino --code MER --alias MER --dataset MERINO_INIA_UY.zip
 	$(PYTHON_INTERPRETER) src/data/add_breed.py --species_class sheep --name Corriedale --code CRR --alias CORRIEDALE_UY --dataset CORRIEDALE_INIA_UY.zip
 	$(PYTHON_INTERPRETER) src/data/add_breed.py --species_class sheep --name Creole --code CRL --alias CRL --dataset CREOLE_INIA_UY.zip
 	$(PYTHON_INTERPRETER) src/data/add_breed.py --species_class sheep --name "Mérinos d'Arles" --code ARL --alias MER --dataset="High density genotypes of French Sheep populations.zip"
@@ -196,9 +197,9 @@ data: requirements
 	$(foreach ASSEMBLY, $(SHEEP_ASSEMBLIES), $(PYTHON_INTERPRETER) src/data/import_from_plink.py --file Frizarta54samples_ped_map_files/Frizarta54samples \
 		--dataset Frizarta54samples_ped_map_files.zip --src_coding forward --chip_name IlluminaOvineSNP50 \
 		--assembly $(ASSEMBLY) --create_samples;)
-	$(foreach ASSEMBLY, $(SHEEP_ASSEMBLIES),  $(PYTHON_INTERPRETER) src/data/import_from_plink.py --file MERINO_UY_96_21_12_17_OV54k \
-		--dataset MERINO_INIA_UY.zip --chip_name IlluminaOvineSNP50 \
-		--assembly $(ASSEMBLY) --create_samples;)
+	$(PYTHON_INTERPRETER) src/data/import_samples.py --src_dataset MERINO_INIA_UY.zip \
+		--datafile MERINO_UY_96_21_12_17_OV54k_samples.xlsx --code_column code --id_column iid \
+		--chip_name IlluminaOvineSNP50 --country_column country
 	$(foreach ASSEMBLY, $(SHEEP_ASSEMBLIES), $(PYTHON_INTERPRETER) src/data/import_from_plink.py --file CORRIEDALE_UY_60_INIA_Ovine_14sep2010 \
 		--dataset CORRIEDALE_INIA_UY.zip --chip_name IlluminaOvineSNP50 \
 		--assembly $(ASSEMBLY) --create_samples;)
@@ -336,6 +337,8 @@ data: requirements
 		--chip_name IlluminaOvineSNP50 --country_column Country
 
 	## convert genotypes without creating samples in database (SHEEP)
+	$(foreach ASSEMBLY, $(SHEEP_ASSEMBLIES),  $(PYTHON_INTERPRETER) src/data/import_from_plink.py --file MERINO_UY_96_21_12_17_OV54k \
+		--dataset MERINO_INIA_UY.zip --chip_name IlluminaOvineSNP50 --assembly $(ASSEMBLY);)
 	$(foreach ASSEMBLY, $(SHEEP_ASSEMBLIES), $(PYTHON_INTERPRETER) src/data/import_from_affymetrix.py --prefix Affymetrix_data_Plate_652_660/Affymetrix_data_Plate_652/Affymetrix_data_Plate_652 \
 		--dataset Affymetrix_data_Plate_652_660.zip --breed_code CRR --chip_name AffymetrixAxiomOviCan --assembly $(ASSEMBLY) --sample_field alias \
 		--src_version Oar_v4.0 --src_imported_from affymetrix;)
