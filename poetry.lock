@@ -946,6 +946,20 @@ files = [
 ]
 
 [[package]]
+name = "geodatasets"
+version = "2023.12.0"
+description = "Spatial data examples"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "geodatasets-2023.12.0-py3-none-any.whl", hash = "sha256:6abf6dc2b5ec930465b19c33a1ba4211bf8aebbd544495ae9a5e81d9ca3ca294"},
+    {file = "geodatasets-2023.12.0.tar.gz", hash = "sha256:8867fa6966aeae3fe854697c9fb7d429666ae7ae8edda9b77c87c8e616ba6c65"},
+]
+
+[package.dependencies]
+pooch = "*"
+
+[[package]]
 name = "geographiclib"
 version = "2.0"
 description = "The geodesic routines from GeographicLib"
@@ -2395,6 +2409,27 @@ dev = ["pre-commit", "tox"]
 testing = ["pytest", "pytest-benchmark"]
 
 [[package]]
+name = "pooch"
+version = "1.8.1"
+description = "\"Pooch manages your Python library's sample data files: it automatically downloads and stores them in a local directory, with support for versioning and corruption checks.\""
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "pooch-1.8.1-py3-none-any.whl", hash = "sha256:6b56611ac320c239faece1ac51a60b25796792599ce5c0b1bb87bf01df55e0a9"},
+    {file = "pooch-1.8.1.tar.gz", hash = "sha256:27ef63097dd9a6e4f9d2694f5cfbf2f0a5defa44fccafec08d601e731d746270"},
+]
+
+[package.dependencies]
+packaging = ">=20.0"
+platformdirs = ">=2.5.0"
+requests = ">=2.19.0"
+
+[package.extras]
+progress = ["tqdm (>=4.41.0,<5.0.0)"]
+sftp = ["paramiko (>=2.7.0)"]
+xxhash = ["xxhash (>=1.4.3)"]
+
+[[package]]
 name = "prometheus-client"
 version = "0.20.0"
 description = "Python client for the Prometheus monitoring system."
@@ -3654,4 +3689,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "~3.12"
-content-hash = "db5f840e3feb0a3b19d892a0677564fbfb7a37a42550b9f28e41bd03d4d96887"
+content-hash = "d3cd9f81d63220cd8682f22fb6f90d8c8478965014728912a1e5ad447845ce7d"
