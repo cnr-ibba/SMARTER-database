@@ -174,7 +174,7 @@ data: requirements
 		--datafile 41598_2017_7382_MOESM2_ESM/barbato_sheep_metadata.xlsx --code_column code --breed_column breed_x \
 		--fid_column code --country_column country_x
 	$(PYTHON_INTERPRETER) src/data/import_breeds.py --species_class Sheep --src_dataset Ciani_2020.zip \
-		--datafile 8947346/ciani_2020_metadata.xlsx --code_column code --breed_column breed \
+		--datafile 8947346/ciani_2020_metadata_fix.xlsx --code_column code --breed_column breed \
 		--fid_column fid --country_column country
 	$(PYTHON_INTERPRETER) src/data/import_breeds.py --species_class Sheep --src_dataset northwest_africa_sheep.zip \
 		--datafile northwest_africa_sheep/belabdi_2019_metadata.xlsx --code_column code --breed_column breed \
@@ -326,7 +326,7 @@ data: requirements
 		--datafile 41598_2017_7382_MOESM2_ESM/barbato_sheep_metadata.xlsx --code_column code --id_column original_id \
 		--chip_name IlluminaOvineSNP50 --country_column country_x --sex_column sex
 	$(PYTHON_INTERPRETER) src/data/import_samples.py --src_dataset Ciani_2020.zip \
-		--datafile 8947346/ciani_2020_metadata.xlsx --code_column fid --id_column original_id \
+		--datafile 8947346/ciani_2020_metadata_fix.xlsx --code_column fid --id_column original_id \
 		--chip_name IlluminaOvineSNP50 --country_column country --species_column species
 	$(PYTHON_INTERPRETER) src/data/import_samples.py --src_dataset northwest_africa_sheep.zip \
 		--datafile northwest_africa_sheep/belabdi_2019_metadata.xlsx --code_column fid --id_column original_id \
@@ -594,7 +594,7 @@ data: requirements
 		--metadata_column sample_accession --metadata_column sample_provider --metadata_column closest_city \
 		--metadata_column closest_locality --metadata_column estimated_age_months --metadata_column sampling_date
 	$(PYTHON_INTERPRETER) src/data/import_metadata.py --src_dataset Ciani_2020.zip \
-		--datafile 8947346/ciani_2020_metadata.xlsx --id_column original_id \
+		--datafile 8947346/ciani_2020_metadata_fix.xlsx --id_column original_id \
 		--latitude_column latitude --longitude_column longitude --metadata_column region \
 		--metadata_column Type
 	$(PYTHON_INTERPRETER) src/data/import_metadata.py --src_dataset northwest_africa_sheep.zip \

@@ -16,7 +16,7 @@ TODO
 0.4.10.dev0
 -----------
 
-* Fix *french sheep* dataset country of origin using reverse geocoding (`#112 <https://github.com/cnr-ibba/SMARTER-database/issues/112>`__)
+* Fix issues with samples using reverse geocoding (`#112 <https://github.com/cnr-ibba/SMARTER-database/issues/112>`__)
 * Manage python packages with `poetry <https://python-poetry.org/>`__ (`#128 <https://github.com/cnr-ibba/SMARTER-database/issues/128>`__)
 * Add data for Guisandesa goats (`#117 <https://github.com/cnr-ibba/SMARTER-database/issues/117>`)
 * Rename ``manifacturer`` into ``manufacturer``
