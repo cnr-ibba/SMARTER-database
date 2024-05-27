@@ -13,12 +13,19 @@ TODO
 * Map affymetrix snps in *OARV3* coordinates
 * Check if ``rs_id`` is still valid or not (with EVA)
 
-0.4.10.dev0
------------
+0.4.10 (2024-05-28)
+-------------------
 
-* Fix issues with samples using reverse geocoding (`#112 <https://github.com/cnr-ibba/SMARTER-database/issues/112>`__)
+* Fix issues with sample countries using reverse geocoding (`#112 <https://github.com/cnr-ibba/SMARTER-database/issues/112>`__)
+  * fix country for *Merino* (Sheep)
+  * fix country for *Sumavska* (Sheep)
+  * fix GPS location for *Latxa* (Sheep)
+  * fix country for *Karakul* (Sheep)
+  * fix country for *Romanov* (Sheep)
+  * fix country for *Suffolk* (Sheep)
+  * fix country for *Texel* (Sheep)
 * Manage python packages with `poetry <https://python-poetry.org/>`__ (`#128 <https://github.com/cnr-ibba/SMARTER-database/issues/128>`__)
-* Add data for Guisandesa goats (`#117 <https://github.com/cnr-ibba/SMARTER-database/issues/117>`)
+* Add data for *Guisandesa* goats (`#117 <https://github.com/cnr-ibba/SMARTER-database/issues/117>`)
 * Rename ``manifacturer`` into ``manufacturer``
 * Convert genotypes from *top* to *forward* (`#111 <https://github.com/cnr-ibba/SMARTER-database/issues/111>`__)
 * Update dependencies
