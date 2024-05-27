@@ -55,14 +55,13 @@ Project Organization
     ├── LICENSE             <- Project LICENSE
     ├── Makefile            <- Makefile with commands like `make data` or `make train`
     ├── README.md           <- The top-level README for developers using this project.
-    ├── TODO.md             <- Stuff that need to be done
+    ├── conda-linux-64.lock <- Conda environment lock file for linux 64 bit
     ├── environment.yml     <- Conda environment file
+    ├── poetry.lock         <- Poetry lock file
+    ├── pyproject.toml      <- Poetry project file
     ├── pytest.ini          <- Configuration file for `pytest` testing environment
-    ├── requirements.txt    <- The requirements file for reproducing the analysis environment, e.g.
-    │                          generated with `pip freeze > requirements.txt`
     ├── setup.py            <- makes project pip installable (pip install -e .) so src can be imported
-    ├── test_environment.py <- Helper script to test if environment is properly set
-    └── tox.ini             <- Tox file with settings for running tox; see tox.readthedocs.io
+    └── test_environment.py <- Helper script to test if environment is properly set
 
 --------
 

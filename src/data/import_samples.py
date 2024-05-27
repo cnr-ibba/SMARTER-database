@@ -22,7 +22,6 @@ from click_option_group import (
     MutuallyExclusiveOptionGroup)
 from mongoengine.errors import DoesNotExist
 
-import pycountry
 from pandas.core.series import Series
 
 from src.data.common import (
@@ -31,7 +30,7 @@ from src.data.common import (
 from src.features.smarterdb import (
     global_connection, Breed, get_or_create_sample, get_sample_type,
     SmarterDBException)
-from src.features.utils import UnknownCountry
+from src.features.utils import UnknownCountry, countries
 
 logger = logging.getLogger(__name__)
 
@@ -53,7 +52,7 @@ def find_country(country: str):
         return UnknownCountry()
 
     # transform country string with pycountry
-    fuzzy = pycountry.countries.search_fuzzy(country)[0]
+    fuzzy = countries.search_fuzzy(country)[0]
 
     logger.info(f"Found {fuzzy} for {country}")
 

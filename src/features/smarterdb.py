@@ -9,16 +9,15 @@ Created on Tue Feb 23 16:21:35 2021
 import os
 import logging
 import pathlib
-import pycountry
 import mongoengine
 
 from enum import Enum
-from typing import Union
+from typing import List, Tuple, Union
 
 from pymongo import database, ReturnDocument, MongoClient
 from dotenv import find_dotenv, load_dotenv
 
-from .utils import get_project_dir, UnknownCountry
+from .utils import get_project_dir, UnknownCountry, countries
 
 SPECIES2CODE = {
     "Sheep": "OA",
@@ -166,7 +165,7 @@ class Country(mongoengine.Document):
     """The country numeric code"""
 
     official_name = mongoengine.StringField()
-    """Country ufficial name"""
+    """Country official name"""
 
     species = mongoengine.ListField(mongoengine.StringField())
     """The sample species find within this country"""
@@ -179,23 +178,25 @@ class Country(mongoengine.Document):
     def __init__(self, name: str = None, *args, **kwargs):
         # fix species type if necessary
         if "species" in kwargs:
-            if type(kwargs["species"]) == str:
+            if isinstance(kwargs["species"], str):
                 kwargs["species"] = [kwargs["species"]]
 
         # initialize base object
-        super(Country, self).__init__(*args, **kwargs)
+        super(Country, self).__init__(*args, name=name, **kwargs)
 
-        if name:
+        if not self.id and name:
+            logger.warning(f"Creating country object for '{name}'")
+
             # get a country object
             if name.lower() == "unknown":
                 country = UnknownCountry()
             else:
-                country = pycountry.countries.get(name=name)
+                country = countries.get(name=name)
 
-            self.alpha_2 = country.alpha_2
-            self.alpha_3 = country.alpha_3
-            self.name = name
-            self.numeric = country.numeric
+            if country:
+                self.alpha_2 = country.alpha_2
+                self.alpha_3 = country.alpha_3
+                self.numeric = country.numeric
 
             if hasattr(country, "official_name"):
                 self.official_name = country.official_name
@@ -295,8 +296,8 @@ class Breed(mongoengine.Document):
 
 
 def get_or_create_breed(
-        species_class: str, name: str, code: str, aliases: list = []) -> [
-            Breed, bool]:
+        species_class: str, name: str, code: str,
+        aliases: List[BreedAlias] = []) -> Tuple[Breed, bool]:
     """
     Get a Breed instance or create a new one (or update a breed adding a new
     :py:class:`BreedAlias`)
@@ -528,7 +529,7 @@ def getSmarterId(
     if country.lower() == "unknown":
         country = UnknownCountry()
     else:
-        country = pycountry.countries.get(name=country)
+        country = countries.get(name=country)
 
     # get two letter code for country
     country_code = country.alpha_2
@@ -580,7 +581,7 @@ class SEX(bytes, Enum):
             SEX: A sex instance (MALE, FEMALE, UNKNOWN)
         """
 
-        if type(value) != str:
+        if not isinstance(value, str):
             raise SmarterDBException("Provided value should be a 'str' type")
 
         value = value.upper()

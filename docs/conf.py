@@ -11,9 +11,7 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-import os
-import sys
-
+import mongomock
 import mongoengine
 
 import src
@@ -119,7 +117,8 @@ def setup(app):
     # smarterdb package
     mongoengine.connect(
         'mongoenginetest',
-        host='mongomock://localhost',
+        host='mongodb://localhost',
+        mongo_client_class=mongomock.MongoClient,
         alias=src.features.smarterdb.DB_ALIAS)
 
     connection = mongoengine.connection.get_db(

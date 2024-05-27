@@ -41,7 +41,9 @@ class CountryTestCase(MongoMockMixin, unittest.TestCase):
     def test_no_official_name(self):
         country = Country(name="Barbados")
         self.assertEqual(str(country), "Barbados (BB)")
-        self.assertIsNone(country.official_name)
+
+        # when there's no official name, the name is the official name
+        self.assertEqual(country.official_name, country.name)
 
     def test_unknown_country(self):
         country = Country(name="Unknown", species="Sheep")

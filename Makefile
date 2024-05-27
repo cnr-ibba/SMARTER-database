@@ -25,7 +25,7 @@ endif
 
 ## Install Python Dependencies
 requirements: test_environment
-	$(PYTHON_INTERPRETER) -m pip install -r requirements.txt
+	poetry install
 
 ## Initialize database by loading stuff
 initialize: requirements
@@ -92,6 +92,7 @@ data: requirements
 	$(PYTHON_INTERPRETER) src/data/add_breed.py --species_class sheep --name Texel --code TEX --alias TEXEL_UY --dataset TEXEL_INIA_UY.zip
 	$(PYTHON_INTERPRETER) src/data/add_breed.py --species_class sheep --name Frizarta --code FRZ --alias 0 --dataset Frizarta54samples_ped_map_files.zip
 	$(PYTHON_INTERPRETER) src/data/add_breed.py --species_class sheep --name Merino --code MER --alias MERINO_UY --dataset MERINO_INIA_UY.zip
+	$(PYTHON_INTERPRETER) src/data/add_breed.py --species_class sheep --name Merino --code MER --alias MER --dataset MERINO_INIA_UY.zip
 	$(PYTHON_INTERPRETER) src/data/add_breed.py --species_class sheep --name Corriedale --code CRR --alias CORRIEDALE_UY --dataset CORRIEDALE_INIA_UY.zip
 	$(PYTHON_INTERPRETER) src/data/add_breed.py --species_class sheep --name Creole --code CRL --alias CRL --dataset CREOLE_INIA_UY.zip
 	$(PYTHON_INTERPRETER) src/data/add_breed.py --species_class sheep --name "Mérinos d'Arles" --code ARL --alias MER --dataset="High density genotypes of French Sheep populations.zip"
@@ -147,7 +148,7 @@ data: requirements
 
 	## load breeds into database relying on dataset
 	$(PYTHON_INTERPRETER) src/data/import_breeds.py --species_class Sheep --src_dataset="High density genotypes of French Sheep populations.zip" \
-		--datafile Populations_infos_fix.xlsx --code_column Code --breed_column "Population Name"
+		--datafile Populations_infos_fix.xlsx --code_column Code --breed_column "Population Name" --country_column Country
 	$(PYTHON_INTERPRETER) src/data/import_breeds.py --species_class Sheep --src_dataset=ovine_SNP50HapMap_data.zip \
 		--datafile ovine_SNP50HapMap_data/kijas2012_dataset_fix.xlsx --code_column code --breed_column Breed \
 		--fid_column Breed --country_column country
@@ -174,7 +175,7 @@ data: requirements
 		--datafile 41598_2017_7382_MOESM2_ESM/barbato_sheep_metadata.xlsx --code_column code --breed_column breed_x \
 		--fid_column code --country_column country_x
 	$(PYTHON_INTERPRETER) src/data/import_breeds.py --species_class Sheep --src_dataset Ciani_2020.zip \
-		--datafile 8947346/ciani_2020_metadata.xlsx --code_column code --breed_column breed \
+		--datafile 8947346/ciani_2020_metadata_fix.xlsx --code_column code --breed_column breed \
 		--fid_column fid --country_column country
 	$(PYTHON_INTERPRETER) src/data/import_breeds.py --species_class Sheep --src_dataset northwest_africa_sheep.zip \
 		--datafile northwest_africa_sheep/belabdi_2019_metadata.xlsx --code_column code --breed_column breed \
@@ -196,9 +197,9 @@ data: requirements
 	$(foreach ASSEMBLY, $(SHEEP_ASSEMBLIES), $(PYTHON_INTERPRETER) src/data/import_from_plink.py --file Frizarta54samples_ped_map_files/Frizarta54samples \
 		--dataset Frizarta54samples_ped_map_files.zip --src_coding forward --chip_name IlluminaOvineSNP50 \
 		--assembly $(ASSEMBLY) --create_samples;)
-	$(foreach ASSEMBLY, $(SHEEP_ASSEMBLIES),  $(PYTHON_INTERPRETER) src/data/import_from_plink.py --file MERINO_UY_96_21_12_17_OV54k \
-		--dataset MERINO_INIA_UY.zip --chip_name IlluminaOvineSNP50 \
-		--assembly $(ASSEMBLY) --create_samples;)
+	$(PYTHON_INTERPRETER) src/data/import_samples.py --src_dataset MERINO_INIA_UY.zip \
+		--datafile MERINO_UY_96_21_12_17_OV54k_samples.xlsx --code_column code --id_column iid \
+		--chip_name IlluminaOvineSNP50 --country_column country
 	$(foreach ASSEMBLY, $(SHEEP_ASSEMBLIES), $(PYTHON_INTERPRETER) src/data/import_from_plink.py --file CORRIEDALE_UY_60_INIA_Ovine_14sep2010 \
 		--dataset CORRIEDALE_INIA_UY.zip --chip_name IlluminaOvineSNP50 \
 		--assembly $(ASSEMBLY) --create_samples;)
@@ -326,7 +327,7 @@ data: requirements
 		--datafile 41598_2017_7382_MOESM2_ESM/barbato_sheep_metadata.xlsx --code_column code --id_column original_id \
 		--chip_name IlluminaOvineSNP50 --country_column country_x --sex_column sex
 	$(PYTHON_INTERPRETER) src/data/import_samples.py --src_dataset Ciani_2020.zip \
-		--datafile 8947346/ciani_2020_metadata.xlsx --code_column fid --id_column original_id \
+		--datafile 8947346/ciani_2020_metadata_fix.xlsx --code_column fid --id_column original_id \
 		--chip_name IlluminaOvineSNP50 --country_column country --species_column species
 	$(PYTHON_INTERPRETER) src/data/import_samples.py --src_dataset northwest_africa_sheep.zip \
 		--datafile northwest_africa_sheep/belabdi_2019_metadata.xlsx --code_column fid --id_column original_id \
@@ -336,6 +337,8 @@ data: requirements
 		--chip_name IlluminaOvineSNP50 --country_column Country
 
 	## convert genotypes without creating samples in database (SHEEP)
+	$(foreach ASSEMBLY, $(SHEEP_ASSEMBLIES),  $(PYTHON_INTERPRETER) src/data/import_from_plink.py --file MERINO_UY_96_21_12_17_OV54k \
+		--dataset MERINO_INIA_UY.zip --chip_name IlluminaOvineSNP50 --assembly $(ASSEMBLY);)
 	$(foreach ASSEMBLY, $(SHEEP_ASSEMBLIES), $(PYTHON_INTERPRETER) src/data/import_from_affymetrix.py --prefix Affymetrix_data_Plate_652_660/Affymetrix_data_Plate_652/Affymetrix_data_Plate_652 \
 		--dataset Affymetrix_data_Plate_652_660.zip --breed_code CRR --chip_name AffymetrixAxiomOviCan --assembly $(ASSEMBLY) --sample_field alias \
 		--src_version Oar_v4.0 --src_imported_from affymetrix;)
@@ -594,7 +597,7 @@ data: requirements
 		--metadata_column sample_accession --metadata_column sample_provider --metadata_column closest_city \
 		--metadata_column closest_locality --metadata_column estimated_age_months --metadata_column sampling_date
 	$(PYTHON_INTERPRETER) src/data/import_metadata.py --src_dataset Ciani_2020.zip \
-		--datafile 8947346/ciani_2020_metadata.xlsx --id_column original_id \
+		--datafile 8947346/ciani_2020_metadata_fix.xlsx --id_column original_id \
 		--latitude_column latitude --longitude_column longitude --metadata_column region \
 		--metadata_column Type
 	$(PYTHON_INTERPRETER) src/data/import_metadata.py --src_dataset northwest_africa_sheep.zip \
@@ -772,7 +775,7 @@ lint:
 create_environment:
 ifeq (True,$(HAS_CONDA))
 	@echo ">>> Detected conda, creating conda environment."
-	conda env create -f environment.yml
+	conda create --name $(PROJECT_NAME) --file conda-linux-64.lock
 	@echo ">>> New conda env created. Activate with:\nsource activate $(PROJECT_NAME)"
 else
 	$(PYTHON_INTERPRETER) -m pip install -q virtualenv virtualenvwrapper
