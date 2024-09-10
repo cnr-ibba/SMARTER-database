@@ -1265,7 +1265,7 @@ class BinaryPlinkIO(SmarterMixin):
             self.plink_file = plinkfile.open(self._prefix)
 
     def read_mapfile(self):
-        """Read map data and track informations in memory. Useful to process
+        """Read map data and track information in memory. Useful to process
         data files"""
 
         self.mapdata = list()

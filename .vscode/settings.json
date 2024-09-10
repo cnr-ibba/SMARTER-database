@@ -35,5 +35,6 @@
         "tabix",
         "tqdm",
         "vcftools"
-    ]
+    ],
+    "makefile.configureOnOpen": false
 }
