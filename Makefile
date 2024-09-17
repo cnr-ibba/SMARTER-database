@@ -425,13 +425,13 @@ data: requirements
 		--dataset SMARTER_CHFR.zip --chip_name IlluminaGoatSNP50 --assembly $(ASSEMBLY) --create_samples;)
 	$(PYTHON_INTERPRETER) src/data/import_samples.py --src_dataset burren_et_al_2016.zip \
 		--datafile doi_10.5061_dryad.q1cv6__v1/burren_samples_fix.xlsx --code_column code --id_column original_id \
-		--chip_name IlluminaGoatSNP50 --country_all Switzerland --species_all Goat --alias_column alias
+		--chip_name IlluminaGoatSNP50 --country_all Switzerland --species_all "Capra hircus" --alias_column alias
 	$(PYTHON_INTERPRETER) src/data/import_samples.py --src_dataset cortellari_et_al_2021.zip \
 		--datafile s41598-021-89900-2/cortellari_samples_fix.xlsx --code_column fid --id_column original_id \
-		--chip_name IlluminaGoatSNP50 --country_all Italy --species_all Goat
+		--chip_name IlluminaGoatSNP50 --country_all Italy --species_all "Capra hircus"
 	$(PYTHON_INTERPRETER) src/data/import_samples.py --src_dataset Guisandesa.zip \
 		--datafile Guisandesa/Guisandesa.xlsx --code_all GUI --id_column original_id \
-		--chip_name AffymetrixAxiomGoatv2 --country_all Spain --species_all Goat
+		--chip_name AffymetrixAxiomGoatv2 --country_all Spain --species_all "Capra hircus"
 
 	## convert genotypes without creating samples in database (GOAT)
 	$(foreach ASSEMBLY, $(GOAT_ASSEMBLIES), $(PYTHON_INTERPRETER) src/data/import_from_plink.py --bfile ADAPTmap_genotypeTOP_20161201/binary_fileset/ADAPTmap_genotypeTOP_20161201 \
