@@ -1,0 +1,16 @@
+*pycache*
+.github/
+.pytest_cache/
+.spyproject/
+.tox/
+data/
+database/
+docs/
+htmlcov/
+test/
+*.zip
+*.bed
+*.bim
+*.fam
+*.py
+*.pyc
