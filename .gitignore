@@ -96,3 +96,7 @@ target/
 *.fam
 *.hh
 *.nosex"
+
+# R stuff
+.RData
+.Rhistory
