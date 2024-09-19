@@ -38,6 +38,7 @@ geodatasets = "^2023.12.0"
 scikit-bio = "^0.6.2"
 plotly = "^5.24.1"
 scikit-learn = "^1.5.2"
+nbstripout = "^0.7.1"
 
 
 [build-system]
