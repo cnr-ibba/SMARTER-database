@@ -37,6 +37,7 @@ geopy = "^2.4.1"
 geodatasets = "^2023.12.0"
 scikit-bio = "^0.6.2"
 plotly = "^5.24.1"
+scikit-learn = "^1.5.2"
 
 
 [build-system]
