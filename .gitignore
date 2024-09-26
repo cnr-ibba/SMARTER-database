@@ -100,3 +100,6 @@ target/
 # R stuff
 .RData
 .Rhistory
+
+# other file formats
+*.html
